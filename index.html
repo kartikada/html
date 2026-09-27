@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Warkop Hidayah — POS Cashier</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -38,14 +38,34 @@
 }
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;margin:0;padding:8px sm:12px;font-family:'Plus Jakarta Sans','Inter',sans-serif;background:var(--bg-canvas);color:var(--text-main);overflow:hidden}
+html,body{
+  height:100%;
+  margin:0;
+  padding:0;
+  font-family:'Plus Jakarta Sans','Inter',sans-serif;
+  background:var(--bg-canvas);
+  color:var(--text-main);
+  overflow-x:hidden;
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* Tablet & Desktop Padding */
+@media (min-width: 640px) {
+  body { padding: 8px 12px; }
+  #app-frame { border-radius: 24px; height: calc(100vh - 16px); max-height: calc(100vh - 16px); border: 1px solid rgba(255,255,255,0.7); box-shadow: 0 14px 40px rgba(27,32,43,0.06); }
+}
+@media (max-width: 639px) {
+  body { padding: 0; height: 100dvh; }
+  #app-frame { border-radius: 0; height: 100dvh; max-height: 100dvh; border: none; }
+}
+
 .ms{font-family:'Material Symbols Rounded';font-variation-settings:'FILL' 1,'wght' 700,'GRAD' 0,'opsz' 20;line-height:1;vertical-align:middle;display:inline-block;user-select:none}
 .ns{scrollbar-width:none;-ms-overflow-style:none}
 .ns::-webkit-scrollbar{display:none}
 
-/* Category Pill Capsule - Scaled to Sedang */
+/* Category Pill Capsule */
 .cat-capsule{
-  width:62px;height:76px;border-radius:24px;background:var(--card-bg);
+  width:62px;height:76px;border-radius:22px;background:var(--card-bg);
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:5px;cursor:pointer;flex-shrink:0;transition:all .16s ease;
   border:1.5px solid transparent;box-shadow:0 2px 8px rgba(0,0,0,.03)
@@ -66,7 +86,7 @@ html,body{height:100%;margin:0;padding:8px sm:12px;font-family:'Plus Jakarta San
   transition:all .16s ease;
 }
 
-/* Hero Food Card - Scaled to Sedang */
+/* Hero Food Card */
 .hero-card{
   background:var(--card-bg);border-radius:22px;padding:14px 12px;
   position:relative;display:flex;flex-direction:column;align-items:center;
@@ -82,7 +102,7 @@ html,body{height:100%;margin:0;padding:8px sm:12px;font-family:'Plus Jakarta San
 }
 .hero-img-wrap img{width:100%;height:100%;object-fit:cover}
 
-/* Compact Food Card - Scaled to Sedang */
+/* Compact Food Card */
 .compact-card{
   background:var(--card-bg);border-radius:18px;padding:10px 12px;
   display:flex;align-items:center;gap:10px;
@@ -113,13 +133,22 @@ html,body{height:100%;margin:0;padding:8px sm:12px;font-family:'Plus Jakarta San
   font-size:11px;font-weight:800;color:#FFFFFF;min-width:16px;text-align:center;
 }
 
-/* Modals */
+/* Modals & Drawers */
 .mwrap{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:16px}
 .mwrap.open{display:flex}
 .mbg{position:absolute;inset:0;background:rgba(27,32,43,.55);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
 .mbox{position:relative;background:var(--card-bg);border-radius:26px;box-shadow:0 24px 60px rgba(27,32,43,.22);width:100%;overflow:hidden;animation:popIn .2s ease}
 @keyframes popIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+
+/* Bottom Drawer for Mobile/Tablet */
+.bottom-sheet{
+  position:fixed;bottom:0;left:0;right:0;max-height:86vh;background:#FFFFFF;
+  border-radius:24px 24px 0 0;box-shadow:0 -10px 40px rgba(0,0,0,.2);
+  z-index:210;display:none;flex-direction:column;animation:slideUp .24s cubic-bezier(.16,1,.3,1);
+}
+.bottom-sheet.open{display:flex}
 
 /* Receipt Struk */
 .receipt-card{
@@ -137,162 +166,162 @@ html,body{height:100%;margin:0;padding:8px sm:12px;font-family:'Plus Jakarta San
 </head>
 <body class="flex flex-col items-center justify-center">
 
-<!-- ═══════════════════ MAIN WRAPPER FRAME (NO CUT-OFF) ═══════════════════ -->
-<div id="app-frame" style="width:100%;max-width:1420px;height:calc(100vh - 16px);background:#FFFFFF;border-radius:28px;box-shadow:0 14px 40px rgba(27,32,43,0.06);display:flex;flex-direction:column;overflow:hidden;border:1px solid rgba(255,255,255,0.7)">
+<!-- ═══════════════════ MAIN WRAPPER FRAME (RESPONSIVE HP / IPAD / LAPTOP) ═══════════════════ -->
+<div id="app-frame" style="width:100%;max-width:1420px;background:#FFFFFF;display:flex;flex-direction:column;overflow:hidden">
 
   <!-- 3 COLUMNS CONTAINER -->
   <div class="flex-1 flex flex-row overflow-hidden relative">
 
-    <!-- ── LEFT NAVIGATION SIDEBAR (~84px) ── -->
-    <aside style="width:84px;background:#FFFFFF;border-right:1.5px solid var(--border-soft);display:flex;flex-direction:column;align-items:center;padding:18px 8px;gap:20px;flex-shrink:0" class="hidden sm:flex">
+    <!-- ── LEFT NAVIGATION SIDEBAR (HIDDEN ON HP < 640px, COMPACT ON IPAD, FULL ON LAPTOP) ── -->
+    <aside style="background:#FFFFFF;border-right:1.5px solid var(--border-soft);display:flex;flex-direction:column;align-items:center;padding:16px 8px;gap:18px;flex-shrink:0" class="hidden sm:flex sm:w-16 md:w-20">
       
       <!-- Profile Avatar -->
       <div class="flex flex-col items-center gap-1 cursor-pointer">
-        <div style="width:48px;height:48px;border-radius:18px;overflow:hidden;background:#E2E8F0;box-shadow:0 3px 10px rgba(0,0,0,.08);border:2px solid #FFFFFF">
-          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&h=120&fit=crop&q=80" alt="Andi Kasir" style="width:100%;height:100%;object-fit:cover">
+        <div style="width:44px;height:44px;border-radius:16px;overflow:hidden;background:#E2E8F0;box-shadow:0 3px 10px rgba(0,0,0,.08);border:2px solid #FFFFFF">
+          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&h=120&fit=crop&q=80" alt="Andi Kasir" style="width:100%;height:100%;object-fit:cover" onerror="this.src='https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop&q=80'">
         </div>
-        <span style="font-size:10px;font-weight:700;color:var(--text-main);white-space:nowrap">Andi Kasir</span>
+        <span style="font-size:9px;font-weight:700;color:var(--text-main);white-space:nowrap" class="hidden md:inline">Andi Kasir</span>
       </div>
 
       <!-- Navigation Vertical Pills -->
       <div class="flex flex-col items-center gap-2.5 w-full">
         <!-- Kasir (Active default) -->
         <button id="nav-btn-kasir" onclick="switchView('kasir')"
-          style="width:66px;height:58px;border-radius:18px;background:var(--pink);color:#FFFFFF;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:0 6px 16px rgba(255,91,122,.32);transition:all .16s">
-          <span class="ms" style="font-size:22px">storefront</span>
-          <span style="font-size:10px;font-weight:700">Kasir</span>
+          style="width:58px;height:52px;border-radius:16px;background:var(--pink);color:#FFFFFF;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:0 6px 16px rgba(255,91,122,.32);transition:all .16s">
+          <span class="ms" style="font-size:20px">storefront</span>
+          <span style="font-size:9px;font-weight:700">Kasir</span>
         </button>
 
         <!-- Stok -->
         <button id="nav-btn-stok" onclick="switchView('stok')"
-          style="width:66px;height:58px;border-radius:18px;background:#FFFFFF;color:var(--text-sub);border:1px solid var(--border-soft);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:0 2px 6px rgba(0,0,0,.02);transition:all .16s"
+          style="width:58px;height:52px;border-radius:16px;background:#FFFFFF;color:var(--text-sub);border:1px solid var(--border-soft);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:0 2px 6px rgba(0,0,0,.02);transition:all .16s"
           onmouseover="this.style.color='var(--pink)';this.style.borderColor='var(--pink-border)'"
           onmouseout="if(window.CUR_VIEW!=='stok'){this.style.color='var(--text-sub)';this.style.borderColor='var(--border-soft)'}">
-          <span class="ms" style="font-size:22px">inventory_2</span>
-          <span style="font-size:10px;font-weight:700">Stok</span>
+          <span class="ms" style="font-size:20px">inventory_2</span>
+          <span style="font-size:9px;font-weight:700">Stok</span>
         </button>
 
         <!-- Laporan / Dashboard -->
         <button id="nav-btn-lap" onclick="switchView('lap')"
-          style="width:66px;height:58px;border-radius:18px;background:#FFFFFF;color:var(--text-sub);border:1px solid var(--border-soft);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:0 2px 6px rgba(0,0,0,.02);transition:all .16s"
+          style="width:58px;height:52px;border-radius:16px;background:#FFFFFF;color:var(--text-sub);border:1px solid var(--border-soft);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:0 2px 6px rgba(0,0,0,.02);transition:all .16s"
           onmouseover="this.style.color='var(--pink)';this.style.borderColor='var(--pink-border)'"
           onmouseout="if(window.CUR_VIEW!=='lap'){this.style.color='var(--text-sub)';this.style.borderColor='var(--border-soft)'}">
-          <span class="ms" style="font-size:22px">monitoring</span>
-          <span style="font-size:10px;font-weight:700">Laporan</span>
+          <span class="ms" style="font-size:20px">monitoring</span>
+          <span style="font-size:9px;font-weight:700">Laporan</span>
         </button>
       </div>
 
       <!-- Bottom Widget (Pesanan Cepat) -->
       <div class="mt-auto w-full flex flex-col items-center">
-        <div style="background:#F8FAFC;border:1px solid var(--border-soft);border-radius:16px;padding:8px 6px;text-align:center;width:68px;cursor:pointer" onclick="openTablePicker()">
-          <div style="font-size:20px;margin-bottom:1px">🛵</div>
-          <div style="font-size:9px;font-weight:800;color:var(--text-main);line-height:1.1">Pesanan Cepat!</div>
-          <div style="font-size:8px;color:var(--pink);font-weight:700;margin-top:2px">Lihat meja →</div>
+        <div style="background:#F8FAFC;border:1px solid var(--border-soft);border-radius:14px;padding:6px 4px;text-align:center;width:60px;cursor:pointer" onclick="openTablePicker()">
+          <div style="font-size:18px;margin-bottom:1px">🛵</div>
+          <div style="font-size:8px;font-weight:800;color:var(--text-main);line-height:1.1">Cepat!</div>
         </div>
       </div>
     </aside>
 
 
-    <!-- ── CENTER: MAIN CONTENT VIEW ── -->
-    <main style="flex:1;background:#FFFFFF;display:flex;flex-direction:column;overflow-y:auto;position:relative" class="ns">
+    <!-- ── CENTER: MAIN CONTENT VIEW (SCROLLABLE, RESPONSIF) ── -->
+    <main style="flex:1;background:#FFFFFF;display:flex;flex-direction:column;overflow-y:auto;position:relative" class="ns pb-20 sm:pb-4">
 
       <!-- ═════════ POS VIEW (KASIR) ═════════ -->
-      <div id="view-pos" style="padding:18px 22px 24px;display:flex;flex-direction:column;gap:18px">
+      <div id="view-pos" style="padding:14px 16px 20px sm:padding:18px 22px 24px;display:flex;flex-direction:column;gap:16px">
 
-        <!-- Top Header Bar (No "Selamat Datang di", directly "Warkop Hidayah" + "POS Cashier") -->
-        <div class="flex flex-row items-center justify-between gap-3">
+        <!-- Top Header Bar -->
+        <div class="flex flex-row items-center justify-between gap-2 sm:gap-3">
           <!-- Title -->
-          <div>
-            <h1 style="font-size:20px;font-weight:900;color:var(--text-main);line-height:1.1">Warkop Hidayah</h1>
-            <div style="font-size:11px;color:var(--text-sub);font-weight:700;margin-top:2px;letter-spacing:.04em">POS Cashier</div>
+          <div class="min-w-0">
+            <h1 style="font-size:18px;font-weight:900;color:var(--text-main);line-height:1.1" class="sm:text-xl">Warkop Hidayah</h1>
+            <div style="font-size:10px;color:var(--text-sub);font-weight:700;margin-top:1px;letter-spacing:.04em" class="sm:text-[11px]">POS Cashier</div>
           </div>
 
           <!-- Actions & Promo Banner -->
-          <div class="flex items-center gap-2.5">
+          <div class="flex items-center gap-2">
             <!-- Search Box -->
-            <div style="position:relative">
-              <input id="prod-search" type="text" oninput="renderPosProducts()" placeholder="Cari menu warkop…"
-                style="height:40px;border-radius:14px;background:#F8FAFC;border:1.5px solid var(--border-soft);padding:0 14px 0 38px;font-size:12px;font-weight:600;outline:none;width:170px;color:var(--text-main)"
-                onfocus="this.style.width='210px';this.style.borderColor='var(--pink)'"
+            <div style="position:relative" class="hidden sm:block">
+              <input id="prod-search" type="text" oninput="renderPosProducts()" placeholder="Cari menu…"
+                style="height:38px;border-radius:12px;background:#F8FAFC;border:1.5px solid var(--border-soft);padding:0 12px 0 34px;font-size:11px;font-weight:600;outline:none;width:140px;color:var(--text-main)"
+                onfocus="this.style.width='180px';this.style.borderColor='var(--pink)'"
                 onblur="this.style.borderColor='var(--border-soft)'">
-              <span class="ms" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-sub);font-size:18px">search</span>
+              <span class="ms" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-sub);font-size:16px">search</span>
             </div>
 
-            <!-- Cart Trigger Icon Button -->
-            <button onclick="scrollOrOpenCart()" style="width:40px;height:40px;border-radius:14px;background:var(--navy);border:none;color:#FFFFFF;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;box-shadow:0 4px 12px rgba(27,32,43,.18)">
-              <span class="ms" style="font-size:20px">shopping_cart</span>
-              <span id="header-cart-dot" style="position:absolute;top:8px;right:8px;width:7px;height:7px;background:var(--pink);border-radius:50%;display:none"></span>
+            <!-- Cart Trigger Icon Button (Active on Tablet/Mobile) -->
+            <button onclick="toggleMobileCartSheet()" style="width:38px;height:38px;border-radius:12px;background:var(--navy);border:none;color:#FFFFFF;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;box-shadow:0 4px 12px rgba(27,32,43,.18)" class="lg:hidden">
+              <span class="ms" style="font-size:18px">shopping_cart</span>
+              <span id="header-cart-dot" style="position:absolute;top:7px;right:7px;width:7px;height:7px;background:var(--pink);border-radius:50%;display:none"></span>
             </button>
 
             <!-- Banner: Racik Seblak Prasmanan -->
             <div onclick="openSblkModal()"
-              style="height:40px;background:linear-gradient(135deg,#A888FC 0%,#8E6BF7 100%);border-radius:14px;padding:0 14px;display:flex;align-items:center;gap:10px;cursor:pointer;box-shadow:0 4px 14px rgba(142,107,247,.28);transition:transform .14s ease"
+              style="height:38px;background:linear-gradient(135deg,#A888FC 0%,#8E6BF7 100%);border-radius:12px;padding:0 12px;display:flex;align-items:center;gap:8px;cursor:pointer;box-shadow:0 4px 12px rgba(142,107,247,.25);transition:transform .14s ease"
               onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
               <div>
-                <div style="font-size:11px;font-weight:800;color:#FFFFFF;line-height:1.1">Racik Seblak</div>
-                <div style="font-size:9px;color:rgba(255,255,255,.9);font-weight:600">Prasmanan Kustom 🍜</div>
+                <div style="font-size:10px;font-weight:800;color:#FFFFFF;line-height:1.1">Racik Seblak</div>
+                <div style="font-size:8px;color:rgba(255,255,255,.9);font-weight:600" class="hidden sm:block">Prasmanan Kustom 🍜</div>
               </div>
-              <div style="font-size:20px">🌶️</div>
+              <div style="font-size:18px">🌶️</div>
             </div>
           </div>
         </div>
 
-        <!-- Horizontal Category Capsules -->
-        <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:2px" class="ns" id="cat-capsule-container">
-          <!-- Injected via JS -->
+        <!-- Mobile Search Box (Visible only on < sm) -->
+        <div style="position:relative" class="sm:hidden w-full">
+          <input id="prod-search-mobile" type="text" oninput="document.getElementById('prod-search').value=this.value;renderPosProducts()" placeholder="Cari kopi, seblak, jajanan…"
+            style="width:100%;height:36px;border-radius:12px;background:#F8FAFC;border:1.5px solid var(--border-soft);padding:0 12px 0 34px;font-size:11px;font-weight:600;outline:none;color:var(--text-main)">
+          <span class="ms" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-sub);font-size:16px">search</span>
         </div>
+
+        <!-- Horizontal Category Capsules -->
+        <div style="display:flex;gap:8px sm:gap:10px;overflow-x:auto;padding-bottom:2px" class="ns" id="cat-capsule-container"></div>
 
         <!-- Section Title: Menu Kasir -->
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
-            <h2 style="font-size:16px;font-weight:800;color:var(--text-main)">Menu Kasir</h2>
-            <span class="ms" style="font-size:16px;color:var(--text-sub)">tune</span>
+            <h2 style="font-size:15px;font-weight:800;color:var(--text-main)">Menu Kasir</h2>
+            <span class="ms" style="font-size:15px;color:var(--text-sub)">tune</span>
           </div>
-          <button onclick="setCategoryFilter('all')" style="font-size:11px;font-weight:700;color:var(--text-sub);background:none;border:none;cursor:pointer"
+          <button onclick="setCategoryFilter('all')" style="font-size:10px;font-weight:700;color:var(--text-sub);background:none;border:none;cursor:pointer"
             onmouseover="this.style.color='var(--pink)'" onmouseout="this.style.color='var(--text-sub)'">View all →</button>
         </div>
 
-        <!-- ── ROW 1: 3 HERO PRODUCTS ── -->
-        <div id="hero-products-row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px">
-          <!-- Injected via JS -->
-        </div>
+        <!-- ── ROW 1: 3 HERO PRODUCTS (RESPONSIVE GRID) ── -->
+        <div id="hero-products-row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px sm:gap:14px"></div>
 
-        <!-- ── ROW 2: ALL COMPACT PRODUCTS GRID (Lengkap Semua Menu) ── -->
+        <!-- ── ROW 2: ALL COMPACT PRODUCTS GRID (RESPONSIVE GRID) ── -->
         <div>
-          <div style="font-size:12px;font-weight:800;color:var(--text-sub);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">Daftar Menu Lengkap</div>
-          <div id="compact-products-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px">
-            <!-- Injected via JS -->
-          </div>
+          <div style="font-size:11px;font-weight:800;color:var(--text-sub);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Daftar Menu Lengkap</div>
+          <div id="compact-products-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px sm:gap:10px"></div>
         </div>
 
       </div>
 
 
-      <!-- ═════════ STOK MANAGEMENT VIEW (ADMIN - NO CHECKOUT SIDEBAR) ═════════ -->
-      <div id="view-stok" style="display:none;padding:22px 26px 36px;flex-direction:column;gap:18px;width:100%">
-        <div class="flex items-center justify-between flex-wrap gap-3">
+      <!-- ═════════ STOK MANAGEMENT VIEW (ADMIN) ═════════ -->
+      <div id="view-stok" style="display:none;padding:16px 18px 30px sm:padding:22px 26px 36px;flex-direction:column;gap:16px;width:100%">
+        <div class="flex items-center justify-between flex-wrap gap-2.5">
           <div>
-            <h2 style="font-size:18px;font-weight:900;color:var(--text-main)">📦 Manajemen Stok Inventori</h2>
+            <h2 style="font-size:17px;font-weight:900;color:var(--text-main)">📦 Manajemen Stok Inventori</h2>
             <p style="font-size:11px;color:var(--text-sub);margin-top:1px">Stok berkurang otomatis saat terjadi penjualan di kasir</p>
           </div>
-          <div class="flex items-center gap-2.5">
+          <div class="flex items-center gap-2 flex-wrap">
             <input id="stok-filter-inp" type="text" oninput="renderStokTable()" placeholder="Cari produk…"
-              style="height:38px;border-radius:12px;border:1.5px solid var(--border-soft);padding:0 12px;font-size:11px;font-weight:600;outline:none;background:#F8FAFC">
-            <button onclick="doExportExcel('stok')" style="height:38px;padding:0 14px;border-radius:12px;background:var(--navy);color:#FFFFFF;border:none;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px">
-              <span class="ms" style="font-size:16px">download</span>Download Excel Stok
+              style="height:36px;border-radius:10px;border:1.5px solid var(--border-soft);padding:0 12px;font-size:11px;font-weight:600;outline:none;background:#F8FAFC">
+            <button onclick="doExportExcel('stok')" style="height:36px;padding:0 12px;border-radius:10px;background:var(--navy);color:#FFFFFF;border:none;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px">
+              <span class="ms" style="font-size:16px">download</span>Download Excel
             </button>
           </div>
         </div>
 
-        <div style="background:#FFFFFF;border-radius:20px;border:1.5px solid var(--border-soft);overflow:hidden;box-shadow:0 3px 12px rgba(0,0,0,.02);overflow-x:auto">
-          <table class="dtbl" style="min-width:600px">
+        <div style="background:#FFFFFF;border-radius:18px;border:1.5px solid var(--border-soft);overflow:hidden;box-shadow:0 3px 12px rgba(0,0,0,.02);overflow-x:auto">
+          <table class="dtbl" style="min-width:540px">
             <thead>
               <tr>
                 <th>Nama Produk</th>
                 <th>Kategori</th>
                 <th style="text-align:center">Harga</th>
                 <th style="text-align:center">Sisa Stok</th>
-                <th style="text-align:center">Update / Tambah Stok</th>
+                <th style="text-align:center">Update Stok</th>
               </tr>
             </thead>
             <tbody id="stok-table-tbody"></tbody>
@@ -301,67 +330,67 @@ html,body{height:100%;margin:0;padding:8px sm:12px;font-family:'Plus Jakarta San
       </div>
 
 
-      <!-- ═════════ LAPORAN & DASHBOARD VIEW (ADMIN - NO CHECKOUT SIDEBAR) ═════════ -->
-      <div id="view-lap" style="display:none;padding:22px 26px 36px;flex-direction:column;gap:18px;width:100%">
+      <!-- ═════════ LAPORAN & DASHBOARD VIEW (ADMIN) ═════════ -->
+      <div id="view-lap" style="display:none;padding:16px 18px 30px sm:padding:22px 26px 36px;flex-direction:column;gap:16px;width:100%">
         
         <!-- Header & 3 Dedicated Report Download Buttons -->
-        <div class="flex items-center justify-between flex-wrap gap-3">
+        <div class="flex items-center justify-between flex-wrap gap-2.5">
           <div>
-            <h2 style="font-size:18px;font-weight:900;color:var(--text-main)">📊 Dashboard &amp; Laporan Keuangan</h2>
+            <h2 style="font-size:17px;font-weight:900;color:var(--text-main)">📊 Dashboard &amp; Laporan Keuangan</h2>
             <p style="font-size:11px;color:var(--text-sub);margin-top:1px">Rekap omzet kasir &amp; 3 pilihan unduh file Excel bertabel rapi</p>
           </div>
           
           <!-- 3 Laporan Buttons -->
-          <div class="flex items-center gap-2">
-            <button onclick="doExportExcel('trx')" style="height:38px;padding:0 12px;border-radius:12px;background:#F8FAFC;border:1.5px solid var(--border-soft);color:var(--text-main);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px">
-              <span class="ms" style="font-size:16px;color:var(--blue)">receipt_long</span>Excel Transaksi
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <button onclick="doExportExcel('trx')" style="height:34px;padding:0 10px;border-radius:10px;background:#F8FAFC;border:1.5px solid var(--border-soft);color:var(--text-main);font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px">
+              <span class="ms" style="font-size:15px;color:var(--blue)">receipt_long</span>Excel Transaksi
             </button>
-            <button onclick="doExportExcel('stok')" style="height:38px;padding:0 12px;border-radius:12px;background:#F8FAFC;border:1.5px solid var(--border-soft);color:var(--text-main);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px">
-              <span class="ms" style="font-size:16px;color:var(--green)">inventory_2</span>Excel Stok
+            <button onclick="doExportExcel('stok')" style="height:34px;padding:0 10px;border-radius:10px;background:#F8FAFC;border:1.5px solid var(--border-soft);color:var(--text-main);font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px">
+              <span class="ms" style="font-size:15px;color:var(--green)">inventory_2</span>Excel Stok
             </button>
-            <button onclick="doExportExcel('all')" style="height:38px;padding:0 16px;border-radius:12px;background:var(--pink);color:#FFFFFF;border:none;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(255,91,122,.3)">
-              <span class="ms" style="font-size:16px">table_chart</span>Excel Lengkap (3-in-1)
+            <button onclick="doExportExcel('all')" style="height:34px;padding:0 14px;border-radius:10px;background:var(--pink);color:#FFFFFF;border:none;font-size:10px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 4px 12px rgba(255,91,122,.28)">
+              <span class="ms" style="font-size:15px">table_chart</span>Excel Lengkap (3-in-1)
             </button>
           </div>
         </div>
 
         <!-- Stat Cards -->
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px" id="admin-stat-cards"></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px" id="admin-stat-cards"></div>
 
         <!-- Sales Chart -->
-        <div style="background:#FFFFFF;border-radius:20px;border:1.5px solid var(--border-soft);padding:16px;box-shadow:0 3px 12px rgba(0,0,0,.02)">
-          <div style="font-size:13px;font-weight:800;color:var(--text-main);margin-bottom:12px;display:flex;align-items:center;gap:6px">
-            <span class="ms" style="color:var(--pink);font-size:18px">bar_chart</span>Tren Omzet 7 Hari Terakhir
+        <div style="background:#FFFFFF;border-radius:18px;border:1.5px solid var(--border-soft);padding:14px;box-shadow:0 3px 12px rgba(0,0,0,.02)">
+          <div style="font-size:12px;font-weight:800;color:var(--text-main);margin-bottom:10px;display:flex;align-items:center;gap:6px">
+            <span class="ms" style="color:var(--pink);font-size:16px">bar_chart</span>Tren Omzet 7 Hari Terakhir
           </div>
           <canvas id="chart-sales" height="70"></canvas>
         </div>
 
         <!-- Section Menu Terlaris & Stok Menipis (2 Kolom) -->
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px">
           <!-- Menu Terlaris -->
-          <div style="background:#FFFFFF;border-radius:20px;border:1.5px solid var(--border-soft);padding:16px;box-shadow:0 3px 12px rgba(0,0,0,.02)">
-            <div style="font-size:13px;font-weight:800;color:var(--text-main);margin-bottom:12px;display:flex;align-items:center;gap:6px">
-              <span class="ms" style="color:var(--red);font-size:18px">local_fire_department</span>Menu Terlaris
+          <div style="background:#FFFFFF;border-radius:18px;border:1.5px solid var(--border-soft);padding:14px;box-shadow:0 3px 12px rgba(0,0,0,.02)">
+            <div style="font-size:12px;font-weight:800;color:var(--text-main);margin-bottom:10px;display:flex;align-items:center;gap:6px">
+              <span class="ms" style="color:var(--red);font-size:16px">local_fire_department</span>Menu Terlaris
             </div>
-            <div id="top-selling-container" style="display:flex;flex-direction:column;gap:6px"></div>
+            <div id="top-selling-container" style="display:flex;flex-direction:column;gap:5px"></div>
           </div>
 
           <!-- Stok Menipis (<= 10) -->
-          <div style="background:#FFFFFF;border-radius:20px;border:1.5px solid var(--border-soft);padding:16px;box-shadow:0 3px 12px rgba(0,0,0,.02)">
-            <div style="font-size:13px;font-weight:800;color:var(--text-main);margin-bottom:12px;display:flex;align-items:center;gap:6px">
-              <span class="ms" style="color:var(--yellow);font-size:18px">warning</span>Stok Menipis (≤ 10 pcs)
+          <div style="background:#FFFFFF;border-radius:18px;border:1.5px solid var(--border-soft);padding:14px;box-shadow:0 3px 12px rgba(0,0,0,.02)">
+            <div style="font-size:12px;font-weight:800;color:var(--text-main);margin-bottom:10px;display:flex;align-items:center;gap:6px">
+              <span class="ms" style="color:var(--yellow);font-size:16px">warning</span>Stok Menipis (≤ 10 pcs)
             </div>
-            <div id="low-stock-container" style="display:flex;flex-direction:column;gap:6px"></div>
+            <div id="low-stock-container" style="display:flex;flex-direction:column;gap:5px"></div>
           </div>
         </div>
 
         <!-- Transaction Log Table -->
-        <div style="background:#FFFFFF;border-radius:20px;border:1.5px solid var(--border-soft);overflow:hidden;box-shadow:0 3px 12px rgba(0,0,0,.02);overflow-x:auto">
-          <div style="padding:12px 16px;border-bottom:1.5px solid var(--border-soft);display:flex;align-items:center;justify-content:space-between">
-            <div style="font-size:13px;font-weight:800;color:var(--text-main)">Riwayat Transaksi Terakhir</div>
-            <span style="font-size:11px;color:var(--text-sub)">Otomatis tersimpan ke Excel</span>
+        <div style="background:#FFFFFF;border-radius:18px;border:1.5px solid var(--border-soft);overflow:hidden;box-shadow:0 3px 12px rgba(0,0,0,.02);overflow-x:auto">
+          <div style="padding:10px 14px;border-bottom:1.5px solid var(--border-soft);display:flex;align-items:center;justify-content:space-between">
+            <div style="font-size:12px;font-weight:800;color:var(--text-main)">Riwayat Transaksi Terakhir</div>
+            <span style="font-size:10px;color:var(--text-sub)">Tersimpan ke Excel</span>
           </div>
-          <table class="dtbl" style="min-width:580px">
+          <table class="dtbl" style="min-width:540px">
             <thead>
               <tr>
                 <th>ID Transaksi</th>
@@ -373,7 +402,7 @@ html,body{height:100%;margin:0;padding:8px sm:12px;font-family:'Plus Jakarta San
             </thead>
             <tbody id="lap-trx-tbody"></tbody>
           </table>
-          <div id="lap-trx-empty" style="padding:28px;text-align:center;color:var(--text-sub);font-size:11px;display:none">Belum ada transaksi tercatat.</div>
+          <div id="lap-trx-empty" style="padding:24px;text-align:center;color:var(--text-sub);font-size:11px;display:none">Belum ada transaksi tercatat.</div>
         </div>
 
       </div>
@@ -381,138 +410,132 @@ html,body{height:100%;margin:0;padding:8px sm:12px;font-family:'Plus Jakarta San
     </main>
 
 
-    <!-- ── RIGHT: MY ORDER / PESANAN AKTIF (HANYA MUNCUL DI MODE KASIR) ── -->
-    <aside id="cart-sidebar" style="width:100%;max-width:320px;background:#FFFFFF;border-left:1.5px solid var(--border-soft);display:flex;flex-direction:column;flex-shrink:0">
-
-      <!-- Header: Pesanan Aktif + Reset -->
-      <div style="padding:18px 18px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
-        <h2 style="font-size:16px;font-weight:800;color:var(--text-main)">Pesanan Aktif</h2>
-        <button onclick="clearCart()" style="font-size:11px;font-weight:700;color:var(--pink);background:none;border:none;cursor:pointer">Reset</button>
-      </div>
-
-      <!-- Metadata Badges (Shift Kasir & Meja) -->
-      <div style="padding:0 18px 12px;display:flex;flex-direction:column;gap:6px;flex-shrink:0">
-        <div style="display:flex;align-items:center;gap:8px;font-size:10px;color:var(--text-body);font-weight:600">
-          <div style="width:22px;height:22px;border-radius:50%;background:var(--pink-light);color:var(--pink);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            <span class="ms" style="font-size:13px">schedule</span>
-          </div>
-          <span id="side-clock">14:30 WIB • Shift Kasir</span>
-        </div>
-
-        <div style="display:flex;align-items:center;gap:8px;font-size:10px;color:var(--text-body);font-weight:600">
-          <div style="width:22px;height:22px;border-radius:50%;background:var(--pink-light);color:var(--pink);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            <span class="ms" style="font-size:13px">location_on</span>
-          </div>
-          <select id="side-table-select" style="border:none;background:transparent;font-size:10px;font-weight:700;color:var(--text-main);outline:none;cursor:pointer;padding:0">
-            <option>Meja 04 (Dine In) • Warkop Hidayah</option>
-            <option>Meja 01 (Dine In) • Warkop Hidayah</option>
-            <option>Meja 02 (Dine In) • Warkop Hidayah</option>
-            <option>Meja 03 (Dine In) • Warkop Hidayah</option>
-            <option>Bungkus / Take Away • Warkop Hidayah</option>
-          </select>
-        </div>
-      </div>
-
-      <div style="height:1px;background:var(--border-soft);margin:0 18px"></div>
-
-      <!-- ── CART ITEMS LIST (EMPTY INITIALLY, EXPANDS WITH PRODUCTS) ── -->
-      <div style="flex:1;overflow-y:auto;padding:10px 18px;display:flex;flex-direction:column;gap:12px" class="ns" id="cart-items-container"></div>
-
-      <!-- Empty state placeholder (SHOWS BY DEFAULT) -->
-      <div id="cart-empty-state" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px 16px;text-align:center;gap:6px;color:var(--text-sub);flex:1">
-        <div style="width:52px;height:52px;border-radius:18px;background:#F8FAFC;display:flex;align-items:center;justify-content:center;font-size:24px">🛒</div>
-        <div style="font-size:12px;font-weight:800;color:var(--text-main)">Keranjang Kosong</div>
-        <div style="font-size:10px">Klik tanda (+) pada menu untuk memasukkan pesanan</div>
-      </div>
-
-      <!-- Bottom Checkout Area -->
-      <div style="padding:14px 18px 18px;border-top:1.5px solid var(--border-soft);display:flex;flex-direction:column;gap:10px;background:#FFFFFF;flex-shrink:0">
-        
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <span style="font-size:12px;color:var(--text-body);font-weight:600">Sub Total</span>
-          <span id="cart-subtotal-val" style="font-size:15px;font-weight:900;color:var(--text-main)">Rp 0</span>
-        </div>
-
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:-4px">
-          <span style="font-size:11px;color:var(--text-sub);font-weight:500">Pajak Resto (0%)</span>
-          <span style="font-size:11px;color:var(--text-sub);font-weight:600">Rp 0</span>
-        </div>
-
-        <button onclick="openPaymentModal()"
-          style="width:100%;height:46px;background:var(--navy);border-radius:14px;color:#FFFFFF;border:none;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 6px 20px rgba(27,32,43,.22);transition:all .16s ease"
-          onmouseover="this.style.background='var(--navy-hover)'"
-          onmouseout="this.style.background='var(--navy)'">
-          <span>Bayar &amp; Cetak Struk</span>
-          <span class="ms" style="font-size:16px">arrow_forward</span>
-        </button>
-      </div>
-
+    <!-- ── RIGHT: MY ORDER / PESANAN AKTIF (DOCKED ON DESKTOP >= 1024px) ── -->
+    <aside id="cart-sidebar" style="width:310px;background:#FFFFFF;border-left:1.5px solid var(--border-soft);display:flex;flex-direction:column;flex-shrink:0" class="hidden lg:flex">
+      <!-- Order panel content injected dynamically or shared -->
+      <div id="desktop-order-panel-content" style="display:flex;flex-direction:column;height:100%"></div>
     </aside>
 
   </div>
 </div>
 
 
+<!-- ═══════════════════ MOBILE & TABLET BOTTOM SHEET (PESANAN AKTIF) ═══════════════════ -->
+<div id="m-cart-sheet-backdrop" class="mbg lg:hidden" style="display:none;z-index:205" onclick="toggleMobileCartSheet()"></div>
+<div id="m-cart-sheet" class="bottom-sheet lg:hidden">
+  <div style="padding:14px 18px 8px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border-soft)">
+    <div class="flex items-center gap-2">
+      <span class="ms text-pink-500">shopping_bag</span>
+      <h3 style="font-size:15px;font-weight:800;color:var(--text-main)">Pesanan Aktif</h3>
+    </div>
+    <div class="flex items-center gap-3">
+      <button onclick="clearCart()" style="font-size:11px;font-weight:700;color:var(--pink);background:none;border:none;cursor:pointer">Reset</button>
+      <button onclick="toggleMobileCartSheet()" style="width:28px;height:28px;border-radius:50%;background:#F8FAFC;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center">
+        <span class="ms text-slate-400">close</span>
+      </button>
+    </div>
+  </div>
+  <div id="mobile-order-panel-content" style="display:flex;flex-direction:column;overflow-y:auto;max-height:75vh"></div>
+</div>
+
+
+<!-- ═══════════════════ MOBILE FLOATING CART PILL ═══════════════════ -->
+<div id="m-floating-cart-bar" onclick="toggleMobileCartSheet()" class="lg:hidden fixed bottom-16 sm:bottom-4 left-3 right-3 sm:left-auto sm:right-4 sm:w-80 bg-[#1B202B] text-white rounded-2xl p-2.5 px-4 shadow-xl z-40 items-center justify-between hidden cursor-pointer transition-all">
+  <div class="flex items-center gap-2.5">
+    <div class="w-7 h-7 rounded-xl bg-[#FF5B7A] flex items-center justify-center font-black text-xs text-white">
+      <span id="m-float-count">0</span>
+    </div>
+    <div class="text-xs font-bold">Pesanan Kasir</div>
+  </div>
+  <div class="flex items-center gap-2">
+    <span id="m-float-total" class="text-xs font-black text-[#FF5B7A]">Rp 0</span>
+    <span class="ms text-sm text-slate-300">arrow_forward</span>
+  </div>
+</div>
+
+
+<!-- ═══════════════════ MOBILE BOTTOM NAVIGATION BAR (< sm) ═══════════════════ -->
+<nav id="mobile-bottom-nav" class="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 flex items-center justify-around py-1.5 px-2 shadow-lg">
+  <button onclick="switchView('kasir')" id="m-nav-kasir" class="flex flex-col items-center gap-0.5 text-pink-500 font-bold text-[10px] p-1">
+    <span class="ms text-lg">storefront</span>
+    <span>Kasir</span>
+  </button>
+  <button onclick="switchView('stok')" id="m-nav-stok" class="flex flex-col items-center gap-0.5 text-slate-400 font-bold text-[10px] p-1">
+    <span class="ms text-lg">inventory_2</span>
+    <span>Stok</span>
+  </button>
+  <button onclick="switchView('lap')" id="m-nav-lap" class="flex flex-col items-center gap-0.5 text-slate-400 font-bold text-[10px] p-1">
+    <span class="ms text-lg">monitoring</span>
+    <span>Laporan</span>
+  </button>
+  <button onclick="toggleMobileCartSheet()" id="m-nav-cart" class="flex flex-col items-center gap-0.5 text-slate-700 font-bold text-[10px] p-1 relative">
+    <span class="ms text-lg">shopping_cart</span>
+    <span id="m-cart-badge" class="absolute top-0 right-1 bg-pink-500 text-white rounded-full text-[8px] w-3.5 h-3.5 flex items-center justify-center font-black hidden">0</span>
+    <span>Pesanan</span>
+  </button>
+</nav>
+
+
 <!-- ═══════════════════ MODAL: PEMBAYARAN KASIR ═══════════════════ -->
 <div id="m-pay" class="mwrap">
   <div class="mbg" onclick="closePaymentModal()"></div>
-  <div class="mbox" style="max-width:400px;padding:22px">
+  <div class="mbox" style="max-width:380px;padding:20px">
     
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
       <div>
-        <h3 style="font-size:16px;font-weight:900;color:var(--text-main)">Pembayaran Kasir</h3>
+        <h3 style="font-size:15px;font-weight:900;color:var(--text-main)">Pembayaran Kasir</h3>
         <p style="font-size:10px;color:var(--text-sub);margin-top:1px">Warkop Hidayah — POS Cashier</p>
       </div>
-      <button onclick="closePaymentModal()" style="width:28px;height:28px;border-radius:50%;background:#F8FAFC;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center">
-        <span class="ms" style="font-size:16px;color:var(--text-sub)">close</span>
+      <button onclick="closePaymentModal()" style="width:26px;height:26px;border-radius:50%;background:#F8FAFC;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center">
+        <span class="ms" style="font-size:15px;color:var(--text-sub)">close</span>
       </button>
     </div>
 
     <!-- Total Tagihan -->
-    <div style="background:#F8FAFC;border-radius:16px;padding:14px;text-align:center;margin-bottom:14px;border:1.5px solid var(--border-soft)">
-      <div style="font-size:10px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em">Total Tagihan</div>
-      <div id="pay-total-display" style="font-size:22px;font-weight:900;color:var(--pink);margin-top:2px">Rp 0</div>
+    <div style="background:#F8FAFC;border-radius:14px;padding:12px;text-align:center;margin-bottom:12px;border:1.5px solid var(--border-soft)">
+      <div style="font-size:9px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em">Total Tagihan</div>
+      <div id="pay-total-display" style="font-size:20px;font-weight:900;color:var(--pink);margin-top:2px">Rp 0</div>
     </div>
 
     <!-- Metode Pembayaran Tabs -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:12px">
       <button id="pay-tab-tunai" onclick="selectPayTab('tunai')"
-        style="padding:8px 4px;border-radius:12px;border:1.5px solid var(--pink);background:var(--pink-light);color:var(--pink);font-size:10px;font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px">
-        <span class="ms" style="font-size:18px">payments</span>Tunai
+        style="padding:8px 3px;border-radius:10px;border:1.5px solid var(--pink);background:var(--pink-light);color:var(--pink);font-size:10px;font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px">
+        <span class="ms" style="font-size:17px">payments</span>Tunai
       </button>
       <button id="pay-tab-qris" onclick="selectPayTab('qris')"
-        style="padding:8px 4px;border-radius:12px;border:1.5px solid var(--border-soft);background:#FFFFFF;color:var(--text-sub);font-size:10px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px">
-        <span class="ms" style="font-size:18px">qr_code_2</span>QRIS
+        style="padding:8px 3px;border-radius:10px;border:1.5px solid var(--border-soft);background:#FFFFFF;color:var(--text-sub);font-size:10px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px">
+        <span class="ms" style="font-size:17px">qr_code_2</span>QRIS
       </button>
       <button id="pay-tab-transfer" onclick="selectPayTab('transfer')"
-        style="padding:8px 4px;border-radius:12px;border:1.5px solid var(--border-soft);background:#FFFFFF;color:var(--text-sub);font-size:10px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px">
-        <span class="ms" style="font-size:18px">account_balance</span>Transfer
+        style="padding:8px 3px;border-radius:10px;border:1.5px solid var(--border-soft);background:#FFFFFF;color:var(--text-sub);font-size:10px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px">
+        <span class="ms" style="font-size:17px">account_balance</span>Transfer
       </button>
     </div>
 
     <!-- Cash Section -->
     <div id="pay-cash-container">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-        <span style="font-size:10px;font-weight:700;color:var(--text-sub)">UANG DITERIMA</span>
-        <span style="font-size:10px;color:var(--text-body)">Kembali: <strong id="pay-kembali-display" style="color:var(--green)">Rp 0</strong></span>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-size:9px;font-weight:700;color:var(--text-sub)">UANG DITERIMA</span>
+        <span style="font-size:9px;color:var(--text-body)">Kembali: <strong id="pay-kembali-display" style="color:var(--green)">Rp 0</strong></span>
       </div>
-      <div style="display:flex;gap:6px;margin-bottom:8px">
+      <div style="display:flex;gap:5px;margin-bottom:6px">
         <input id="pay-cash-input" type="number" placeholder="0" oninput="calculateChange()"
-          style="flex:1;height:42px;border-radius:12px;border:1.5px solid var(--border-soft);padding:0 12px;font-size:16px;font-weight:900;text-align:center;color:var(--text-main);outline:none;background:#F8FAFC">
-        <button onclick="setCashPas()" style="height:42px;padding:0 14px;border-radius:12px;background:#F8FAFC;border:1.5px solid var(--border-soft);font-size:10px;font-weight:800;color:var(--text-body);cursor:pointer">Uang Pas</button>
+          style="flex:1;height:38px;border-radius:10px;border:1.5px solid var(--border-soft);padding:0 10px;font-size:15px;font-weight:900;text-align:center;color:var(--text-main);outline:none;background:#F8FAFC">
+        <button onclick="setCashPas()" style="height:38px;padding:0 12px;border-radius:10px;background:#F8FAFC;border:1.5px solid var(--border-soft);font-size:10px;font-weight:800;color:var(--text-body);cursor:pointer">Uang Pas</button>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:14px">
-        <button onclick="setCashQuick(10000)" style="padding:6px 0;background:#F8FAFC;border:1px solid var(--border-soft);border-radius:8px;font-size:10px;font-weight:800;cursor:pointer">10rb</button>
-        <button onclick="setCashQuick(20000)" style="padding:6px 0;background:#F8FAFC;border:1px solid var(--border-soft);border-radius:8px;font-size:10px;font-weight:800;cursor:pointer">20rb</button>
-        <button onclick="setCashQuick(50000)" style="padding:6px 0;background:#F8FAFC;border:1px solid var(--border-soft);border-radius:8px;font-size:10px;font-weight:800;color:var(--pink);cursor:pointer">50rb</button>
-        <button onclick="setCashQuick(100000)" style="padding:6px 0;background:#F8FAFC;border:1px solid var(--border-soft);border-radius:8px;font-size:10px;font-weight:800;cursor:pointer">100rb</button>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:12px">
+        <button onclick="setCashQuick(10000)" style="padding:5px 0;background:#F8FAFC;border:1px solid var(--border-soft);border-radius:8px;font-size:10px;font-weight:800;cursor:pointer">10rb</button>
+        <button onclick="setCashQuick(20000)" style="padding:5px 0;background:#F8FAFC;border:1px solid var(--border-soft);border-radius:8px;font-size:10px;font-weight:800;cursor:pointer">20rb</button>
+        <button onclick="setCashQuick(50000)" style="padding:5px 0;background:#F8FAFC;border:1px solid var(--border-soft);border-radius:8px;font-size:10px;font-weight:800;color:var(--pink);cursor:pointer">50rb</button>
+        <button onclick="setCashQuick(100000)" style="padding:5px 0;background:#F8FAFC;border:1px solid var(--border-soft);border-radius:8px;font-size:10px;font-weight:800;cursor:pointer">100rb</button>
       </div>
     </div>
 
     <!-- Confirm Button -->
     <button onclick="submitCheckoutOrder()"
-      style="width:100%;height:46px;background:var(--navy);border-radius:14px;color:#FFFFFF;border:none;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 6px 20px rgba(27,32,43,.22)">
-      <span class="ms" style="font-size:18px">check_circle</span>Konfirmasi &amp; Cetak Struk
+      style="width:100%;height:42px;background:var(--navy);border-radius:12px;color:#FFFFFF;border:none;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 6px 18px rgba(27,32,43,.22)">
+      <span class="ms" style="font-size:16px">check_circle</span>Konfirmasi &amp; Cetak Struk
     </button>
   </div>
 </div>
@@ -530,14 +553,14 @@ html,body{height:100%;margin:0;padding:8px sm:12px;font-family:'Plus Jakarta San
       </svg>
     </div>
 
-    <div style="padding:12px 20px 18px">
-      <div style="text-align:center;margin-bottom:10px">
-        <div style="font-size:24px">☕</div>
-        <div style="font-size:15px;font-weight:900;color:var(--text-main);margin-top:1px">Warkop Hidayah</div>
+    <div style="padding:12px 18px 16px">
+      <div style="text-align:center;margin-bottom:8px">
+        <div style="font-size:22px">☕</div>
+        <div style="font-size:14px;font-weight:900;color:var(--text-main);margin-top:1px">Warkop Hidayah</div>
         <div style="font-size:9px;color:var(--text-sub);letter-spacing:.06em;text-transform:uppercase">POS Cashier Receipt</div>
       </div>
 
-      <div style="border-top:1.5px dashed #CBD5E1;margin:8px 0"></div>
+      <div style="border-top:1.5px dashed #CBD5E1;margin:6px 0"></div>
 
       <div style="display:flex;flex-direction:column;gap:3px;font-size:10px">
         <div style="display:flex;justify-content:space-between">
@@ -554,11 +577,11 @@ html,body{height:100%;margin:0;padding:8px sm:12px;font-family:'Plus Jakarta San
         </div>
       </div>
 
-      <div style="border-top:1.5px dashed #CBD5E1;margin:8px 0"></div>
+      <div style="border-top:1.5px dashed #CBD5E1;margin:6px 0"></div>
 
-      <div id="rec-items-list" style="display:flex;flex-direction:column;gap:5px;max-height:160px;overflow-y:auto" class="ns"></div>
+      <div id="rec-items-list" style="display:flex;flex-direction:column;gap:4px;max-height:150px;overflow-y:auto" class="ns"></div>
 
-      <div style="border-top:1.5px dashed #CBD5E1;margin:8px 0"></div>
+      <div style="border-top:1.5px dashed #CBD5E1;margin:6px 0"></div>
 
       <div style="display:flex;flex-direction:column;gap:3px;font-size:10px">
         <div style="display:flex;justify-content:space-between">
@@ -579,19 +602,19 @@ html,body{height:100%;margin:0;padding:8px sm:12px;font-family:'Plus Jakarta San
         </div>
       </div>
 
-      <div style="background:var(--navy);border-radius:12px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;margin:12px 0 14px">
+      <div style="background:var(--navy);border-radius:10px;padding:8px 10px;display:flex;justify-content:space-between;align-items:center;margin:10px 0 12px">
         <span style="font-size:9px;font-weight:800;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.05em">TOTAL BAYAR</span>
-        <span id="rec-total-val" style="font-size:16px;font-weight:900;color:#FFFFFF"></span>
+        <span id="rec-total-val" style="font-size:15px;font-weight:900;color:#FFFFFF"></span>
       </div>
 
-      <div style="text-align:center;font-size:9px;color:var(--text-sub);margin-bottom:12px;line-height:1.4">
+      <div style="text-align:center;font-size:9px;color:var(--text-sub);margin-bottom:10px;line-height:1.4">
         Terima kasih atas kunjungannya!<br>
         <strong>Warkop Hidayah</strong>
       </div>
 
       <button onclick="closeReceiptModal()"
-        style="width:100%;height:40px;background:var(--navy);border-radius:12px;color:#FFFFFF;border:none;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px">
-        <span class="ms" style="font-size:16px">check</span>Selesai &amp; Pesanan Baru
+        style="width:100%;height:38px;background:var(--navy);border-radius:10px;color:#FFFFFF;border:none;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px">
+        <span class="ms" style="font-size:15px">check</span>Selesai &amp; Pesanan Baru
       </button>
     </div>
 
@@ -609,44 +632,44 @@ html,body{height:100%;margin:0;padding:8px sm:12px;font-family:'Plus Jakarta San
 <!-- ═══════════════════ MODAL: RACIK SEBLAK PRASMANAN KUSTOM ═══════════════════ -->
 <div id="m-seblak" class="mwrap">
   <div class="mbg" onclick="closeSblkModal()"></div>
-  <div class="mbox" style="max-width:440px;max-height:88vh;display:flex;flex-direction:column">
+  <div class="mbox" style="max-width:400px;max-height:86vh;display:flex;flex-direction:column">
     
-    <div style="background:linear-gradient(135deg,var(--pink),#FF3860);padding:16px 18px;color:#FFFFFF;display:flex;justify-content:space-between;align-items:center">
+    <div style="background:linear-gradient(135deg,var(--pink),#FF3860);padding:14px 16px;color:#FFFFFF;display:flex;justify-content:space-between;align-items:center">
       <div>
         <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;opacity:.85">Prasmanan Kustom Warkop Hidayah</div>
-        <h3 style="font-size:17px;font-weight:900">🍜 Racik Seblak Sendiri</h3>
+        <h3 style="font-size:16px;font-weight:900">🍜 Racik Seblak Sendiri</h3>
       </div>
-      <button onclick="closeSblkModal()" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.2);border:none;color:#FFFFFF;cursor:pointer;display:flex;align-items:center;justify-content:center">
-        <span class="ms" style="font-size:16px">close</span>
+      <button onclick="closeSblkModal()" style="width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.2);border:none;color:#FFFFFF;cursor:pointer;display:flex;align-items:center;justify-content:center">
+        <span class="ms" style="font-size:15px">close</span>
       </button>
     </div>
 
-    <div style="padding:12px 18px 0">
-      <div style="background:#FFFBEB;border:1.5px solid #FDE68A;border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:8px">
-        <span style="font-size:18px">🌶️</span>
+    <div style="padding:10px 16px 0">
+      <div style="background:#FFFBEB;border:1.5px solid #FDE68A;border-radius:10px;padding:8px 10px;display:flex;align-items:center;gap:6px">
+        <span style="font-size:16px">🌶️</span>
         <div style="flex:1">
-          <div style="font-size:11px;font-weight:800">Bumbu Kencur Seblak (Wajib)</div>
-          <div style="font-size:9px;color:var(--text-sub)">Kencur, bawang putih, cabai rawit merah</div>
+          <div style="font-size:10px;font-weight:800">Bumbu Kencur Seblak (Wajib)</div>
+          <div style="font-size:8px;color:var(--text-sub)">Kencur, bawang putih, cabai rawit</div>
         </div>
-        <div style="font-size:12px;font-weight:800;color:var(--pink)">Rp 3.000</div>
+        <div style="font-size:11px;font-weight:800;color:var(--pink)">Rp 3.000</div>
       </div>
     </div>
 
     <!-- 10 Toppings Checklist -->
-    <div style="flex:1;overflow-y:auto;padding:12px 18px" class="ns">
-      <div style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;margin-bottom:8px">Pilih Aneka Isian &amp; Topping:</div>
-      <div id="seblak-toppings-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px"></div>
+    <div style="flex:1;overflow-y:auto;padding:10px 16px" class="ns">
+      <div style="font-size:9px;font-weight:800;color:var(--text-sub);text-transform:uppercase;margin-bottom:6px">Pilih Aneka Isian &amp; Topping:</div>
+      <div id="seblak-toppings-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:5px"></div>
     </div>
 
     <!-- Bottom Action -->
-    <div style="padding:14px 18px;border-top:1.5px solid var(--border-soft);display:flex;align-items:center;justify-content:space-between;background:#FFFFFF">
+    <div style="padding:12px 16px;border-top:1.5px solid var(--border-soft);display:flex;align-items:center;justify-content:space-between;background:#FFFFFF">
       <div>
         <div style="font-size:9px;font-weight:700;color:var(--text-sub)">TOTAL RACIKAN</div>
-        <div id="seblak-calc-total" style="font-size:18px;font-weight:900;color:var(--pink)">Rp 3.000</div>
+        <div id="seblak-calc-total" style="font-size:16px;font-weight:900;color:var(--pink)">Rp 3.000</div>
       </div>
       <button onclick="confirmSeblakToCart()"
-        style="height:40px;padding:0 16px;border-radius:12px;background:var(--navy);color:#FFFFFF;border:none;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px">
-        <span class="ms" style="font-size:16px">add_shopping_cart</span>Tambah ke Keranjang
+        style="height:36px;padding:0 14px;border-radius:10px;background:var(--navy);color:#FFFFFF;border:none;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px">
+        <span class="ms" style="font-size:15px">add_shopping_cart</span>Tambah
       </button>
     </div>
 
@@ -657,21 +680,21 @@ html,body{height:100%;margin:0;padding:8px sm:12px;font-family:'Plus Jakarta San
 <!-- ═══════════════════ MODAL: PASSWORD ADMIN ═══════════════════ -->
 <div id="m-auth" class="mwrap">
   <div class="mbg" onclick="closeAuthModal()"></div>
-  <div class="mbox" style="max-width:300px;padding:22px;text-align:center">
-    <div style="width:48px;height:48px;background:var(--navy);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:#FFFFFF">
-      <span class="ms" style="font-size:22px">lock</span>
+  <div class="mbox" style="max-width:280px;padding:20px;text-align:center">
+    <div style="width:44px;height:44px;background:var(--navy);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;color:#FFFFFF">
+      <span class="ms" style="font-size:20px">lock</span>
     </div>
-    <h3 style="font-size:15px;font-weight:800;color:var(--text-main);margin-bottom:2px">Akses Menu Admin</h3>
-    <p style="font-size:11px;color:var(--text-sub);margin-bottom:14px">Masukkan password admin Warkop Hidayah</p>
+    <h3 style="font-size:14px;font-weight:800;color:var(--text-main);margin-bottom:2px">Akses Menu Admin</h3>
+    <p style="font-size:10px;color:var(--text-sub);margin-bottom:12px">Password: <strong>hidayah</strong></p>
     
     <input id="auth-pwd-inp" type="password" placeholder="Password admin…" onkeydown="if(event.key==='Enter')verifyAdminAuth()"
-      style="width:100%;height:40px;border-radius:12px;border:1.5px solid var(--border-soft);text-align:center;font-size:15px;letter-spacing:3px;outline:none;background:#F8FAFC;margin-bottom:8px">
+      style="width:100%;height:38px;border-radius:10px;border:1.5px solid var(--border-soft);text-align:center;font-size:14px;letter-spacing:3px;outline:none;background:#F8FAFC;margin-bottom:8px">
     
-    <div id="auth-err-msg" style="display:none;font-size:10px;color:var(--red);font-weight:700;margin-bottom:8px">Password salah! Silakan coba lagi.</div>
+    <div id="auth-err-msg" style="display:none;font-size:9px;color:var(--red);font-weight:700;margin-bottom:8px">Password salah! Coba lagi.</div>
 
-    <div style="display:flex;gap:6px">
-      <button onclick="closeAuthModal()" style="flex:1;height:38px;border-radius:10px;background:#F8FAFC;border:1px solid var(--border-soft);font-size:11px;font-weight:700;cursor:pointer">Batal</button>
-      <button onclick="verifyAdminAuth()" style="flex:1;height:38px;border-radius:10px;background:var(--navy);color:#FFFFFF;border:none;font-size:11px;font-weight:800;cursor:pointer">Masuk</button>
+    <div style="display:flex;gap:5px">
+      <button onclick="closeAuthModal()" style="flex:1;height:36px;border-radius:8px;background:#F8FAFC;border:1px solid var(--border-soft);font-size:10px;font-weight:700;cursor:pointer">Batal</button>
+      <button onclick="verifyAdminAuth()" style="flex:1;height:36px;border-radius:8px;background:var(--navy);color:#FFFFFF;border:none;font-size:10px;font-weight:800;cursor:pointer">Masuk</button>
     </div>
   </div>
 </div>
@@ -697,7 +720,7 @@ var CATEGORIES = [
   {id:'snack',  label:'Snack',   emoji:'🍿'}
 ];
 
-/* 10 Toppings Seblak sesuai permintaan awal */
+/* 10 Toppings Seblak */
 var SEBLAK_TOPPINGS = [
   {id:'top_sosis',    name:'Sosis',         price:2000},
   {id:'top_pentol',   name:'Pentol',        price:1000},
@@ -711,7 +734,24 @@ var SEBLAK_TOPPINGS = [
   {id:'top_enoki',    name:'Jamur Enoki',   price:5000}
 ];
 
-/* Master Products Lengkap Seluruh Menu Awal User */
+/* Reliable Online CDN Fallback Map (Agar jika dideploy tanpa folder images, foto 100% TIDAK HILANG) */
+var ONLINE_FALLBACKS = {
+  'pop_ice':          'https://images.unsplash.com/photo-1570197788417-0e82375c9371?w=260&h=260&fit=crop&q=80',
+  'kopi_goodday':     'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=260&h=260&fit=crop&q=80',
+  'kopi_luwak':       'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=260&h=260&fit=crop&q=80',
+  'kopi_torabika':    'https://images.unsplash.com/photo-1461023058943-07fcbe36191e?w=260&h=260&fit=crop&q=80',
+  'kopi_nescafe':     'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=260&h=260&fit=crop&q=80',
+  'hero_goodday':     'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=260&h=260&fit=crop&q=80',
+  'hero_kukubima':    'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=260&h=260&fit=crop&q=80',
+  'hero_seblak_racik':'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=260&h=260&fit=crop&q=80',
+  'default':          'https://images.unsplash.com/photo-1504630083234-14187a9df0f5?w=260&h=260&fit=crop&q=80'
+};
+
+function getSafeImgSrc(p){
+  return p.img || ONLINE_FALLBACKS[p.id] || ONLINE_FALLBACKS['default'];
+}
+
+/* Master Products */
 var MASTER_PRODUCTS = [
   /* HERO PRODUCTS */
   {
@@ -753,8 +793,8 @@ var MASTER_PRODUCTS = [
   },
 
   /* MINUMAN 5K & 8K */
-  { id:'pop_ice',       name:'Pop Ice Blender',    cat:'es',    catLabel:'🥤 Minuman', price:5000, stock:50, isHero:false, desc:'Aneka rasa segar blender', img:'images/pop_ice.png' },
-  { id:'en_extrajoss',  name:'Extra Joss Susu',    cat:'es',    catLabel:'🥤 Minuman', price:8000, stock:50, isHero:false, desc:'Energi segar susu dingin', img:'https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?w=200&h=200&fit=crop&q=80' },
+  { id:'pop_ice',       name:'Pop Ice Blender',    cat:'es',    catLabel:'🥤 Minuman', price:5000, stock:50, isHero:false, desc:'Aneka rasa segar blender manis', img:'images/pop_ice.png' },
+  { id:'en_extrajoss',  name:'Extra Joss Susu',    cat:'es',    catLabel:'🥤 Minuman', price:8000, stock:50, isHero:false, desc:'Energi segar susu dingin mantap', img:'https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?w=200&h=200&fit=crop&q=80' },
 
   /* KOPI SACHET 5K */
   { id:'kopi_luwak',    name:'Luwak White Koffie', cat:'kopi',  catLabel:'☕ Kopi Sachet', price:5000, stock:50, isHero:false, desc:'Kopi krimer nikmat nyaman di lambung', img:'images/kopi_luwak.jpg' },
@@ -776,12 +816,12 @@ var MASTER_PRODUCTS = [
   { id:'botol_floridina',name:'Floridina Orange',  cat:'botol', catLabel:'🧃 Botolan', price:5000, stock:50, isHero:false, desc:'Jus jeruk bulir asli dingin', img:'https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=200&h=200&fit=crop&q=80' },
   { id:'botol_tehpucuk', name:'Teh Pucuk Harum',   cat:'botol', catLabel:'🧃 Botolan', price:5000, stock:50, isHero:false, desc:'Teh melati botol dingin 350ml', img:'https://images.unsplash.com/photo-1500627964684-141351977e4e?w=200&h=200&fit=crop&q=80' },
   { id:'botol_aqua',     name:'Air Aqua Dingin',   cat:'botol', catLabel:'🧃 Botolan', price:5000, stock:50, isHero:false, desc:'Air mineral segar 600ml', img:'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=200&h=200&fit=crop&q=80' },
-  { id:'botol_sprite',   name:'Sprite Dingin',     cat:'botol', catLabel:'🧃 Botolan', price:5000, stock:50, isHero:false, desc:'Minuman soda lemon-lime', img:'https://images.unsplash.com/photo-1527960669566-f882ba8b42e8?w=200&h=200&fit=crop&q=80' },
+  { id:'botol_sprite',   name:'Sprite Dingin',     cat:'botol', catLabel:'🧃 Botolan', price:5000, stock:50, isHero:false, desc:'Minuman soda lemon-lime segar', img:'https://images.unsplash.com/photo-1527960669566-f882ba8b42e8?w=200&h=200&fit=crop&q=80' },
   { id:'botol_cocacola', name:'Coca Cola Dingin',  cat:'botol', catLabel:'🧃 Botolan', price:5000, stock:50, isHero:false, desc:'Minuman soda cola berkarbonasi', img:'https://images.unsplash.com/photo-1554866585-cd94860890b7?w=200&h=200&fit=crop&q=80' },
   { id:'botol_fanta',    name:'Fanta Strawberry',  cat:'botol', catLabel:'🧃 Botolan', price:5000, stock:50, isHero:false, desc:'Soda rasa stroberi manis ceria', img:'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=200&h=200&fit=crop&q=80' },
 
   /* SNACK GORENGAN KEKINIAN 10K */
-  { id:'snk_cireng',       name:'Cireng Salju Rujak', cat:'snack', catLabel:'🍿 Snack', price:10000, stock:50, isHero:false, desc:'Cireng krispi bumbu rujak pedas manis', img:'https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?w=200&h=200&fit=crop&q=80' },
+  { id:'snk_cireng',       name:'Cireng Salju Rujak', cat:'snack', catLabel:'🍿 Snack', price:10000, stock:50, isHero:false, desc:'Cireng krispi saus bumbu rujak pedas manis', img:'https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?w=200&h=200&fit=crop&q=80' },
   { id:'snk_risolmayo',    name:'Risol Mayo',         cat:'snack', catLabel:'🍿 Snack', price:10000, stock:50, isHero:false, desc:'Risol isi telur, smoked beef & creamy mayo', img:'https://images.unsplash.com/photo-1606755962773-d324e0a13086?w=200&h=200&fit=crop&q=80' },
   { id:'snk_udangkeju',    name:'Udang Keju',         cat:'snack', catLabel:'🍿 Snack', price:10000, stock:50, isHero:false, desc:'Olahan udang crispy lumer isi keju gurih', img:'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=200&h=200&fit=crop&q=80' },
   { id:'snk_udangrambutan',name:'Udang Rambutan',     cat:'snack', catLabel:'🍿 Snack', price:10000, stock:50, isHero:false, desc:'Bola udang renyah kulit pangsit garing', img:'https://images.unsplash.com/photo-1544025162-d76694265947?w=200&h=200&fit=crop&q=80' },
@@ -793,32 +833,32 @@ var MASTER_PRODUCTS = [
   { id:'snk_kripiikusus',name:'Kripik Usus Gurih', cat:'snack', catLabel:'🍿 Snack', price:5000, stock:50, isHero:false, desc:'Kripik usus krispi bumbu gurih', img:'https://images.unsplash.com/photo-1536510233921-8e7e2f6a4dc2?w=200&h=200&fit=crop&q=80' }
 ];
 
-/* ── DATABASE STORAGE (Connects to Excel automatically) ── */
+/* ── DATABASE STORAGE (Excel Integration) ── */
 var DB = {
   getProducts: function(){
-    var s = localStorage.getItem('wh_v7_products');
+    var s = localStorage.getItem('wh_v8_products');
     if(!s){
-      localStorage.setItem('wh_v7_products', JSON.stringify(MASTER_PRODUCTS));
+      localStorage.setItem('wh_v8_products', JSON.stringify(MASTER_PRODUCTS));
       return JSON.parse(JSON.stringify(MASTER_PRODUCTS));
     }
     return JSON.parse(s);
   },
   setProducts: function(p){
-    localStorage.setItem('wh_v7_products', JSON.stringify(p));
+    localStorage.setItem('wh_v8_products', JSON.stringify(p));
   },
   getOrders: function(){
-    var s = localStorage.getItem('wh_v7_orders') || localStorage.getItem('wh_v6_orders');
+    var s = localStorage.getItem('wh_v8_orders') || localStorage.getItem('wh_v7_orders') || localStorage.getItem('wh_v6_orders');
     return s ? JSON.parse(s) : [];
   },
   addOrder: function(o){
     var arr = DB.getOrders();
     arr.unshift(o);
-    localStorage.setItem('wh_v7_orders', JSON.stringify(arr));
+    localStorage.setItem('wh_v8_orders', JSON.stringify(arr));
   },
   deductStockBatch: function(cartItems){
     var ps = DB.getProducts();
     for(var i=0; i<cartItems.length; i++){
-      if(cartItems[i].isCustomSeblak) continue; // Racik seblak bahan prasmanan
+      if(cartItems[i].isCustomSeblak) continue;
       for(var j=0; j<ps.length; j++){
         if(ps[j].id === cartItems[i].id){
           ps[j].stock = Math.max(0, ps[j].stock - cartItems[i].qty);
@@ -841,7 +881,7 @@ var DB = {
 };
 
 /* ── STATE ── */
-window.CART = []; // KOSONG SAAT AWAL SESUAI PERMINTAAN USER
+window.CART = [];
 window.CART_SEQ = 0;
 window.CUR_VIEW = 'kasir';
 window.ACTIVE_CAT = 'all';
@@ -858,13 +898,13 @@ function toast(msg, type){
   var bg = type==='err' ? '#FEF2F2' : '#F0FDF4';
   var tc = type==='err' ? '#B91C1C' : '#15803D';
   var icon = type==='err' ? 'error' : 'check_circle';
-  el.innerHTML = '<div style="display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:14px;background:'+bg+';color:'+tc+';box-shadow:0 6px 20px rgba(0,0,0,.1);font-size:11px;font-weight:700;animation:fadeUp .2s ease">'+
+  el.innerHTML = '<div style="display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:12px;background:'+bg+';color:'+tc+';box-shadow:0 6px 18px rgba(0,0,0,.1);font-size:11px;font-weight:700;animation:fadeUp .2s ease">'+
     '<span class="ms" style="font-size:16px">'+icon+'</span>'+msg+'</div>';
   clearTimeout(window._tt);
-  window._tt = setTimeout(function(){ el.innerHTML = ''; }, 2400);
+  window._tt = setTimeout(function(){ el.innerHTML = ''; }, 2200);
 }
 
-/* ── VIEW SWITCHING (STOK & LAPORAN TANPA CHECKOUT SIDEBAR) ── */
+/* ── VIEW SWITCHING ── */
 function switchView(viewName){
   if(viewName==='stok' || viewName==='lap'){
     if(!window.IS_ADMIN_AUTH){
@@ -884,15 +924,13 @@ function switchView(viewName){
   document.getElementById('view-stok').style.display = viewName==='stok' ? 'flex' : 'none';
   document.getElementById('view-lap').style.display = viewName==='lap' ? 'flex' : 'none';
 
-  // Sembunyikan checkout sidebar di Stok & Laporan
+  // Desktop cart sidebar
   var cartSidebar = document.getElementById('cart-sidebar');
-  if(viewName === 'kasir'){
-    cartSidebar.style.display = 'flex';
-  } else {
-    cartSidebar.style.display = 'none';
+  if(cartSidebar){
+    cartSidebar.style.display = (viewName === 'kasir' && window.innerWidth >= 1024) ? 'flex' : 'none';
   }
 
-  // Highlight navigation pill
+  // Highlight navigation pill desktop
   ['kasir','stok','lap'].forEach(function(v){
     var btn = document.getElementById('nav-btn-' + v);
     if(btn){
@@ -904,6 +942,16 @@ function switchView(viewName){
         btn.style.background = '#FFFFFF';
         btn.style.color = 'var(--text-sub)';
         btn.style.boxShadow = '0 2px 6px rgba(0,0,0,.02)';
+      }
+    }
+
+    // Highlight mobile bottom nav
+    var mBtn = document.getElementById('m-nav-' + v);
+    if(mBtn){
+      if(v === viewName){
+        mBtn.className = "flex flex-col items-center gap-0.5 text-pink-500 font-bold text-[10px] p-1";
+      } else {
+        mBtn.className = "flex flex-col items-center gap-0.5 text-slate-400 font-bold text-[10px] p-1";
       }
     }
   });
@@ -932,7 +980,10 @@ function updateClock(){
   var d = new Date();
   var hh = String(d.getHours()).padStart(2,'0');
   var mm = String(d.getMinutes()).padStart(2,'0');
-  document.getElementById('side-clock').textContent = hh + ':' + mm + ' WIB • Shift Kasir';
+  var clk = document.getElementById('side-clock');
+  if(clk) clk.textContent = hh + ':' + mm + ' WIB • Shift Kasir';
+  var mClk = document.getElementById('m-side-clock');
+  if(mClk) mClk.textContent = hh + ':' + mm + ' WIB • Shift Kasir';
 }
 
 /* ── CATEGORY CAPSULES ── */
@@ -955,7 +1006,7 @@ function setCategoryFilter(catId){
   renderPosProducts();
 }
 
-/* ── RENDER PRODUCTS ── */
+/* ── RENDER PRODUCTS (FOTO AMAN & TIDAK HILANG) ── */
 function renderPosProducts(){
   var ps = DB.getProducts();
   var q = (document.getElementById('prod-search').value || '').toLowerCase().trim();
@@ -973,11 +1024,13 @@ function renderPosProducts(){
 
     var isOos = p.stock <= 0 && !p.isCustomSeblak;
     var clickAction = p.isCustomSeblak ? 'openSblkModal()' : 'quickAddProduct(\'' + p.id + '\')';
+    var safeFallback = ONLINE_FALLBACKS[p.id] || ONLINE_FALLBACKS['default'];
+    var imgSrc = getSafeImgSrc(p);
 
     if(p.isHero){
       heroHTML += '<div class="hero-card' + (isOos?' oos':'') + '" onclick="' + clickAction + '">' +
         '<div class="hero-img-wrap">' +
-          '<img src="' + p.img + '" alt="' + p.name + '" loading="lazy" onerror="this.src=\'images/kopi_goodday.png\'">' +
+          '<img src="' + imgSrc + '" alt="' + p.name + '" loading="lazy" onerror="this.onerror=null; this.src=\'' + safeFallback + '\';">' +
         '</div>' +
         '<div style="text-align:center;width:100%;flex:1;display:flex;flex-direction:column">' +
           '<h3 style="font-size:13px;font-weight:800;color:var(--text-main);line-height:1.2;margin-bottom:3px">' + p.name + '</h3>' +
@@ -994,7 +1047,7 @@ function renderPosProducts(){
     } else {
       compactHTML += '<div class="compact-card' + (isOos?' oos':'') + '" onclick="' + clickAction + '">' +
         '<div class="compact-img">' +
-          '<img src="' + p.img + '" alt="' + p.name + '" loading="lazy" onerror="this.src=\'images/pop_ice.png\'">' +
+          '<img src="' + imgSrc + '" alt="' + p.name + '" loading="lazy" onerror="this.onerror=null; this.src=\'' + safeFallback + '\';">' +
         '</div>' +
         '<div style="flex:1;min-width:0">' +
           '<h4 style="font-size:11px;font-weight:800;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + p.name + '</h4>' +
@@ -1043,11 +1096,11 @@ function quickAddProduct(prodId){
       price: p.price,
       qty: 1,
       portion: p.portion || '1 porsi',
-      img: p.img
+      img: getSafeImgSrc(p)
     });
   }
 
-  renderCartSidebar();
+  renderCartUI();
   toast('+1 ' + p.name, 'ok');
 }
 
@@ -1063,7 +1116,7 @@ function updateCartQty(cartId, delta){
       break;
     }
   }
-  renderCartSidebar();
+  renderCartUI();
 }
 
 function removeCartItem(cartId){
@@ -1073,14 +1126,14 @@ function removeCartItem(cartId){
       break;
     }
   }
-  renderCartSidebar();
+  renderCartUI();
 }
 
 function clearCart(){
   if(window.CART.length === 0) return;
   if(confirm('Kosongkan semua pesanan di keranjang?')){
     window.CART = [];
-    renderCartSidebar();
+    renderCartUI();
   }
 }
 
@@ -1092,59 +1145,161 @@ function getCartSubtotal(){
   return tot;
 }
 
-function renderCartSidebar(){
-  var container = document.getElementById('cart-items-container');
-  var emptyState = document.getElementById('cart-empty-state');
-  var subtotalVal = document.getElementById('cart-subtotal-val');
-  var headerDot = document.getElementById('header-cart-dot');
+function getCartItemCount(){
+  var c = 0;
+  for(var i=0; i<window.CART.length; i++){
+    c += window.CART[i].qty;
+  }
+  return c;
+}
 
+/* ── BUILD CART HTML (SHARED ANTARA DESKTOP SIDEBAR & MOBILE BOTTOM SHEET) ── */
+function buildCartHTML(prefix){
   var tot = getCartSubtotal();
-  subtotalVal.textContent = fmtRp(tot);
+  var count = getCartItemCount();
 
+  var itemsListHTML = '';
   if(window.CART.length === 0){
-    container.style.display = 'none';
-    emptyState.style.display = 'flex';
-    headerDot.style.display = 'none';
-    return;
+    itemsListHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 16px;text-align:center;gap:6px;color:var(--text-sub);flex:1">' +
+      '<div style="width:48px;height:48px;border-radius:16px;background:#F8FAFC;display:flex;align-items:center;justify-content:center;font-size:22px">🛒</div>' +
+      '<div style="font-size:12px;font-weight:800;color:var(--text-main)">Keranjang Kosong</div>' +
+      '<div style="font-size:10px">Pilih menu untuk memasukkan pesanan</div>' +
+    '</div>';
+  } else {
+    for(var i=0; i<window.CART.length; i++){
+      var item = window.CART[i];
+      var lineTot = item.price * item.qty;
+      var safeFallback = ONLINE_FALLBACKS[item.id] || ONLINE_FALLBACKS['default'];
+
+      itemsListHTML += '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:3px 0">' +
+        '<div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1">' +
+          '<div style="width:36px;height:36px;border-radius:10px;overflow:hidden;background:#F8FAFC;flex-shrink:0;box-shadow:0 2px 5px rgba(0,0,0,.05)">' +
+            '<img src="' + item.img + '" alt="' + item.name + '" style="width:100%;height:100%;object-fit:cover" onerror="this.onerror=null; this.src=\'' + safeFallback + '\';">' +
+          '</div>' +
+          '<div style="min-width:0;flex:1">' +
+            '<div style="font-size:11px;font-weight:800;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + item.name + '</div>' +
+            '<div style="font-size:9px;color:var(--text-sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (item.portion||'1 porsi') + '</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="qty-pill">' +
+          '<button class="qty-btn" onclick="updateCartQty(' + item.cartId + ',-1)">−</button>' +
+          '<span class="qty-val">' + item.qty + '</span>' +
+          '<button class="qty-btn" onclick="updateCartQty(' + item.cartId + ',1)">+</button>' +
+        '</div>' +
+
+        '<div style="text-align:right;min-width:44px">' +
+          '<div style="font-size:11px;font-weight:800;color:var(--text-main)">' + fmtRpRaw(lineTot) + '</div>' +
+        '</div>' +
+
+        '<button onclick="removeCartItem(' + item.cartId + ')" style="background:none;border:none;color:#CBD5E1;cursor:pointer;padding:2px" onmouseover="this.style.color=\'var(--pink)\'" onmouseout="this.style.color=\'#CBD5E1\'">' +
+          '<span class="ms" style="font-size:14px">close</span>' +
+        '</button>' +
+      '</div>';
+    }
   }
 
-  container.style.display = 'flex';
-  emptyState.style.display = 'none';
-  headerDot.style.display = 'block';
+  return '' +
+    '<!-- Header: Pesanan Aktif (Only on Desktop) -->' +
+    (prefix === 'desktop' ? 
+      '<div style="padding:16px 16px 10px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">' +
+        '<h2 style="font-size:15px;font-weight:800;color:var(--text-main)">Pesanan Aktif</h2>' +
+        '<button onclick="clearCart()" style="font-size:11px;font-weight:700;color:var(--pink);background:none;border:none;cursor:pointer">Reset</button>' +
+      '</div>' : '') +
 
-  var h = '';
-  for(var i=0; i<window.CART.length; i++){
-    var item = window.CART[i];
-    var lineTot = item.price * item.qty;
-
-    h += '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:3px 0">' +
-      '<div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1">' +
-        '<div style="width:38px;height:38px;border-radius:12px;overflow:hidden;background:#F8FAFC;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.06)">' +
-          '<img src="' + item.img + '" alt="' + item.name + '" style="width:100%;height:100%;object-fit:cover" onerror="this.src=\'images/kopi_goodday.png\'">' +
+    '<!-- Metadata Badges -->' +
+    '<div style="padding:' + (prefix==='desktop'?'0 16px 10px':'10px 16px') + ';display:flex;flex-direction:column;gap:5px;flex-shrink:0">' +
+      '<div style="display:flex;align-items:center;gap:8px;font-size:10px;color:var(--text-body);font-weight:600">' +
+        '<div style="width:20px;height:20px;border-radius:50%;background:var(--pink-light);color:var(--pink);display:flex;align-items:center;justify-content:center;flex-shrink:0">' +
+          '<span class="ms" style="font-size:12px">schedule</span>' +
         '</div>' +
-        '<div style="min-width:0;flex:1">' +
-          '<div style="font-size:11px;font-weight:800;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + item.name + '</div>' +
-          '<div style="font-size:9px;color:var(--text-sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (item.portion||'1 porsi') + '</div>' +
+        '<span id="' + (prefix==='desktop'?'side-clock':'m-side-clock') + '">14:30 WIB • Shift Kasir</span>' +
+      '</div>' +
+
+      '<div style="display:flex;align-items:center;gap:8px;font-size:10px;color:var(--text-body);font-weight:600">' +
+        '<div style="width:20px;height:20px;border-radius:50%;background:var(--pink-light);color:var(--pink);display:flex;align-items:center;justify-content:center;flex-shrink:0">' +
+          '<span class="ms" style="font-size:12px">location_on</span>' +
         '</div>' +
+        '<select id="' + (prefix==='desktop'?'side-table-select':'m-side-table-select') + '" style="border:none;background:transparent;font-size:10px;font-weight:700;color:var(--text-main);outline:none;cursor:pointer;padding:0">' +
+          '<option>Meja 04 (Dine In) • Warkop Hidayah</option>' +
+          '<option>Meja 01 (Dine In) • Warkop Hidayah</option>' +
+          '<option>Meja 02 (Dine In) • Warkop Hidayah</option>' +
+          '<option>Meja 03 (Dine In) • Warkop Hidayah</option>' +
+          '<option>Bungkus / Take Away • Warkop Hidayah</option>' +
+        '</select>' +
       '</div>' +
+    '</div>' +
 
-      '<div class="qty-pill">' +
-        '<button class="qty-btn" onclick="updateCartQty(' + item.cartId + ',-1)">−</button>' +
-        '<span class="qty-val">' + item.qty + '</span>' +
-        '<button class="qty-btn" onclick="updateCartQty(' + item.cartId + ',1)">+</button>' +
+    '<div style="height:1px;background:var(--border-soft);margin:0 16px"></div>' +
+
+    '<!-- Cart Items Scroll Area -->' +
+    '<div style="flex:1;overflow-y:auto;padding:8px 16px;display:flex;flex-direction:column;gap:10px" class="ns">' +
+      itemsListHTML +
+    '</div>' +
+
+    '<!-- Bottom Checkout Area -->' +
+    '<div style="padding:12px 16px 16px;border-top:1.5px solid var(--border-soft);display:flex;flex-direction:column;gap:8px;background:#FFFFFF;flex-shrink:0">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between">' +
+        '<span style="font-size:11px;color:var(--text-body);font-weight:600">Sub Total</span>' +
+        '<span style="font-size:14px;font-weight:900;color:var(--text-main)">' + fmtRp(tot) + '</span>' +
       '</div>' +
-
-      '<div style="text-align:right;min-width:48px">' +
-        '<div style="font-size:11px;font-weight:800;color:var(--text-main)">' + fmtRpRaw(lineTot) + '</div>' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:-4px">' +
+        '<span style="font-size:10px;color:var(--text-sub);font-weight:500">Pajak Resto (0%)</span>' +
+        '<span style="font-size:10px;color:var(--text-sub);font-weight:600">Rp 0</span>' +
       '</div>' +
-
-      '<button onclick="removeCartItem(' + item.cartId + ')" style="background:none;border:none;color:#CBD5E1;cursor:pointer;padding:2px" onmouseover="this.style.color=\'var(--pink)\'" onmouseout="this.style.color=\'#CBD5E1\'">' +
-        '<span class="ms" style="font-size:15px">close</span>' +
+      '<button onclick="openPaymentModal()" ' + (window.CART.length===0?'disabled style="opacity:0.5;cursor:not-allowed;"':'') +
+        'style="width:100%;height:44px;background:var(--navy);border-radius:12px;color:#FFFFFF;border:none;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 6px 18px rgba(27,32,43,.2);transition:all .16s ease">' +
+        '<span>Bayar &amp; Cetak Struk</span>' +
+        '<span class="ms" style="font-size:16px">arrow_forward</span>' +
       '</button>' +
     '</div>';
+}
+
+function renderCartUI(){
+  var tot = getCartSubtotal();
+  var count = getCartItemCount();
+
+  // Desktop render
+  var dPanel = document.getElementById('desktop-order-panel-content');
+  if(dPanel) dPanel.innerHTML = buildCartHTML('desktop');
+
+  // Mobile bottom sheet render
+  var mPanel = document.getElementById('mobile-order-panel-content');
+  if(mPanel) mPanel.innerHTML = buildCartHTML('mobile');
+
+  // Floating Bar on Mobile & Badges
+  var floatBar = document.getElementById('m-floating-cart-bar');
+  var mBadge = document.getElementById('m-cart-badge');
+  var headerDot = document.getElementById('header-cart-dot');
+  var fCount = document.getElementById('m-float-count');
+  var fTot = document.getElementById('m-float-total');
+
+  if(count > 0){
+    if(floatBar) floatBar.style.display = 'flex';
+    if(mBadge){ mBadge.style.display = 'flex'; mBadge.textContent = count; }
+    if(headerDot) headerDot.style.display = 'block';
+    if(fCount) fCount.textContent = count;
+    if(fTot) fTot.textContent = fmtRp(tot);
+  } else {
+    if(floatBar) floatBar.style.display = 'none';
+    if(mBadge) mBadge.style.display = 'none';
+    if(headerDot) headerDot.style.display = 'none';
   }
 
-  container.innerHTML = h;
+  updateClock();
+}
+
+function toggleMobileCartSheet(){
+  var sheet = document.getElementById('m-cart-sheet');
+  var bd = document.getElementById('m-cart-sheet-backdrop');
+  if(sheet.classList.contains('open')){
+    sheet.classList.remove('open');
+    bd.style.display = 'none';
+  } else {
+    renderCartUI();
+    sheet.classList.add('open');
+    bd.style.display = 'block';
+  }
 }
 
 /* ── PAYMENT MODAL & SUBMIT ── */
@@ -1153,6 +1308,12 @@ function openPaymentModal(){
     toast('Keranjang masih kosong! Silakan pilih menu.', 'err');
     return;
   }
+  // Tutup mobile bottom sheet jika sedang terbuka
+  var sheet = document.getElementById('m-cart-sheet');
+  var bd = document.getElementById('m-cart-sheet-backdrop');
+  if(sheet) sheet.classList.remove('open');
+  if(bd) bd.style.display = 'none';
+
   var tot = getCartSubtotal();
   document.getElementById('pay-total-display').textContent = fmtRp(tot);
   document.getElementById('pay-cash-input').value = tot;
@@ -1210,18 +1371,18 @@ function submitCheckoutOrder(){
   var change = window.SELECTED_PAY_TAB === 'tunai' ? (cash - tot) : 0;
   var now = new Date();
   var orderId = 'WH-' + now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') + '-' + Math.floor(100+Math.random()*900);
-  var tableName = document.getElementById('side-table-select').value;
-  var note = document.getElementById('side-order-note') ? document.getElementById('side-order-note').value : '-';
+  
+  var tableSel = document.getElementById('side-table-select') || document.getElementById('m-side-table-select');
+  var tableName = tableSel ? tableSel.value : 'Meja 04 (Dine In) • Warkop Hidayah';
 
-  // 1. Kurangi stok di DB (Excel terintegrasi)
+  // 1. Kurangi stok di DB
   DB.deductStockBatch(window.CART);
 
-  // 2. Simpan order ke DB
+  // 2. Simpan order ke DB (Excel terintegrasi)
   var orderData = {
     id: orderId,
     ts: now.toISOString(),
     tableName: tableName,
-    note: note,
     payMethod: window.SELECTED_PAY_TAB,
     total: tot,
     cash: cash,
@@ -1248,7 +1409,7 @@ function showReceiptStruk(order){
     ih += '<div style="display:flex;justify-content:space-between;align-items:flex-start;font-size:10px">' +
       '<div>' +
         '<div style="font-weight:700;color:var(--text-main)">' + it.name + '</div>' +
-        '<div style="font-size:9px;color:var(--text-sub)">' + fmtRp(it.price) + ' × ' + it.qty + '</div>' +
+        '<div style="font-size:8px;color:var(--text-sub)">' + fmtRp(it.price) + ' × ' + it.qty + '</div>' +
       '</div>' +
       '<div style="font-weight:800;color:var(--text-main)">' + fmtRp(it.price * it.qty) + '</div>' +
     '</div>';
@@ -1277,8 +1438,8 @@ function showReceiptStruk(order){
 function closeReceiptModal(){
   document.getElementById('m-receipt').classList.remove('open');
   window.CART = [];
-  renderCartSidebar();
-  toast('Transaksi selesai! Keranjang dikosongkan.', 'ok');
+  renderCartUI();
+  toast('Transaksi selesai! Keranjang siap untuk pesanan baru.', 'ok');
 }
 
 /* ── SEBLAK RACIK PRASMANAN KUSTOM MODAL ── */
@@ -1287,11 +1448,11 @@ function openSblkModal(){
   var h = '';
   for(var i=0; i<SEBLAK_TOPPINGS.length; i++){
     var t = SEBLAK_TOPPINGS[i];
-    h += '<label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1.5px solid var(--border-soft);border-radius:12px;cursor:pointer;background:#F8FAFC" onclick="calcSeblakCustom()">' +
-      '<input type="checkbox" id="chk-top-' + t.id + '" value="' + t.price + '" data-name="' + t.name + '" style="accent-color:var(--pink);width:15px;height:15px">' +
+    h += '<label style="display:flex;align-items:center;gap:6px;padding:7px 8px;border:1.5px solid var(--border-soft);border-radius:10px;cursor:pointer;background:#F8FAFC" onclick="calcSeblakCustom()">' +
+      '<input type="checkbox" id="chk-top-' + t.id + '" value="' + t.price + '" data-name="' + t.name + '" style="accent-color:var(--pink);width:14px;height:14px">' +
       '<div style="flex:1;min-width:0">' +
         '<div style="font-size:10px;font-weight:700;color:var(--text-main)">' + t.name + '</div>' +
-        '<div style="font-size:9px;font-weight:800;color:var(--pink)">' + fmtRp(t.price) + '</div>' +
+        '<div style="font-size:8px;font-weight:800;color:var(--pink)">' + fmtRp(t.price) + '</div>' +
       '</div>' +
     '</label>';
   }
@@ -1303,7 +1464,7 @@ function closeSblkModal(){
   document.getElementById('m-seblak').classList.remove('open');
 }
 function calcSeblakCustom(){
-  var base = 3000; // bumbu seblak 3k wajib
+  var base = 3000;
   var chosen = [];
   for(var i=0; i<SEBLAK_TOPPINGS.length; i++){
     var chk = document.getElementById('chk-top-' + SEBLAK_TOPPINGS[i].id);
@@ -1329,11 +1490,11 @@ function confirmSeblakToCart(){
     qty: 1,
     portion: topNames,
     isCustomSeblak: true,
-    img: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=100&h=100&fit=crop&q=80'
+    img: ONLINE_FALLBACKS['hero_seblak_racik']
   });
 
   closeSblkModal();
-  renderCartSidebar();
+  renderCartUI();
   toast('Seblak Racik ditambahkan! 🍜', 'ok');
 }
 
@@ -1350,22 +1511,22 @@ function renderStokTable(){
     if(q && p.name.toLowerCase().indexOf(q)<0 && p.catLabel.toLowerCase().indexOf(q)<0) continue;
 
     var statusBadge = p.stock === 0 
-      ? '<span style="background:#FEF2F2;color:#B91C1C;padding:2px 7px;border-radius:99px;font-size:9px;font-weight:800">HABIS</span>'
+      ? '<span style="background:#FEF2F2;color:#B91C1C;padding:2px 6px;border-radius:99px;font-size:9px;font-weight:800">HABIS</span>'
       : (p.stock <= 10 
-        ? '<span style="background:#FFFBEB;color:#B45309;padding:2px 7px;border-radius:99px;font-size:9px;font-weight:800">MENIPIS</span>'
-        : '<span style="background:#ECFDF5;color:#047857;padding:2px 7px;border-radius:99px;font-size:9px;font-weight:800">AMAN</span>');
+        ? '<span style="background:#FFFBEB;color:#B45309;padding:2px 6px;border-radius:99px;font-size:9px;font-weight:800">MENIPIS</span>'
+        : '<span style="background:#ECFDF5;color:#047857;padding:2px 6px;border-radius:99px;font-size:9px;font-weight:800">AMAN</span>');
 
     h += '<tr>' +
       '<td><div style="font-weight:800;color:var(--text-main);font-size:12px">' + p.name + '</div></td>' +
       '<td><span style="font-size:10px;color:var(--text-sub);font-weight:600">' + p.catLabel + '</span></td>' +
       '<td style="text-align:center;font-weight:800;color:var(--navy)">' + fmtRp(p.price) + '</td>' +
-      '<td style="text-align:center"><div style="display:flex;align-items:center;justify-content:center;gap:5px"><span style="font-size:14px;font-weight:900">' + p.stock + '</span>' + statusBadge + '</div></td>' +
+      '<td style="text-align:center"><div style="display:flex;align-items:center;justify-content:center;gap:4px"><span style="font-size:13px;font-weight:900">' + p.stock + '</span>' + statusBadge + '</div></td>' +
       '<td style="text-align:center">' +
-        '<div style="display:flex;align-items:center;justify-content:center;gap:5px">' +
-          '<input id="inp-stk-' + p.id + '" type="number" value="10" min="0" style="width:48px;height:28px;border:1px solid var(--border-soft);border-radius:8px;text-align:center;font-size:11px;font-weight:700;outline:none">' +
-          '<button onclick="adjustProductStock(\'' + p.id + '\',1)" style="height:28px;padding:0 8px;background:var(--green);color:#FFFFFF;border:none;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer">+</button>' +
-          '<button onclick="adjustProductStock(\'' + p.id + '\',-1)" style="height:28px;padding:0 8px;background:var(--red);color:#FFFFFF;border:none;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer">−</button>' +
-          '<button onclick="setProductStockExact(\'' + p.id + '\')" style="height:28px;padding:0 10px;background:var(--navy);color:#FFFFFF;border:none;border-radius:8px;font-size:10px;font-weight:700;cursor:pointer">Set</button>' +
+        '<div style="display:flex;align-items:center;justify-content:center;gap:4px">' +
+          '<input id="inp-stk-' + p.id + '" type="number" value="10" min="0" style="width:44px;height:26px;border:1px solid var(--border-soft);border-radius:6px;text-align:center;font-size:10px;font-weight:700;outline:none">' +
+          '<button onclick="adjustProductStock(\'' + p.id + '\',1)" style="height:26px;padding:0 7px;background:var(--green);color:#FFFFFF;border:none;border-radius:6px;font-size:11px;font-weight:800;cursor:pointer">+</button>' +
+          '<button onclick="adjustProductStock(\'' + p.id + '\',-1)" style="height:26px;padding:0 7px;background:var(--red);color:#FFFFFF;border:none;border-radius:6px;font-size:11px;font-weight:800;cursor:pointer">−</button>' +
+          '<button onclick="setProductStockExact(\'' + p.id + '\')" style="height:26px;padding:0 8px;background:var(--navy);color:#FFFFFF;border:none;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer">Set</button>' +
         '</div>' +
       '</td>' +
     '</tr>';
@@ -1412,20 +1573,20 @@ function renderAdminDashboard(){
   }
 
   var hCards = '' +
-    '<div style="background:#FFFFFF;border-radius:18px;border:1.5px solid var(--border-soft);padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.02)">' +
-      '<div style="font-size:10px;font-weight:700;color:var(--text-sub);margin-bottom:4px">💰 Omzet Hari Ini</div>' +
-      '<div style="font-size:18px;font-weight:900;color:var(--pink)">' + fmtRp(revToday) + '</div>' +
-      '<div style="font-size:10px;color:var(--text-sub);margin-top:1px">' + cntToday + ' transaksi sukses</div>' +
+    '<div style="background:#FFFFFF;border-radius:16px;border:1.5px solid var(--border-soft);padding:12px;box-shadow:0 2px 8px rgba(0,0,0,.02)">' +
+      '<div style="font-size:9px;font-weight:700;color:var(--text-sub);margin-bottom:3px">💰 Omzet Hari Ini</div>' +
+      '<div style="font-size:17px;font-weight:900;color:var(--pink)">' + fmtRp(revToday) + '</div>' +
+      '<div style="font-size:9px;color:var(--text-sub);margin-top:1px">' + cntToday + ' transaksi sukses</div>' +
     '</div>' +
-    '<div style="background:#FFFFFF;border-radius:18px;border:1.5px solid var(--border-soft);padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.02)">' +
-      '<div style="font-size:10px;font-weight:700;color:var(--text-sub);margin-bottom:4px">📅 Total Penjualan</div>' +
-      '<div style="font-size:18px;font-weight:900;color:var(--navy)">' + fmtRp(revAll) + '</div>' +
-      '<div style="font-size:10px;color:var(--text-sub);margin-top:1px">' + cntAll + ' riwayat transaksi</div>' +
+    '<div style="background:#FFFFFF;border-radius:16px;border:1.5px solid var(--border-soft);padding:12px;box-shadow:0 2px 8px rgba(0,0,0,.02)">' +
+      '<div style="font-size:9px;font-weight:700;color:var(--text-sub);margin-bottom:3px">📅 Total Penjualan</div>' +
+      '<div style="font-size:17px;font-weight:900;color:var(--navy)">' + fmtRp(revAll) + '</div>' +
+      '<div style="font-size:9px;color:var(--text-sub);margin-top:1px">' + cntAll + ' riwayat transaksi</div>' +
     '</div>' +
-    '<div style="background:#FFFFFF;border-radius:18px;border:1.5px solid var(--border-soft);padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.02)">' +
-      '<div style="font-size:10px;font-weight:700;color:var(--text-sub);margin-bottom:4px">📈 Est. Laba Bersih (50%)</div>' +
-      '<div style="font-size:18px;font-weight:900;color:var(--green)">' + fmtRp(Math.round(revAll * 0.5)) + '</div>' +
-      '<div style="font-size:10px;color:var(--text-sub);margin-top:1px">Setelah estimasi modal HPP</div>' +
+    '<div style="background:#FFFFFF;border-radius:16px;border:1.5px solid var(--border-soft);padding:12px;box-shadow:0 2px 8px rgba(0,0,0,.02)">' +
+      '<div style="font-size:9px;font-weight:700;color:var(--text-sub);margin-bottom:3px">📈 Est. Laba Bersih (50%)</div>' +
+      '<div style="font-size:17px;font-weight:900;color:var(--green)">' + fmtRp(Math.round(revAll * 0.5)) + '</div>' +
+      '<div style="font-size:9px;color:var(--text-sub);margin-top:1px">Setelah estimasi HPP</div>' +
     '</div>';
 
   document.getElementById('admin-stat-cards').innerHTML = hCards;
@@ -1481,19 +1642,19 @@ function renderAdminDashboard(){
   var topEl = document.getElementById('top-selling-container');
   if(topEl){
     if(!topSales.length){
-      topEl.innerHTML = '<div style="color:var(--text-sub);font-size:11px;font-style:italic;text-align:center;padding:12px">Belum ada transaksi penjualan</div>';
+      topEl.innerHTML = '<div style="color:var(--text-sub);font-size:10px;font-style:italic;text-align:center;padding:10px">Belum ada transaksi penjualan</div>';
     } else {
       var topH = '';
       for(var i=0; i<Math.min(5, topSales.length); i++){
         var ts = topSales[i];
-        topH += '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border-soft)">' +
-          '<div style="display:flex;align-items:center;gap:8px">' +
-            '<span style="width:20px;height:20px;border-radius:50%;background:var(--pink-light);color:var(--pink);font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0">' + (i+1) + '</span>' +
-            '<span style="font-size:11px;font-weight:700;color:var(--text-main)">' + ts.name + '</span>' +
+        topH += '<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border-soft)">' +
+          '<div style="display:flex;align-items:center;gap:6px">' +
+            '<span style="width:18px;height:18px;border-radius:50%;background:var(--pink-light);color:var(--pink);font-size:9px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0">' + (i+1) + '</span>' +
+            '<span style="font-size:10px;font-weight:700;color:var(--text-main)">' + ts.name + '</span>' +
           '</div>' +
           '<div style="text-align:right">' +
-            '<div style="font-size:11px;font-weight:900;color:var(--pink)">' + ts.qty + ' terjual</div>' +
-            '<div style="font-size:9px;color:var(--text-sub)">' + fmtRp(ts.total) + '</div>' +
+            '<div style="font-size:10px;font-weight:900;color:var(--pink)">' + ts.qty + ' terjual</div>' +
+            '<div style="font-size:8px;color:var(--text-sub)">' + fmtRp(ts.total) + '</div>' +
           '</div>' +
         '</div>';
       }
@@ -1512,19 +1673,19 @@ function renderAdminDashboard(){
   var lowEl = document.getElementById('low-stock-container');
   if(lowEl){
     if(!lowStk.length){
-      lowEl.innerHTML = '<div style="color:var(--green);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;padding:14px">' +
-        '<span class="ms" style="font-size:18px">check_circle</span>Semua stok aman (>10 pcs)</div>';
+      lowEl.innerHTML = '<div style="color:var(--green);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px;padding:12px">' +
+        '<span class="ms" style="font-size:16px">check_circle</span>Semua stok aman (>10 pcs)</div>';
     } else {
       var lowH = '';
       for(var i=0; i<Math.min(5, lowStk.length); i++){
         var ls = lowStk[i];
         var isHabis = ls.stock === 0;
-        lowH += '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border-soft)">' +
+        lowH += '<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border-soft)">' +
           '<div style="display:flex;flex-direction:column">' +
-            '<span style="font-size:11px;font-weight:700;color:var(--text-main)">' + ls.name + '</span>' +
-            '<span style="font-size:9px;color:var(--text-sub)">' + ls.catLabel + '</span>' +
+            '<span style="font-size:10px;font-weight:700;color:var(--text-main)">' + ls.name + '</span>' +
+            '<span style="font-size:8px;color:var(--text-sub)">' + ls.catLabel + '</span>' +
           '</div>' +
-          '<span style="background:' + (isHabis ? 'var(--red-light)' : 'var(--yellow-light)') + ';color:' + (isHabis ? 'var(--red)' : 'var(--yellow)') + ';font-size:10px;font-weight:800;padding:2px 8px;border-radius:99px">' +
+          '<span style="background:' + (isHabis ? 'var(--red-light)' : 'var(--yellow-light)') + ';color:' + (isHabis ? 'var(--red)' : 'var(--yellow)') + ';font-size:9px;font-weight:800;padding:2px 6px;border-radius:99px">' +
             (isHabis ? 'HABIS' : 'Sisa ' + ls.stock) +
           '</span>' +
         '</div>';
@@ -1549,17 +1710,17 @@ function renderAdminDashboard(){
 
       th += '<tr>' +
         '<td style="font-family:monospace;font-size:10px;font-weight:700;color:var(--text-sub)">' + o.id + '</td>' +
-        '<td style="font-size:11px">' + d.toLocaleDateString('id-ID') + ' ' + d.toLocaleTimeString('id-ID', {hour:'2-digit',minute:'2-digit'}) + '</td>' +
-        '<td><div style="font-size:11px;font-weight:600;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + itemsBadge + '</div></td>' +
-        '<td style="text-align:center"><span style="background:var(--pink-light);color:var(--pink);font-size:9px;font-weight:800;padding:2px 7px;border-radius:99px">' + o.payMethod.toUpperCase() + '</span></td>' +
-        '<td style="text-align:right;font-weight:900;color:var(--navy);font-size:12px">' + fmtRp(o.total) + '</td>' +
+        '<td style="font-size:10px">' + d.toLocaleDateString('id-ID') + ' ' + d.toLocaleTimeString('id-ID', {hour:'2-digit',minute:'2-digit'}) + '</td>' +
+        '<td><div style="font-size:10px;font-weight:600;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + itemsBadge + '</div></td>' +
+        '<td style="text-align:center"><span style="background:var(--pink-light);color:var(--pink);font-size:9px;font-weight:800;padding:2px 6px;border-radius:99px">' + o.payMethod.toUpperCase() + '</span></td>' +
+        '<td style="text-align:right;font-weight:900;color:var(--navy);font-size:11px">' + fmtRp(o.total) + '</td>' +
       '</tr>';
     }
     tbody.innerHTML = th;
   }
 }
 
-/* ── EXCEL EXPORT (STYLING DENGAN PALETTE WARNA WARKOP HIDAYAH) ── */
+/* ── EXCEL EXPORT (5 SHEETS, STYLING DENGAN PALETTE WARNA) ── */
 function doExportExcel(type){
   if(typeof XLSX === 'undefined'){
     toast('Library Excel sedang dimuat, tunggu sebentar…', 'err');
@@ -1696,8 +1857,24 @@ function doExportExcel(type){
   toast('File ' + fileName + ' berhasil diunduh! 📊', 'ok');
 }
 
-function openTablePicker(){ document.getElementById('side-table-select').focus(); }
-function scrollOrOpenCart(){ document.getElementById('cart-items-container').scrollIntoView({behavior:'smooth'}); }
+function openTablePicker(){
+  var sel = document.getElementById('side-table-select') || document.getElementById('m-side-table-select');
+  if(sel) sel.focus();
+}
+
+/* ── WINDOW RESIZE ADAPTER (HP, IPAD, LAPTOP) ── */
+function adaptDeviceLayout(){
+  var w = window.innerWidth;
+  var cartSidebar = document.getElementById('cart-sidebar');
+  if(cartSidebar){
+    if(w >= 1024 && window.CUR_VIEW === 'kasir'){
+      cartSidebar.style.display = 'flex';
+    } else {
+      cartSidebar.style.display = 'none';
+    }
+  }
+  renderCartUI();
+}
 
 /* ── INITIALIZATION ── */
 function initApp(){
@@ -1705,7 +1882,8 @@ function initApp(){
   setInterval(updateClock, 1000);
   renderCategoryCapsules();
   renderPosProducts();
-  renderCartSidebar(); // Akan kosong secara default
+  renderCartUI();
+  window.addEventListener('resize', adaptDeviceLayout);
 }
 
 document.addEventListener('DOMContentLoaded', initApp);

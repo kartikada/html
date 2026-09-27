@@ -225,40 +225,40 @@ html,body{
     <main style="flex:1;background:#FFFFFF;display:flex;flex-direction:column;overflow-y:auto;position:relative" class="ns pb-20 sm:pb-4">
 
       <!-- ═════════ POS VIEW (KASIR) ═════════ -->
-      <div id="view-pos" style="padding:14px 16px 20px sm:padding:18px 22px 24px;display:flex;flex-direction:column;gap:16px">
+      <div id="view-pos" class="p-4 sm:p-6 lg:p-7 flex flex-col gap-4 sm:gap-5">
 
         <!-- Top Header Bar -->
-        <div class="flex flex-row items-center justify-between gap-2 sm:gap-3">
+        <div class="flex flex-row items-center justify-between gap-3 pt-1 pb-1">
           <!-- Title -->
           <div class="min-w-0">
-            <h1 style="font-size:18px;font-weight:900;color:var(--text-main);line-height:1.1" class="sm:text-xl">Warkop Hidayah</h1>
-            <div style="font-size:10px;color:var(--text-sub);font-weight:700;margin-top:1px;letter-spacing:.04em" class="sm:text-[11px]">POS Cashier</div>
+            <h1 style="font-size:22px;font-weight:900;color:var(--text-main);line-height:1.2;letter-spacing:-0.02em" class="sm:text-2xl">Warkop Hidayah</h1>
+            <div style="font-size:11px;color:var(--text-sub);font-weight:700;margin-top:2px;letter-spacing:.04em">POS Cashier</div>
           </div>
 
           <!-- Actions & Promo Banner -->
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2.5">
             <!-- Search Box -->
             <div style="position:relative" class="hidden sm:block">
               <input id="prod-search" type="text" oninput="renderPosProducts()" placeholder="Cari menu…"
-                style="height:38px;border-radius:12px;background:#F8FAFC;border:1.5px solid var(--border-soft);padding:0 12px 0 34px;font-size:11px;font-weight:600;outline:none;width:140px;color:var(--text-main)"
-                onfocus="this.style.width='180px';this.style.borderColor='var(--pink)'"
+                style="height:40px;border-radius:12px;background:#F8FAFC;border:1.5px solid var(--border-soft);padding:0 12px 0 36px;font-size:11px;font-weight:600;outline:none;width:150px;color:var(--text-main)"
+                onfocus="this.style.width='190px';this.style.borderColor='var(--pink)'"
                 onblur="this.style.borderColor='var(--border-soft)'">
-              <span class="ms" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-sub);font-size:16px">search</span>
+              <span class="ms" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text-sub);font-size:17px">search</span>
             </div>
 
             <!-- Cart Trigger Icon Button (Active on Tablet/Mobile) -->
-            <button onclick="toggleMobileCartSheet()" style="width:38px;height:38px;border-radius:12px;background:var(--navy);border:none;color:#FFFFFF;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;box-shadow:0 4px 12px rgba(27,32,43,.18)" class="lg:hidden">
+            <button onclick="toggleMobileCartSheet()" style="width:40px;height:40px;border-radius:12px;background:var(--navy);border:none;color:#FFFFFF;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;box-shadow:0 4px 12px rgba(27,32,43,.18)" class="lg:hidden">
               <span class="ms" style="font-size:18px">shopping_cart</span>
               <span id="header-cart-dot" style="position:absolute;top:7px;right:7px;width:7px;height:7px;background:var(--pink);border-radius:50%;display:none"></span>
             </button>
 
             <!-- Banner: Racik Seblak Prasmanan -->
             <div onclick="openSblkModal()"
-              style="height:38px;background:linear-gradient(135deg,#A888FC 0%,#8E6BF7 100%);border-radius:12px;padding:0 12px;display:flex;align-items:center;gap:8px;cursor:pointer;box-shadow:0 4px 12px rgba(142,107,247,.25);transition:transform .14s ease"
+              style="height:40px;background:linear-gradient(135deg,#A888FC 0%,#8E6BF7 100%);border-radius:12px;padding:0 14px;display:flex;align-items:center;gap:8px;cursor:pointer;box-shadow:0 4px 12px rgba(142,107,247,.25);transition:transform .14s ease"
               onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
               <div>
-                <div style="font-size:10px;font-weight:800;color:#FFFFFF;line-height:1.1">Racik Seblak</div>
-                <div style="font-size:8px;color:rgba(255,255,255,.9);font-weight:600" class="hidden sm:block">Prasmanan Kustom 🍜</div>
+                <div style="font-size:11px;font-weight:800;color:#FFFFFF;line-height:1.1">Racik Seblak</div>
+                <div style="font-size:9px;color:rgba(255,255,255,.9);font-weight:600" class="hidden sm:block">Prasmanan Kustom 🍜</div>
               </div>
               <div style="font-size:18px">🌶️</div>
             </div>
@@ -268,40 +268,40 @@ html,body{
         <!-- Mobile Search Box (Visible only on < sm) -->
         <div style="position:relative" class="sm:hidden w-full">
           <input id="prod-search-mobile" type="text" oninput="document.getElementById('prod-search').value=this.value;renderPosProducts()" placeholder="Cari kopi, seblak, jajanan…"
-            style="width:100%;height:36px;border-radius:12px;background:#F8FAFC;border:1.5px solid var(--border-soft);padding:0 12px 0 34px;font-size:11px;font-weight:600;outline:none;color:var(--text-main)">
-          <span class="ms" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-sub);font-size:16px">search</span>
+            style="width:100%;height:38px;border-radius:12px;background:#F8FAFC;border:1.5px solid var(--border-soft);padding:0 12px 0 36px;font-size:11px;font-weight:600;outline:none;color:var(--text-main)">
+          <span class="ms" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text-sub);font-size:17px">search</span>
         </div>
 
         <!-- Horizontal Category Capsules -->
-        <div style="display:flex;gap:8px sm:gap:10px;overflow-x:auto;padding-bottom:2px" class="ns" id="cat-capsule-container"></div>
+        <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:4px" class="ns" id="cat-capsule-container"></div>
 
         <!-- Section Title: Menu Kasir -->
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between pt-1">
           <div class="flex items-center gap-2">
-            <h2 style="font-size:15px;font-weight:800;color:var(--text-main)">Menu Kasir</h2>
-            <span class="ms" style="font-size:15px;color:var(--text-sub)">tune</span>
+            <h2 style="font-size:16px;font-weight:800;color:var(--text-main)">Menu Kasir</h2>
+            <span class="ms" style="font-size:16px;color:var(--text-sub)">tune</span>
           </div>
-          <button onclick="setCategoryFilter('all')" style="font-size:10px;font-weight:700;color:var(--text-sub);background:none;border:none;cursor:pointer"
+          <button onclick="setCategoryFilter('all')" style="font-size:11px;font-weight:700;color:var(--text-sub);background:none;border:none;cursor:pointer"
             onmouseover="this.style.color='var(--pink)'" onmouseout="this.style.color='var(--text-sub)'">View all →</button>
         </div>
 
         <!-- ── ROW 1: 3 HERO PRODUCTS (RESPONSIVE GRID) ── -->
-        <div id="hero-products-row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px sm:gap:14px"></div>
+        <div id="hero-products-row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px"></div>
 
         <!-- ── ROW 2: ALL COMPACT PRODUCTS GRID (RESPONSIVE GRID) ── -->
-        <div>
-          <div style="font-size:11px;font-weight:800;color:var(--text-sub);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Daftar Menu Lengkap</div>
-          <div id="compact-products-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px sm:gap:10px"></div>
+        <div class="pt-1">
+          <div style="font-size:11px;font-weight:800;color:var(--text-sub);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">Daftar Menu Lengkap</div>
+          <div id="compact-products-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px"></div>
         </div>
 
       </div>
 
 
       <!-- ═════════ STOK MANAGEMENT VIEW (ADMIN) ═════════ -->
-      <div id="view-stok" style="display:none;padding:16px 18px 30px sm:padding:22px 26px 36px;flex-direction:column;gap:16px;width:100%">
+      <div id="view-stok" class="p-4 sm:p-6 lg:p-7 flex-col gap-4 sm:gap-5 w-full" style="display:none">
         <div class="flex items-center justify-between flex-wrap gap-2.5">
           <div>
-            <h2 style="font-size:17px;font-weight:900;color:var(--text-main)">📦 Manajemen Stok Inventori</h2>
+            <h2 style="font-size:18px;font-weight:900;color:var(--text-main)">📦 Manajemen Stok Inventori</h2>
             <p style="font-size:11px;color:var(--text-sub);margin-top:1px">Stok berkurang otomatis saat terjadi penjualan di kasir</p>
           </div>
           <div class="flex items-center gap-2 flex-wrap">
@@ -331,7 +331,7 @@ html,body{
 
 
       <!-- ═════════ LAPORAN & DASHBOARD VIEW (ADMIN) ═════════ -->
-      <div id="view-lap" style="display:none;padding:16px 18px 30px sm:padding:22px 26px 36px;flex-direction:column;gap:16px;width:100%">
+      <div id="view-lap" class="p-4 sm:p-6 lg:p-7 flex-col gap-4 sm:gap-5 w-full" style="display:none">
         
         <!-- Header & 3 Dedicated Report Download Buttons -->
         <div class="flex items-center justify-between flex-wrap gap-2.5">

@@ -175,12 +175,14 @@ html,body{
     <!-- ── LEFT NAVIGATION SIDEBAR (HIDDEN ON HP < 640px, COMPACT ON IPAD, FULL ON LAPTOP) ── -->
     <aside style="background:#FFFFFF;border-right:1.5px solid var(--border-soft);display:flex;flex-direction:column;align-items:center;padding:16px 8px;gap:18px;flex-shrink:0" class="hidden sm:flex sm:w-16 md:w-20">
       
-      <!-- Profile Avatar -->
-      <div class="flex flex-col items-center gap-1 cursor-pointer">
-        <div style="width:44px;height:44px;border-radius:16px;overflow:hidden;background:#E2E8F0;box-shadow:0 3px 10px rgba(0,0,0,.08);border:2px solid #FFFFFF">
-          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&h=120&fit=crop&q=80" alt="Andi Kasir" style="width:100%;height:100%;object-fit:cover" onerror="this.src='https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop&q=80'">
+      <!-- Profile Avatar (Kasir: Kartika) -->
+      <div class="flex flex-col items-center gap-1 cursor-pointer" onclick="openUserProfileModal()" title="Profil Kasir Kartika & Status Cloud Sync">
+        <div style="width:46px;height:46px;border-radius:16px;overflow:hidden;background:#E2E8F0;box-shadow:0 4px 12px rgba(0,0,0,.1);border:2px solid #FFFFFF;position:relative">
+          <img id="sidebar-user-avatar" src="images/kartika_avatar.jpg" alt="Kasir Kartika" style="width:100%;height:100%;object-fit:cover" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&h=120&fit=crop&q=80'">
+          <span id="sync-status-dot" style="position:absolute;bottom:2px;right:2px;width:10px;height:10px;border-radius:50%;background:#10B981;border:2px solid #FFFFFF;box-shadow:0 1px 4px rgba(0,0,0,.2)" title="Cloud Sync Aktif"></span>
         </div>
-        <span style="font-size:9px;font-weight:700;color:var(--text-main);white-space:nowrap" class="hidden md:inline">Andi Kasir</span>
+        <span id="sidebar-user-name" style="font-size:10px;font-weight:800;color:var(--text-main);white-space:nowrap" class="hidden md:inline">Kartika</span>
+        <span id="sidebar-sync-badge" style="font-size:7px;font-weight:800;color:#10B981;background:#ECFDF5;padding:1.5px 5px;border-radius:99px;border:1px solid #A7F3D0" class="hidden md:inline">SYNC AKTIF</span>
       </div>
 
       <!-- Navigation Vertical Pills -->
@@ -236,7 +238,26 @@ html,body{
           </div>
 
           <!-- Actions & Promo Banner -->
-          <div class="flex items-center gap-2.5">
+          <div class="flex items-center gap-2 sm:gap-2.5">
+
+            <!-- Kasir Kartika & Cloud Sync Status Capsule -->
+            <div onclick="openUserProfileModal()" 
+              style="display:flex;align-items:center;gap:7px;background:#F8FAFC;border:1.5px solid var(--border-soft);padding:4px 10px 4px 6px;border-radius:14px;cursor:pointer;transition:all .15s ease" 
+              onmouseover="this.style.borderColor='var(--pink)';this.style.background='#FFF0F3'" 
+              onmouseout="this.style.borderColor='var(--border-soft)';this.style.background='#F8FAFC'" 
+              title="Kasir: Kartika • Klik untuk buka Sinkronisasi Multi-Perangkat">
+              <div style="width:30px;height:30px;border-radius:10px;overflow:hidden;background:#E2E8F0;flex-shrink:0;border:1.5px solid #FFFFFF;box-shadow:0 2px 6px rgba(0,0,0,.08)">
+                <img id="header-user-avatar" src="images/kartika_avatar.jpg" alt="Kartika" style="width:100%;height:100%;object-fit:cover" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&h=120&fit=crop&q=80'">
+              </div>
+              <div class="hidden sm:flex flex-col text-left" style="line-height:1.15">
+                <div style="display:flex;align-items:center;gap:4px">
+                  <span style="font-size:11px;font-weight:800;color:var(--text-main)" id="header-user-name">Kartika</span>
+                  <span id="header-sync-icon" class="ms" style="font-size:14px;color:#10B981" title="Tersinkron Cloud">cloud_done</span>
+                </div>
+                <span style="font-size:8px;font-weight:700;color:var(--text-sub)" id="header-sync-status">Tersinkron Multi-Perangkat</span>
+              </div>
+            </div>
+
             <!-- Search Box -->
             <div style="position:relative" class="hidden sm:block">
               <input id="prod-search" type="text" oninput="renderPosProducts()" placeholder="Cari menu…"
@@ -299,29 +320,54 @@ html,body{
 
       <!-- ═════════ STOK MANAGEMENT VIEW (ADMIN) ═════════ -->
       <div id="view-stok" class="p-4 sm:p-6 lg:p-7 flex-col gap-4 sm:gap-5 w-full" style="display:none">
-        <div class="flex items-center justify-between flex-wrap gap-2.5">
+        
+        <!-- Top Banner Header -->
+        <div class="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h2 style="font-size:18px;font-weight:900;color:var(--text-main)">📦 Manajemen Stok Inventori</h2>
-            <p style="font-size:11px;color:var(--text-sub);margin-top:1px">Stok berkurang otomatis saat terjadi penjualan di kasir</p>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h2 style="font-size:19px;font-weight:900;color:var(--text-main)">📦 Manajemen Stok &amp; COA Inventori</h2>
+              <span id="stok-total-count" style="font-size:10px;font-weight:800;color:var(--pink);background:var(--pink-light);padding:3px 9px;border-radius:99px;border:1px solid var(--pink-border)">0 Barang Terdaftar</span>
+            </div>
+            <p style="font-size:11px;color:var(--text-sub);margin-top:2px">
+              Tiap stok terintegrasi dengan <strong>COA (Chart of Accounts / Bagan Akun Persediaan)</strong>. Stok berkurang otomatis dari kasir.
+            </p>
           </div>
+          
+          <!-- Actions: Tambah Barang + Search + Excel -->
           <div class="flex items-center gap-2 flex-wrap">
-            <input id="stok-filter-inp" type="text" oninput="renderStokTable()" placeholder="Cari produk…"
-              style="height:36px;border-radius:10px;border:1.5px solid var(--border-soft);padding:0 12px;font-size:11px;font-weight:600;outline:none;background:#F8FAFC">
-            <button onclick="doExportExcel('stok')" style="height:36px;padding:0 12px;border-radius:10px;background:var(--navy);color:#FFFFFF;border:none;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px">
-              <span class="ms" style="font-size:16px">download</span>Download Excel
+            <button onclick="openAddProductModal()" 
+              style="height:36px;padding:0 14px;border-radius:11px;background:var(--pink);color:#FFFFFF;border:none;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(255,91,122,.28);transition:all .15s ease"
+              onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 6px 18px rgba(255,91,122,.36)'"
+              onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 14px rgba(255,91,122,.28)'">
+              <span class="ms" style="font-size:18px">add_circle</span>
+              <span>+ Tambah Barang Baru</span>
+            </button>
+            <div style="position:relative">
+              <span class="ms" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--text-sub)">search</span>
+              <input id="stok-filter-inp" type="text" oninput="renderStokTable()" placeholder="Cari nama, COA, kategori…"
+                style="height:36px;width:190px;border-radius:11px;border:1.5px solid var(--border-soft);padding:0 10px 0 32px;font-size:11px;font-weight:600;outline:none;background:#F8FAFC;transition:all .15s"
+                onfocus="this.style.borderColor='var(--pink)';this.style.background='#FFFFFF';this.style.width='220px'"
+                onblur="this.style.borderColor='var(--border-soft)';this.style.background='#F8FAFC';this.style.width='190px'">
+            </div>
+            <button onclick="doExportExcel('stok')" 
+              style="height:36px;padding:0 12px;border-radius:11px;background:var(--navy);color:#FFFFFF;border:none;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(27,32,43,.15)">
+              <span class="ms" style="font-size:16px">download</span>Download Excel Stok &amp; COA
             </button>
           </div>
         </div>
 
+        <!-- Stok & COA Table Container -->
         <div style="background:#FFFFFF;border-radius:18px;border:1.5px solid var(--border-soft);overflow:hidden;box-shadow:0 3px 12px rgba(0,0,0,.02);overflow-x:auto">
-          <table class="dtbl" style="min-width:540px">
+          <table class="dtbl" style="min-width:760px">
             <thead>
               <tr>
-                <th>Nama Produk</th>
+                <th style="width:130px">Kode COA (Akun)</th>
+                <th>Nama Produk / Barang</th>
                 <th>Kategori</th>
-                <th style="text-align:center">Harga</th>
+                <th style="text-align:center">Harga Jual</th>
                 <th style="text-align:center">Sisa Stok</th>
-                <th style="text-align:center">Update Stok</th>
+                <th style="text-align:center">Quick Update Stok</th>
+                <th style="text-align:center;width:95px">Aksi</th>
               </tr>
             </thead>
             <tbody id="stok-table-tbody"></tbody>
@@ -473,6 +519,13 @@ html,body{
     <span id="m-cart-badge" class="absolute top-0 right-1 bg-pink-500 text-white rounded-full text-[8px] w-3.5 h-3.5 flex items-center justify-center font-black hidden">0</span>
     <span>Pesanan</span>
   </button>
+  <button onclick="openUserProfileModal()" id="m-nav-user" class="flex flex-col items-center gap-0.5 text-slate-400 font-bold text-[10px] p-1">
+    <div style="position:relative">
+      <span class="ms text-lg">account_circle</span>
+      <span id="m-sync-dot" style="position:absolute;top:0;right:0;width:6px;height:6px;border-radius:50%;background:#10B981"></span>
+    </div>
+    <span>Kartika</span>
+  </button>
 </nav>
 
 
@@ -566,6 +619,10 @@ html,body{
         <div style="display:flex;justify-content:space-between">
           <span style="color:var(--text-sub)">No. Transaksi</span>
           <span id="rec-id" style="font-weight:700;color:var(--text-main);font-family:monospace"></span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span style="color:var(--text-sub)">Kasir</span>
+          <span id="rec-cashier" style="font-weight:700;color:var(--pink)">Kartika</span>
         </div>
         <div style="display:flex;justify-content:space-between">
           <span style="color:var(--text-sub)">Waktu</span>
@@ -700,6 +757,549 @@ html,body{
 </div>
 
 
+<!-- ═══════════════════ MODAL: LOGIN KASIR (KARTIKA & MULTI-DEVICE SYNC) ═══════════════════ -->
+<div id="m-login" class="mwrap">
+  <div class="mbg" style="background:rgba(15,23,42,.75);backdrop-filter:blur(10px)"></div>
+  <div class="mbox" style="max-width:390px;padding:26px 22px;text-align:center;box-shadow:0 25px 60px rgba(0,0,0,.3);border:1.5px solid rgba(255,255,255,.2)">
+    
+    <!-- Branding & Badge -->
+    <div style="display:inline-flex;align-items:center;gap:6px;background:var(--pink-light);color:var(--pink);padding:4px 12px;border-radius:99px;font-size:10px;font-weight:800;letter-spacing:.04em;margin-bottom:12px;border:1px solid var(--pink-border)">
+      <span>☕</span> WARKOP HIDAYAH POS
+    </div>
+    
+    <h2 style="font-size:19px;font-weight:900;color:var(--text-main);margin-bottom:4px;letter-spacing:-0.02em">Masuk Kasir</h2>
+    <p style="font-size:11px;color:var(--text-body);margin-bottom:16px;line-height:1.4">
+      Database transaksi &amp; stok tersimpan aman otomatis. Bebas refresh dan bisa lanjut di HP/Tablet/Laptop.
+    </p>
+
+    <!-- Quick Login 1-Click Card for Kartika -->
+    <div onclick="quickFillLogin('kartika','1234')" 
+      style="display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#FFF0F3 0%,#FFE4E8 100%);border:1.5px solid var(--pink-border);border-radius:16px;padding:10px 14px;margin-bottom:16px;cursor:pointer;transition:all .16s ease;text-align:left"
+      onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 18px rgba(255,91,122,.15)'"
+      onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
+      <div style="width:42px;height:42px;border-radius:14px;overflow:hidden;border:2px solid #FFFFFF;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.08)">
+        <img src="images/kartika_avatar.jpg" alt="Kartika" style="width:100%;height:100%;object-fit:cover" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&h=120&fit=crop&q=80'">
+      </div>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:900;color:var(--text-main)">👩‍🍳 Masuk Cepat: Kartika</div>
+        <div style="font-size:9.5px;color:var(--pink);font-weight:700">Klik untuk masuk instan (Kasir Utama)</div>
+      </div>
+      <span class="ms" style="color:var(--pink);font-size:18px">arrow_forward</span>
+    </div>
+
+    <!-- Login Form Fields -->
+    <div style="display:flex;flex-direction:column;gap:10px;text-align:left;margin-bottom:14px">
+      <div>
+        <label style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">Nama Kasir</label>
+        <div style="position:relative">
+          <span class="ms" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-sub);font-size:18px">person</span>
+          <input id="login-username" type="text" value="kartika" placeholder="Contoh: kartika" onkeydown="if(event.key==='Enter')processLogin()"
+            style="width:100%;height:42px;border-radius:12px;border:1.5px solid var(--border-soft);background:#F8FAFC;padding:0 12px 0 38px;font-size:13px;font-weight:700;color:var(--text-main);outline:none;transition:border-color .15s"
+            onfocus="this.style.borderColor='var(--pink)';this.style.background='#FFFFFF'"
+            onblur="this.style.borderColor='var(--border-soft)';this.style.background='#F8FAFC'">
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">PIN Kasir (Opsional)</label>
+        <div style="position:relative">
+          <span class="ms" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-sub);font-size:18px">key</span>
+          <input id="login-pin" type="password" value="1234" placeholder="PIN: 1234 (Default)" onkeydown="if(event.key==='Enter')processLogin()"
+            style="width:100%;height:42px;border-radius:12px;border:1.5px solid var(--border-soft);background:#F8FAFC;padding:0 12px 0 38px;font-size:13px;font-weight:700;color:var(--text-main);outline:none;transition:border-color .15s"
+            onfocus="this.style.borderColor='var(--pink)';this.style.background='#FFFFFF'"
+            onblur="this.style.borderColor='var(--border-soft)';this.style.background='#F8FAFC'">
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
+        <input type="checkbox" id="login-remember" checked style="accent-color:var(--pink);cursor:pointer;width:15px;height:15px">
+        <label for="login-remember" style="font-size:11px;font-weight:600;color:var(--text-body);cursor:pointer">Ingat sesi di perangkat ini (Auto-Login)</label>
+      </div>
+    </div>
+
+    <!-- Error message banner -->
+    <div id="login-err-msg" style="display:none;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:10px;padding:8px 10px;color:#B91C1C;font-size:10px;font-weight:700;margin-bottom:12px;text-align:left"></div>
+
+    <!-- Submit Button -->
+    <button onclick="processLogin()" 
+      style="width:100%;height:46px;background:var(--navy);border-radius:14px;color:#FFFFFF;border:none;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 20px rgba(27,32,43,.25);transition:all .15s ease"
+      onmouseover="this.style.background='var(--navy-hover)'" onmouseout="this.style.background='var(--navy)'">
+      <span class="ms" style="font-size:18px">login</span>
+      <span>Masuk Kasir &amp; Sinkronkan Data</span>
+    </button>
+
+    <!-- Cloud Info Note -->
+    <div style="margin-top:14px;background:#F8FAFC;border:1px solid var(--border-soft);border-radius:12px;padding:8px 10px;display:flex;align-items:flex-start;gap:7px;text-align:left">
+      <span class="ms" style="color:#10B981;font-size:16px;flex-shrink:0;margin-top:1px">cloud_done</span>
+      <span style="font-size:9.5px;color:var(--text-sub);line-height:1.35">
+        Database cloud otomatis terhubung untuk nama <strong>kartika</strong>. Buka di HP atau perangkat lain dengan login nama yang sama agar data langsung tersambung!
+      </span>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════ MODAL: KASIR PROFILE & CLOUD SYNC CENTER ═══════════════════ -->
+<div id="m-user-profile" class="mwrap">
+  <div class="mbg" onclick="closeUserProfileModal()"></div>
+  <div class="mbox" style="max-width:410px;padding:22px;box-shadow:0 25px 60px rgba(0,0,0,.25)">
+    
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:52px;height:52px;border-radius:18px;overflow:hidden;border:2.5px solid var(--pink-border);box-shadow:0 4px 14px rgba(0,0,0,.1);position:relative">
+          <img id="profile-modal-avatar" src="images/kartika_avatar.jpg" alt="Kartika" style="width:100%;height:100%;object-fit:cover" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&h=120&fit=crop&q=80'">
+        </div>
+        <div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <h3 style="font-size:16px;font-weight:900;color:var(--text-main)">Kartika</h3>
+            <span style="background:var(--pink-light);color:var(--pink);font-size:8px;font-weight:800;padding:2px 7px;border-radius:99px;border:1px solid var(--pink-border)">KASIR UTAMA</span>
+          </div>
+          <div style="font-size:10px;color:var(--text-sub);font-weight:600">Warkop Hidayah POS System</div>
+        </div>
+      </div>
+      <button onclick="closeUserProfileModal()" style="width:28px;height:28px;border-radius:50%;background:#F8FAFC;border:1px solid var(--border-soft);cursor:pointer;display:flex;align-items:center;justify-content:center">
+        <span class="ms" style="font-size:16px;color:var(--text-sub)">close</span>
+      </button>
+    </div>
+
+    <!-- Live Sync Status Card -->
+    <div style="background:linear-gradient(135deg,#F8FAFC 0%,#F1F5F9 100%);border:1.5px solid var(--border-soft);border-radius:16px;padding:12px 14px;margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="ms" style="color:#10B981;font-size:18px">cloud_sync</span>
+          <span style="font-size:11px;font-weight:800;color:var(--text-main)">Status Sinkronisasi Multi-Perangkat</span>
+        </div>
+        <span id="profile-sync-status" style="font-size:9.5px;font-weight:800;color:#10B981;background:#ECFDF5;padding:2px 8px;border-radius:99px;border:1px solid #A7F3D0">Tersinkron Cloud</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:10px;color:var(--text-body)">
+        <div style="background:#FFFFFF;border-radius:10px;padding:8px 10px;border:1px solid var(--border-soft)">
+          <div style="color:var(--text-sub);font-size:8.5px;font-weight:700">PESANAN TERSIMPAN</div>
+          <div id="prof-stat-orders" style="font-size:13px;font-weight:900;color:var(--navy);margin-top:2px">0 Pesanan</div>
+        </div>
+        <div style="background:#FFFFFF;border-radius:10px;padding:8px 10px;border:1px solid var(--border-soft)">
+          <div style="color:var(--text-sub);font-size:8.5px;font-weight:700">TOTAL OMZET TERCATAT</div>
+          <div id="prof-stat-omzet" style="font-size:13px;font-weight:900;color:var(--pink);margin-top:2px">Rp 0</div>
+        </div>
+      </div>
+      <div id="profile-sync-time" style="font-size:9px;color:var(--text-sub);margin-top:8px;text-align:right">Terakhir sinkron: Otomatis real-time</div>
+    </div>
+
+    <!-- Action Buttons Grid -->
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
+      <!-- Force Sync Button -->
+      <button id="btn-force-sync" onclick="CloudSync.forceSync()"
+        style="width:100%;height:40px;background:var(--pink);border-radius:12px;color:#FFFFFF;border:none;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 12px rgba(255,91,122,.25)">
+        <span class="ms" style="font-size:16px">sync</span>
+        <span>Sinkronkan Sekarang</span>
+      </button>
+
+      <!-- Multi Device Guide Button -->
+      <button onclick="closeUserProfileModal();openDeviceGuideModal()"
+        style="width:100%;height:38px;background:#F8FAFC;border:1.5px solid var(--border-soft);border-radius:12px;color:var(--text-main);font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+        <span class="ms" style="font-size:16px;color:#3B82F6">devices</span>
+        <span>Panduan Buka di HP / Ganti Device</span>
+      </button>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <!-- Download Backup -->
+        <button onclick="CloudSync.exportBackup()"
+          style="height:36px;background:#F8FAFC;border:1px solid var(--border-soft);border-radius:10px;font-size:10px;font-weight:700;color:var(--text-body);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px">
+          <span class="ms" style="font-size:15px;color:var(--text-sub)">download</span>
+          <span>Cadangkan JSON</span>
+        </button>
+        <!-- Restore Backup -->
+        <label for="backup-file-input"
+          style="height:36px;background:#F8FAFC;border:1px solid var(--border-soft);border-radius:10px;font-size:10px;font-weight:700;color:var(--text-body);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px">
+          <span class="ms" style="font-size:15px;color:var(--text-sub)">upload</span>
+          <span>Pulihkan File</span>
+        </label>
+        <input type="file" id="backup-file-input" accept=".json" onchange="CloudSync.importBackup(this)" style="display:none">
+      </div>
+    </div>
+
+    <!-- Logout / Switch Account -->
+    <button onclick="logoutKasir()"
+      style="width:100%;height:36px;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:10px;color:#B91C1C;font-size:10px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px">
+      <span class="ms" style="font-size:15px">logout</span>
+      <span>Keluar / Ganti Akun Kasir</span>
+    </button>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════ MODAL: PANDUAN BUKA DI HP / GANTI DEVICE ═══════════════════ -->
+<div id="m-device-guide" class="mwrap">
+  <div class="mbg" onclick="closeDeviceGuideModal()"></div>
+  <div class="mbox" style="max-width:440px;padding:22px;box-shadow:0 25px 60px rgba(0,0,0,.25);max-height:88vh;overflow-y:auto" class="ns">
+    
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:36px;height:36px;border-radius:12px;background:#EFF6FF;color:#3B82F6;display:flex;align-items:center;justify-content:center">
+          <span class="ms" style="font-size:20px">smartphone</span>
+        </div>
+        <div>
+          <h3 style="font-size:15px;font-weight:900;color:var(--text-main)">Buka di HP &amp; Ganti Device</h3>
+          <div style="font-size:9.5px;color:var(--text-sub);font-weight:600">Cara menyambungkan kasir di perangkat lain</div>
+        </div>
+      </div>
+      <button onclick="closeDeviceGuideModal()" style="width:28px;height:28px;border-radius:50%;background:#F8FAFC;border:1px solid var(--border-soft);cursor:pointer;display:flex;align-items:center;justify-content:center">
+        <span class="ms" style="font-size:16px;color:var(--text-sub)">close</span>
+      </button>
+    </div>
+
+    <!-- Method 1: Cloud Sync (Paling Mudah) -->
+    <div style="background:#F0FDF4;border:1.5px solid #86EFAC;border-radius:16px;padding:12px 14px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+        <span style="font-size:16px">☁️</span>
+        <span style="font-size:11px;font-weight:900;color:#166534">Cara 1: Cloud Sync Otomatis (Rekomendasi)</span>
+      </div>
+      <p style="font-size:10px;color:#14532D;line-height:1.4;margin-bottom:8px">
+        Tidak perlu kabel atau server khusus. Data otomatis tersinkron lewat Cloud Database!
+      </p>
+      <ol style="font-size:10px;color:#166534;line-height:1.5;padding-left:18px;margin:0;display:flex;flex-direction:column;gap:3px">
+        <li>Buka file POS atau link kasir di HP / Tablet / Laptop lain.</li>
+        <li>Pada form login, masukkan nama kasir: <strong style="background:#DCFCE7;padding:1px 5px;border-radius:4px">kartika</strong>.</li>
+        <li>Selesai! Sistem akan otomatis menarik seluruh sisa stok dan transaksi terdahulu.</li>
+        <li>Setiap transaksi baru di HP otomatis tersimpan dan terbaca di laptop.</li>
+      </ol>
+    </div>
+
+    <!-- Method 2: Wi-Fi Lokal Server (Node.js) -->
+    <div style="background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:16px;padding:12px 14px;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+        <span style="font-size:16px">📶</span>
+        <span style="font-size:11px;font-weight:900;color:#92400E">Cara 2: Jaringan Wi-Fi Warkop Lokal (Offline Cepat)</span>
+      </div>
+      <p style="font-size:10px;color:#78350F;line-height:1.4;margin-bottom:8px">
+        Jika ingin membuka kasir antar perangkat di toko tanpa kuota internet:
+      </p>
+      <ol style="font-size:10px;color:#92400E;line-height:1.5;padding-left:18px;margin:0;display:flex;flex-direction:column;gap:3px">
+        <li>Di Laptop kasir, klik dua kali file <strong>start_server.bat</strong> (atau jalankan <code>node server.js</code>).</li>
+        <li>Sambungkan HP / Tablet ke jaringan Wi-Fi warkop yang sama.</li>
+        <li>Buka browser di HP dan ketik alamat IP yang muncul di layar laptop (misal: <code>http://192.168.1.xxx:3000</code>).</li>
+      </ol>
+    </div>
+
+    <button onclick="closeDeviceGuideModal()" 
+      style="width:100%;height:38px;background:var(--navy);border-radius:10px;color:#FFFFFF;border:none;font-size:11px;font-weight:800;cursor:pointer">
+      Mengerti &amp; Tutup
+    </button>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════ MODAL: TAMBAH BARANG & STOK BARU (COA) ═══════════════════ -->
+<div id="m-add-product" class="mwrap">
+  <div class="mbg" onclick="closeAddProductModal()"></div>
+  <div class="mbox" style="max-width:500px;padding:24px;max-height:92vh;overflow-y:auto">
+    
+    <!-- Header -->
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:44px;height:44px;border-radius:15px;background:var(--pink-light);display:flex;align-items:center;justify-content:center;color:var(--pink);border:1.5px solid var(--pink-border);box-shadow:0 4px 12px rgba(255,91,122,.15)">
+          <span class="ms" style="font-size:24px">add_box</span>
+        </div>
+        <div>
+          <h3 style="font-size:17px;font-weight:900;color:var(--text-main);line-height:1.2">Tambah Barang &amp; Stok</h3>
+          <p style="font-size:11px;color:var(--text-sub);margin-top:2px">Registrasi produk baru dengan kode akun akuntansi (COA)</p>
+        </div>
+      </div>
+      <button onclick="closeAddProductModal()" style="width:30px;height:30px;border-radius:50%;background:#F8FAFC;border:1px solid var(--border-soft);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s" onmouseover="this.style.background='#F1F5F9'" onmouseout="this.style.background='#F8FAFC'">
+        <span class="ms" style="font-size:18px;color:var(--text-sub)">close</span>
+      </button>
+    </div>
+
+    <!-- Form Content -->
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <!-- Nama Barang -->
+      <div>
+        <label style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">
+          Nama Barang / Produk <span style="color:var(--pink)">*</span>
+        </label>
+        <input id="add-prod-name" type="text" placeholder="Contoh: Indomie Goreng Telur, Teh Susu Jahe…"
+          style="width:100%;height:40px;border-radius:11px;border:1.5px solid var(--border-soft);background:#F8FAFC;padding:0 12px;font-size:12.5px;font-weight:700;color:var(--text-main);outline:none;transition:border-color .15s"
+          onfocus="this.style.borderColor='var(--pink)';this.style.background='#FFFFFF'"
+          onblur="this.style.borderColor='var(--border-soft)';this.style.background='#F8FAFC'">
+      </div>
+
+      <!-- Kategori & COA Code Grid -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">
+            Kategori Produk <span style="color:var(--pink)">*</span>
+          </label>
+          <select id="add-prod-cat" onchange="onAddCatChange()"
+            style="width:100%;height:40px;border-radius:11px;border:1.5px solid var(--border-soft);background:#F8FAFC;padding:0 10px;font-size:12px;font-weight:700;color:var(--text-main);outline:none;cursor:pointer">
+            <option value="kopi">☕ Kopi Sachet (1-1301)</option>
+            <option value="es">🥤 Minuman Dingin (1-1302)</option>
+            <option value="teh">🍵 Teh &amp; Seduhan (1-1303)</option>
+            <option value="botol">🧃 Minuman Botol (1-1304)</option>
+            <option value="snack">🍿 Snack &amp; Makanan (1-1305)</option>
+            <option value="seblak">🍜 Seblak &amp; Bahan (1-1306)</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">
+            Kode Akun COA <span style="color:var(--pink)">*</span>
+          </label>
+          <input id="add-prod-coa" type="text" placeholder="1-1301-09"
+            style="width:100%;height:40px;border-radius:11px;border:1.5px solid var(--border-soft);background:#F8FAFC;padding:0 10px;font-size:12.5px;font-weight:800;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;color:var(--navy);outline:none"
+            onfocus="this.style.borderColor='var(--pink)';this.style.background='#FFFFFF'"
+            onblur="this.style.borderColor='var(--border-soft)';this.style.background='#F8FAFC'">
+        </div>
+      </div>
+
+      <!-- COA Info helper box -->
+      <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:12px;padding:9px 12px;display:flex;align-items:flex-start;gap:8px">
+        <span class="ms" style="font-size:17px;color:#2563EB;flex-shrink:0;margin-top:1px">account_balance_wallet</span>
+        <div style="font-size:10px;color:#1E40AF;line-height:1.4">
+          <strong>Bagan Akun Persediaan (COA):</strong> Kode di atas otomatis terisi nomor urut berikutnya dari kelompok kategori akun Aset Lancar. Kode ini dapat disesuaikan jika memiliki format nomor akun sendiri.
+        </div>
+      </div>
+
+      <!-- Harga Jual & Stok Awal -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">
+            Harga Jual (Rp) <span style="color:var(--pink)">*</span>
+          </label>
+          <input id="add-prod-price" type="number" min="0" step="500" placeholder="5000"
+            style="width:100%;height:40px;border-radius:11px;border:1.5px solid var(--border-soft);background:#F8FAFC;padding:0 12px;font-size:12.5px;font-weight:800;color:var(--text-main);outline:none"
+            onfocus="this.style.borderColor='var(--pink)';this.style.background='#FFFFFF'"
+            onblur="this.style.borderColor='var(--border-soft)';this.style.background='#F8FAFC'">
+        </div>
+
+        <div>
+          <label style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">
+            Jumlah Stok Awal <span style="color:var(--pink)">*</span>
+          </label>
+          <input id="add-prod-stock" type="number" min="0" value="50" placeholder="50"
+            style="width:100%;height:40px;border-radius:11px;border:1.5px solid var(--border-soft);background:#F8FAFC;padding:0 12px;font-size:12.5px;font-weight:800;color:var(--text-main);outline:none"
+            onfocus="this.style.borderColor='var(--pink)';this.style.background='#FFFFFF'"
+            onblur="this.style.borderColor='var(--border-soft)';this.style.background='#F8FAFC'">
+        </div>
+      </div>
+
+      <!-- Satuan Porsi & Deskripsi Singkat -->
+      <div style="display:grid;grid-template-columns:1fr 2fr;gap:10px">
+        <div>
+          <label style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">
+            Satuan / Porsi
+          </label>
+          <input id="add-prod-portion" type="text" placeholder="1 gelas" value="1 porsi"
+            style="width:100%;height:40px;border-radius:11px;border:1.5px solid var(--border-soft);background:#F8FAFC;padding:0 10px;font-size:12px;font-weight:600;color:var(--text-main);outline:none">
+        </div>
+        <div>
+          <label style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">
+            Deskripsi Menu
+          </label>
+          <input id="add-prod-desc" type="text" placeholder="Keterangan singkat menu atau rasa"
+            style="width:100%;height:40px;border-radius:11px;border:1.5px solid var(--border-soft);background:#F8FAFC;padding:0 10px;font-size:12px;font-weight:600;color:var(--text-main);outline:none">
+        </div>
+      </div>
+
+      <!-- URL Gambar (Opsional) -->
+      <div>
+        <label style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">
+          Foto / Gambar Produk (Opsional URL)
+        </label>
+        <input id="add-prod-img" type="text" placeholder="https://... (kosongkan jika pakai foto otomatis kategori)"
+          style="width:100%;height:40px;border-radius:11px;border:1.5px solid var(--border-soft);background:#F8FAFC;padding:0 10px;font-size:11.5px;font-weight:600;color:var(--text-main);outline:none">
+      </div>
+
+      <!-- Error message -->
+      <div id="add-prod-err" style="display:none;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:11px;padding:9px 12px;color:#B91C1C;font-size:11px;font-weight:700"></div>
+
+      <!-- Action Buttons -->
+      <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
+        <button onclick="closeAddProductModal()" 
+          style="flex:1;height:44px;border-radius:12px;background:#F8FAFC;border:1.5px solid var(--border-soft);color:var(--text-body);font-size:12px;font-weight:700;cursor:pointer">
+          Batal
+        </button>
+        <button onclick="submitAddProduct()" 
+          style="flex:2;height:44px;border-radius:12px;background:var(--pink);color:#FFFFFF;border:none;font-size:12.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 6px 18px rgba(255,91,122,.32);transition:all .15s ease"
+          onmouseover="this.style.background='var(--pink-hover)'" onmouseout="this.style.background='var(--pink)'">
+          <span class="ms" style="font-size:19px">check_circle</span>
+          <span>Simpan Barang &amp; Stok</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════ MODAL: EDIT BARANG & COA ═══════════════════ -->
+<div id="m-edit-product" class="mwrap">
+  <div class="mbg" onclick="closeEditProductModal()"></div>
+  <div class="mbox" style="max-width:500px;padding:24px;max-height:92vh;overflow-y:auto">
+    
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:44px;height:44px;border-radius:15px;background:#EFF6FF;display:flex;align-items:center;justify-content:center;color:#2563EB;border:1.5px solid #BFDBFE">
+          <span class="ms" style="font-size:24px">edit_note</span>
+        </div>
+        <div>
+          <h3 style="font-size:17px;font-weight:900;color:var(--text-main);line-height:1.2">Edit Barang &amp; COA</h3>
+          <p style="font-size:11px;color:var(--text-sub);margin-top:2px">Perbarui data produk, harga, stok, atau kode akun akuntansi</p>
+        </div>
+      </div>
+      <button onclick="closeEditProductModal()" style="width:30px;height:30px;border-radius:50%;background:#F8FAFC;border:1px solid var(--border-soft);cursor:pointer;display:flex;align-items:center;justify-content:center">
+        <span class="ms" style="font-size:18px;color:var(--text-sub)">close</span>
+      </button>
+    </div>
+
+    <!-- Hidden Edit ID -->
+    <input type="hidden" id="edit-prod-id">
+
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div>
+        <label style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">
+          Nama Barang / Produk <span style="color:var(--pink)">*</span>
+        </label>
+        <input id="edit-prod-name" type="text"
+          style="width:100%;height:40px;border-radius:11px;border:1.5px solid var(--border-soft);background:#F8FAFC;padding:0 12px;font-size:12.5px;font-weight:700;color:var(--text-main);outline:none">
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">
+            Kategori Produk
+          </label>
+          <select id="edit-prod-cat"
+            style="width:100%;height:40px;border-radius:11px;border:1.5px solid var(--border-soft);background:#F8FAFC;padding:0 10px;font-size:12px;font-weight:700;color:var(--text-main);outline:none;cursor:pointer">
+            <option value="kopi">☕ Kopi Sachet</option>
+            <option value="es">🥤 Minuman Dingin &amp; Es</option>
+            <option value="teh">🍵 Teh &amp; Seduhan</option>
+            <option value="botol">🧃 Minuman Botol</option>
+            <option value="snack">🍿 Snack &amp; Makanan</option>
+            <option value="seblak">🍜 Seblak &amp; Bahan</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">
+            Kode COA (Akuntansi) <span style="color:var(--pink)">*</span>
+          </label>
+          <input id="edit-prod-coa" type="text"
+            style="width:100%;height:40px;border-radius:11px;border:1.5px solid var(--border-soft);background:#F8FAFC;padding:0 10px;font-size:12.5px;font-weight:800;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;color:var(--navy);outline:none">
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">
+            Harga Jual (Rp) <span style="color:var(--pink)">*</span>
+          </label>
+          <input id="edit-prod-price" type="number" min="0" step="500"
+            style="width:100%;height:40px;border-radius:11px;border:1.5px solid var(--border-soft);background:#F8FAFC;padding:0 12px;font-size:12.5px;font-weight:800;color:var(--text-main);outline:none">
+        </div>
+
+        <div>
+          <label style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">
+            Sisa Stok <span style="color:var(--pink)">*</span>
+          </label>
+          <input id="edit-prod-stock" type="number" min="0"
+            style="width:100%;height:40px;border-radius:11px;border:1.5px solid var(--border-soft);background:#F8FAFC;padding:0 12px;font-size:12.5px;font-weight:800;color:var(--text-main);outline:none">
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 2fr;gap:10px">
+        <div>
+          <label style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">
+            Satuan / Porsi
+          </label>
+          <input id="edit-prod-portion" type="text"
+            style="width:100%;height:40px;border-radius:11px;border:1.5px solid var(--border-soft);background:#F8FAFC;padding:0 10px;font-size:12px;font-weight:600;color:var(--text-main);outline:none">
+        </div>
+        <div>
+          <label style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">
+            Deskripsi Menu
+          </label>
+          <input id="edit-prod-desc" type="text"
+            style="width:100%;height:40px;border-radius:11px;border:1.5px solid var(--border-soft);background:#F8FAFC;padding:0 10px;font-size:12px;font-weight:600;color:var(--text-main);outline:none">
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">
+          Foto / Gambar Produk (URL)
+        </label>
+        <input id="edit-prod-img" type="text"
+          style="width:100%;height:40px;border-radius:11px;border:1.5px solid var(--border-soft);background:#F8FAFC;padding:0 10px;font-size:11.5px;font-weight:600;color:var(--text-main);outline:none">
+      </div>
+
+      <div id="edit-prod-err" style="display:none;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:11px;padding:9px 12px;color:#B91C1C;font-size:11px;font-weight:700"></div>
+
+      <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
+        <button onclick="closeEditProductModal()" 
+          style="flex:1;height:44px;border-radius:12px;background:#F8FAFC;border:1.5px solid var(--border-soft);color:var(--text-body);font-size:12px;font-weight:700;cursor:pointer">
+          Batal
+        </button>
+        <button onclick="submitEditProduct()" 
+          style="flex:2;height:44px;border-radius:12px;background:var(--navy);color:#FFFFFF;border:none;font-size:12.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 6px 18px rgba(27,32,43,.25)">
+          <span class="ms" style="font-size:19px">save</span>
+          <span>Perbarui Data Barang</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════ MODAL: KONFIRMASI HAPUS BARANG ═══════════════════ -->
+<div id="m-delete-product" class="mwrap">
+  <div class="mbg" onclick="closeDeleteProductModal()"></div>
+  <div class="mbox" style="max-width:400px;padding:24px;text-align:center">
+    
+    <div style="width:56px;height:56px;border-radius:20px;background:#FEF2F2;border:2px solid #FECACA;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;color:#DC2626;box-shadow:0 6px 16px rgba(220,38,38,.12)">
+      <span class="ms" style="font-size:30px">delete_forever</span>
+    </div>
+
+    <h3 style="font-size:17px;font-weight:900;color:var(--text-main);margin-bottom:4px">Hapus Barang dari Stok?</h3>
+    <p style="font-size:11px;color:var(--text-sub);line-height:1.4;margin-bottom:16px">
+      Barang ini akan dihapus permanen dari inventori stok dan katalog POS kasir.
+    </p>
+
+    <!-- Details card -->
+    <div style="background:#F8FAFC;border:1.5px solid var(--border-soft);border-radius:16px;padding:14px;text-align:left;margin-bottom:18px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:10px;color:var(--text-sub);font-weight:700">KODE COA</span>
+        <span id="del-prod-coa" style="font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:11.5px;font-weight:800;color:var(--navy);background:#FFFFFF;border:1px solid #CBD5E1;padding:2px 7px;border-radius:6px">-</span>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:10px;color:var(--text-sub);font-weight:700">NAMA PRODUK</span>
+        <span id="del-prod-name" style="font-size:13px;font-weight:900;color:var(--text-main)">-</span>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:10px;color:var(--text-sub);font-weight:700">SISA STOK</span>
+        <span id="del-prod-stock" style="font-size:12px;font-weight:900;color:#DC2626">-</span>
+      </div>
+    </div>
+
+    <input type="hidden" id="del-prod-id">
+
+    <div style="display:flex;align-items:center;gap:10px">
+      <button onclick="closeDeleteProductModal()" 
+        style="flex:1;height:44px;border-radius:12px;background:#F8FAFC;border:1.5px solid var(--border-soft);color:var(--text-body);font-size:12px;font-weight:700;cursor:pointer">
+        Batal
+      </button>
+      <button onclick="executeDeleteProduct()" 
+        style="flex:1;height:44px;border-radius:12px;background:#DC2626;color:#FFFFFF;border:none;font-size:12.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 6px 18px rgba(220,38,38,.35)">
+        <span class="ms" style="font-size:19px">delete</span>
+        <span>Ya, Hapus</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+
 <!-- Toast Popup -->
 <div id="toast" style="position:fixed;bottom:20px;right:20px;z-index:999;pointer-events:none"></div>
 
@@ -711,14 +1311,85 @@ var ADMIN_PWD = 'hidayah';
 var HPP_RATIO = 0.50; // 50% estimasi HPP
 
 var CATEGORIES = [
-  {id:'all',    label:'Semua',   emoji:'🍱'},
-  {id:'seblak', label:'Seblak',  emoji:'🍜'},
-  {id:'kopi',   label:'Kopi',    emoji:'☕'},
-  {id:'teh',    label:'Teh',     emoji:'🍵'},
-  {id:'es',     label:'Minuman', emoji:'🥤'},
-  {id:'botol',  label:'Botolan', emoji:'🧃'},
-  {id:'snack',  label:'Snack',   emoji:'🍿'}
+  {id:'all',    label:'Semua',   emoji:'🍱', coaPrefix:'1-1300', coaName:'Semua Persediaan'},
+  {id:'seblak', label:'Seblak',  emoji:'🍜', coaPrefix:'1-1306', coaName:'Persediaan Seblak & Bahan'},
+  {id:'kopi',   label:'Kopi',    emoji:'☕', coaPrefix:'1-1301', coaName:'Persediaan Kopi & Sachet'},
+  {id:'teh',    label:'Teh',     emoji:'🍵', coaPrefix:'1-1303', coaName:'Persediaan Teh & Seduhan'},
+  {id:'es',     label:'Minuman', emoji:'🥤', coaPrefix:'1-1302', coaName:'Persediaan Minuman Dingin/Es'},
+  {id:'botol',  label:'Botolan', emoji:'🧃', coaPrefix:'1-1304', coaName:'Persediaan Minuman Botolan'},
+  {id:'snack',  label:'Snack',   emoji:'🍿', coaPrefix:'1-1305', coaName:'Persediaan Makanan & Snack'}
 ];
+
+var CATEGORY_DEFAULTS = {
+  'kopi':   { img: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=260&h=260&fit=crop&q=80', label: '☕ Kopi Sachet', portion: '1 gelas' },
+  'es':     { img: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=260&h=260&fit=crop&q=80', label: '🥤 Minuman', portion: '1 cup es' },
+  'teh':    { img: 'https://images.unsplash.com/photo-1556679343-c71e3eae8d9e?w=260&h=260&fit=crop&q=80', label: '🍵 Teh', portion: '1 gelas' },
+  'botol':  { img: 'https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=260&h=260&fit=crop&q=80', label: '🧃 Botolan', portion: '1 botol' },
+  'snack':  { img: 'https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?w=260&h=260&fit=crop&q=80', label: '🍿 Snack', portion: '1 bungkus' },
+  'seblak': { img: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=260&h=260&fit=crop&q=80', label: '🍜 Seblak', portion: '1 mangkok' }
+};
+
+function getCategoryCoaPrefix(catId){
+  for(var i=0; i<CATEGORIES.length; i++){
+    if(CATEGORIES[i].id === catId) return CATEGORIES[i].coaPrefix;
+  }
+  return '1-1305';
+}
+
+function getProductCoa(p){
+  if(p && p.coa) return p.coa;
+  var COA_MAP = {
+    'hero_goodday': '1-1301-01',
+    'kopi_luwak': '1-1301-02',
+    'kopi_torabika': '1-1301-03',
+    'kopi_nescafe': '1-1301-04',
+    'kopi_kapalapi': '1-1301-05',
+    'kopi_topcafe': '1-1301-06',
+    'kopi_abc': '1-1301-07',
+    'kopi_indocafe': '1-1301-08',
+    'hero_kukubima': '1-1302-01',
+    'pop_ice': '1-1302-02',
+    'en_extrajoss': '1-1302-03',
+    'teh_maxtea': '1-1303-01',
+    'teh_nestea': '1-1303-02',
+    'teh_bonteh': '1-1303-03',
+    'teh_tongtji': '1-1303-04',
+    'teh_poci': '1-1303-05',
+    'botol_floridina': '1-1304-01',
+    'botol_tehpucuk': '1-1304-02',
+    'botol_aqua': '1-1304-03',
+    'botol_sprite': '1-1304-04',
+    'botol_cocacola': '1-1304-05',
+    'botol_fanta': '1-1304-06',
+    'snk_cireng': '1-1305-01',
+    'snk_risolmayo': '1-1305-02',
+    'snk_udangkeju': '1-1305-03',
+    'snk_udangrambutan': '1-1305-04',
+    'snk_pilus': '1-1305-05',
+    'snk_tango': '1-1305-06',
+    'snk_chocolatos': '1-1305-07',
+    'snk_kripiikusus': '1-1305-08',
+    'hero_seblak_racik': '1-1306-01'
+  };
+  if(p && COA_MAP[p.id]) return COA_MAP[p.id];
+  return (getCategoryCoaPrefix(p ? p.cat : 'snack')) + '-99';
+}
+
+function generateNextCoaCode(catId){
+  var prefix = getCategoryCoaPrefix(catId);
+  var ps = (typeof DB !== 'undefined') ? DB.getProducts() : MASTER_PRODUCTS;
+  var maxNum = 0;
+  for(var i=0; i<ps.length; i++){
+    var coa = ps[i].coa || getProductCoa(ps[i]);
+    if(coa.indexOf(prefix + '-') === 0){
+      var numStr = coa.substring((prefix + '-').length);
+      var num = parseInt(numStr, 10);
+      if(!isNaN(num) && num > maxNum) maxNum = num;
+    }
+  }
+  var nextNum = maxNum + 1;
+  return prefix + '-' + (nextNum < 10 ? '0' + nextNum : nextNum);
+}
 
 /* 10 Toppings Seblak */
 var SEBLAK_TOPPINGS = [
@@ -748,10 +1419,10 @@ var ONLINE_FALLBACKS = {
 };
 
 function getSafeImgSrc(p){
-  return p.img || ONLINE_FALLBACKS[p.id] || ONLINE_FALLBACKS['default'];
+  return (p && p.img) || ONLINE_FALLBACKS[p ? p.id : ''] || ONLINE_FALLBACKS['default'];
 }
 
-/* Master Products */
+/* Master Products (Dengan Kode COA Bagan Akun Persediaan SAK EMKM) */
 var MASTER_PRODUCTS = [
   /* HERO PRODUCTS */
   {
@@ -759,6 +1430,7 @@ var MASTER_PRODUCTS = [
     name:'Racik Seblak Prasmanan',
     cat:'seblak',
     catLabel:'🍜 Seblak',
+    coa:'1-1306-01',
     price:3000,
     stock:99,
     isHero:true,
@@ -772,6 +1444,7 @@ var MASTER_PRODUCTS = [
     name:'Kuku Bima Susu',
     cat:'es',
     catLabel:'🥤 Minuman',
+    coa:'1-1302-01',
     price:8000,
     stock:50,
     isHero:true,
@@ -784,6 +1457,7 @@ var MASTER_PRODUCTS = [
     name:'Good Day Freeze',
     cat:'kopi',
     catLabel:'☕ Kopi Sachet',
+    coa:'1-1301-01',
     price:5000,
     stock:50,
     isHero:true,
@@ -793,67 +1467,148 @@ var MASTER_PRODUCTS = [
   },
 
   /* MINUMAN 5K & 8K */
-  { id:'pop_ice',       name:'Pop Ice Blender',    cat:'es',    catLabel:'🥤 Minuman', price:5000, stock:50, isHero:false, desc:'Aneka rasa segar blender manis', img:'images/pop_ice.png' },
-  { id:'en_extrajoss',  name:'Extra Joss Susu',    cat:'es',    catLabel:'🥤 Minuman', price:8000, stock:50, isHero:false, desc:'Energi segar susu dingin mantap', img:'https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?w=200&h=200&fit=crop&q=80' },
+  { id:'pop_ice',       name:'Pop Ice Blender',    cat:'es',    catLabel:'🥤 Minuman',    coa:'1-1302-02', price:5000, stock:50, isHero:false, desc:'Aneka rasa segar blender manis', img:'images/pop_ice.png' },
+  { id:'en_extrajoss',  name:'Extra Joss Susu',    cat:'es',    catLabel:'🥤 Minuman',    coa:'1-1302-03', price:8000, stock:50, isHero:false, desc:'Energi segar susu dingin mantap', img:'https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?w=200&h=200&fit=crop&q=80' },
 
   /* KOPI SACHET 5K */
-  { id:'kopi_luwak',    name:'Luwak White Koffie', cat:'kopi',  catLabel:'☕ Kopi Sachet', price:5000, stock:50, isHero:false, desc:'Kopi krimer nikmat nyaman di lambung', img:'images/kopi_luwak.jpg' },
-  { id:'kopi_torabika', name:'Torabika Cappuccino',cat:'kopi',  catLabel:'☕ Kopi Sachet', price:5000, stock:50, isHero:false, desc:'Cappuccino bertabur choco granule', img:'images/kopi_torabika.jpg' },
-  { id:'kopi_nescafe',  name:'Nescafe Classic',    cat:'kopi',  catLabel:'☕ Kopi Sachet', price:5000, stock:50, isHero:false, desc:'Kopi hitam murni aroma khas mantap', img:'images/kopi_nescafe.png' },
-  { id:'kopi_kapalapi', name:'Kapal Api Spesial',  cat:'kopi',  catLabel:'☕ Kopi Sachet', price:5000, stock:50, isHero:false, desc:'Kopi hitam tubruk legendaris', img:'https://images.unsplash.com/photo-1504630083234-14187a9df0f5?w=200&h=200&fit=crop&q=80' },
-  { id:'kopi_topcafe',  name:'Top Cafe Latte',     cat:'kopi',  catLabel:'☕ Kopi Sachet', price:5000, stock:50, isHero:false, desc:'Kopi susu lembut manis pas', img:'https://images.unsplash.com/photo-1521302200778-33500795e128?w=200&h=200&fit=crop&q=80' },
-  { id:'kopi_abc',      name:'ABC Kopi Susu',      cat:'kopi',  catLabel:'☕ Kopi Sachet', price:5000, stock:50, isHero:false, desc:'Kopi mantap berpadu susu', img:'https://images.unsplash.com/photo-1529892485617-25f63cd7b1e9?w=200&h=200&fit=crop&q=80' },
-  { id:'kopi_indocafe', name:'Indocafe Coffeemix', cat:'kopi',  catLabel:'☕ Kopi Sachet', price:5000, stock:50, isHero:false, desc:'Kopi 3-in-1 aroma harum', img:'https://images.unsplash.com/photo-1512568400610-a3d8c3a91eb0?w=200&h=200&fit=crop&q=80' },
+  { id:'kopi_luwak',    name:'Luwak White Koffie', cat:'kopi',  catLabel:'☕ Kopi Sachet', coa:'1-1301-02', price:5000, stock:50, isHero:false, desc:'Kopi krimer nikmat nyaman di lambung', img:'images/kopi_luwak.jpg' },
+  { id:'kopi_torabika', name:'Torabika Cappuccino',cat:'kopi',  catLabel:'☕ Kopi Sachet', coa:'1-1301-03', price:5000, stock:50, isHero:false, desc:'Cappuccino bertabur choco granule', img:'images/kopi_torabika.jpg' },
+  { id:'kopi_nescafe',  name:'Nescafe Classic',    cat:'kopi',  catLabel:'☕ Kopi Sachet', coa:'1-1301-04', price:5000, stock:50, isHero:false, desc:'Kopi hitam murni aroma khas mantap', img:'images/kopi_nescafe.png' },
+  { id:'kopi_kapalapi', name:'Kapal Api Spesial',  cat:'kopi',  catLabel:'☕ Kopi Sachet', coa:'1-1301-05', price:5000, stock:50, isHero:false, desc:'Kopi hitam tubruk legendaris', img:'https://images.unsplash.com/photo-1504630083234-14187a9df0f5?w=200&h=200&fit=crop&q=80' },
+  { id:'kopi_topcafe',  name:'Top Cafe Latte',     cat:'kopi',  catLabel:'☕ Kopi Sachet', coa:'1-1301-06', price:5000, stock:50, isHero:false, desc:'Kopi susu lembut manis pas', img:'https://images.unsplash.com/photo-1521302200778-33500795e128?w=200&h=200&fit=crop&q=80' },
+  { id:'kopi_abc',      name:'ABC Kopi Susu',      cat:'kopi',  catLabel:'☕ Kopi Sachet', coa:'1-1301-07', price:5000, stock:50, isHero:false, desc:'Kopi mantap berpadu susu', img:'https://images.unsplash.com/photo-1529892485617-25f63cd7b1e9?w=200&h=200&fit=crop&q=80' },
+  { id:'kopi_indocafe', name:'Indocafe Coffeemix', cat:'kopi',  catLabel:'☕ Kopi Sachet', coa:'1-1301-08', price:5000, stock:50, isHero:false, desc:'Kopi 3-in-1 aroma harum', img:'https://images.unsplash.com/photo-1512568400610-a3d8c3a91eb0?w=200&h=200&fit=crop&q=80' },
 
   /* TEH 5K */
-  { id:'teh_maxtea',    name:'MaxTea Tarik',       cat:'teh',   catLabel:'🍵 Teh', price:5000, stock:50, isHero:false, desc:'Teh tarik creamy berbuih', img:'https://images.unsplash.com/photo-1571934811356-5cc0618ce6b3?w=200&h=200&fit=crop&q=80' },
-  { id:'teh_nestea',    name:'Nestea Lemon Tea',   cat:'teh',   catLabel:'🍵 Teh', price:5000, stock:50, isHero:false, desc:'Teh lemon segar dingin', img:'https://images.unsplash.com/photo-1556679343-c71e3eae8d9e?w=200&h=200&fit=crop&q=80' },
-  { id:'teh_bonteh',    name:'Bonteh Melati',      cat:'teh',   catLabel:'🍵 Teh', price:5000, stock:50, isHero:false, desc:'Teh melati wangi manis', img:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&h=200&fit=crop&q=80' },
-  { id:'teh_tongtji',   name:'Tong Tji Melati',    cat:'teh',   catLabel:'🍵 Teh', price:5000, stock:50, isHero:false, desc:'Seduhan daun teh wangi asli', img:'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=200&h=200&fit=crop&q=80' },
-  { id:'teh_poci',      name:'Teh Poci Asli',      cat:'teh',   catLabel:'🍵 Teh', price:5000, stock:50, isHero:false, desc:'Teh poci tradisional sepet wangi', img:'https://images.unsplash.com/photo-1564890369478-c89ca3d9cf89?w=200&h=200&fit=crop&q=80' },
+  { id:'teh_maxtea',    name:'MaxTea Tarik',       cat:'teh',   catLabel:'🍵 Teh',        coa:'1-1303-01', price:5000, stock:50, isHero:false, desc:'Teh tarik creamy berbuih', img:'https://images.unsplash.com/photo-1571934811356-5cc0618ce6b3?w=200&h=200&fit=crop&q=80' },
+  { id:'teh_nestea',    name:'Nestea Lemon Tea',   cat:'teh',   catLabel:'🍵 Teh',        coa:'1-1303-02', price:5000, stock:50, isHero:false, desc:'Teh lemon segar dingin', img:'https://images.unsplash.com/photo-1556679343-c71e3eae8d9e?w=200&h=200&fit=crop&q=80' },
+  { id:'teh_bonteh',    name:'Bonteh Melati',      cat:'teh',   catLabel:'🍵 Teh',        coa:'1-1303-03', price:5000, stock:50, isHero:false, desc:'Teh melati wangi manis', img:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&h=200&fit=crop&q=80' },
+  { id:'teh_tongtji',   name:'Tong Tji Melati',    cat:'teh',   catLabel:'🍵 Teh',        coa:'1-1303-04', price:5000, stock:50, isHero:false, desc:'Seduhan daun teh wangi asli', img:'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=200&h=200&fit=crop&q=80' },
+  { id:'teh_poci',      name:'Teh Poci Asli',      cat:'teh',   catLabel:'🍵 Teh',        coa:'1-1303-05', price:5000, stock:50, isHero:false, desc:'Teh poci tradisional sepet wangi', img:'https://images.unsplash.com/photo-1564890369478-c89ca3d9cf89?w=200&h=200&fit=crop&q=80' },
 
   /* MINUMAN BOTOL 5K */
-  { id:'botol_floridina',name:'Floridina Orange',  cat:'botol', catLabel:'🧃 Botolan', price:5000, stock:50, isHero:false, desc:'Jus jeruk bulir asli dingin', img:'https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=200&h=200&fit=crop&q=80' },
-  { id:'botol_tehpucuk', name:'Teh Pucuk Harum',   cat:'botol', catLabel:'🧃 Botolan', price:5000, stock:50, isHero:false, desc:'Teh melati botol dingin 350ml', img:'https://images.unsplash.com/photo-1500627964684-141351977e4e?w=200&h=200&fit=crop&q=80' },
-  { id:'botol_aqua',     name:'Air Aqua Dingin',   cat:'botol', catLabel:'🧃 Botolan', price:5000, stock:50, isHero:false, desc:'Air mineral segar 600ml', img:'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=200&h=200&fit=crop&q=80' },
-  { id:'botol_sprite',   name:'Sprite Dingin',     cat:'botol', catLabel:'🧃 Botolan', price:5000, stock:50, isHero:false, desc:'Minuman soda lemon-lime segar', img:'https://images.unsplash.com/photo-1527960669566-f882ba8b42e8?w=200&h=200&fit=crop&q=80' },
-  { id:'botol_cocacola', name:'Coca Cola Dingin',  cat:'botol', catLabel:'🧃 Botolan', price:5000, stock:50, isHero:false, desc:'Minuman soda cola berkarbonasi', img:'https://images.unsplash.com/photo-1554866585-cd94860890b7?w=200&h=200&fit=crop&q=80' },
-  { id:'botol_fanta',    name:'Fanta Strawberry',  cat:'botol', catLabel:'🧃 Botolan', price:5000, stock:50, isHero:false, desc:'Soda rasa stroberi manis ceria', img:'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=200&h=200&fit=crop&q=80' },
+  { id:'botol_floridina',name:'Floridina Orange',  cat:'botol', catLabel:'🧃 Botolan',    coa:'1-1304-01', price:5000, stock:50, isHero:false, desc:'Jus jeruk bulir asli dingin', img:'https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=200&h=200&fit=crop&q=80' },
+  { id:'botol_tehpucuk', name:'Teh Pucuk Harum',   cat:'botol', catLabel:'🧃 Botolan',    coa:'1-1304-02', price:5000, stock:50, isHero:false, desc:'Teh melati botol dingin 350ml', img:'https://images.unsplash.com/photo-1500627964684-141351977e4e?w=200&h=200&fit=crop&q=80' },
+  { id:'botol_aqua',     name:'Air Aqua Dingin',   cat:'botol', catLabel:'🧃 Botolan',    coa:'1-1304-03', price:5000, stock:50, isHero:false, desc:'Air mineral segar 600ml', img:'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=200&h=200&fit=crop&q=80' },
+  { id:'botol_sprite',   name:'Sprite Dingin',     cat:'botol', catLabel:'🧃 Botolan',    coa:'1-1304-04', price:5000, stock:50, isHero:false, desc:'Minuman soda lemon-lime segar', img:'https://images.unsplash.com/photo-1527960669566-f882ba8b42e8?w=200&h=200&fit=crop&q=80' },
+  { id:'botol_cocacola', name:'Coca Cola Dingin',  cat:'botol', catLabel:'🧃 Botolan',    coa:'1-1304-05', price:5000, stock:50, isHero:false, desc:'Minuman soda cola berkarbonasi', img:'https://images.unsplash.com/photo-1554866585-cd94860890b7?w=200&h=200&fit=crop&q=80' },
+  { id:'botol_fanta',    name:'Fanta Strawberry',  cat:'botol', catLabel:'🧃 Botolan',    coa:'1-1304-06', price:5000, stock:50, isHero:false, desc:'Soda rasa stroberi manis ceria', img:'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=200&h=200&fit=crop&q=80' },
 
   /* SNACK GORENGAN KEKINIAN 10K */
-  { id:'snk_cireng',       name:'Cireng Salju Rujak', cat:'snack', catLabel:'🍿 Snack', price:10000, stock:50, isHero:false, desc:'Cireng krispi saus bumbu rujak pedas manis', img:'https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?w=200&h=200&fit=crop&q=80' },
-  { id:'snk_risolmayo',    name:'Risol Mayo',         cat:'snack', catLabel:'🍿 Snack', price:10000, stock:50, isHero:false, desc:'Risol isi telur, smoked beef & creamy mayo', img:'https://images.unsplash.com/photo-1606755962773-d324e0a13086?w=200&h=200&fit=crop&q=80' },
-  { id:'snk_udangkeju',    name:'Udang Keju',         cat:'snack', catLabel:'🍿 Snack', price:10000, stock:50, isHero:false, desc:'Olahan udang crispy lumer isi keju gurih', img:'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=200&h=200&fit=crop&q=80' },
-  { id:'snk_udangrambutan',name:'Udang Rambutan',     cat:'snack', catLabel:'🍿 Snack', price:10000, stock:50, isHero:false, desc:'Bola udang renyah kulit pangsit garing', img:'https://images.unsplash.com/photo-1544025162-d76694265947?w=200&h=200&fit=crop&q=80' },
+  { id:'snk_cireng',       name:'Cireng Salju Rujak', cat:'snack', catLabel:'🍿 Snack',    coa:'1-1305-01', price:10000, stock:50, isHero:false, desc:'Cireng krispi saus bumbu rujak pedas manis', img:'https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?w=200&h=200&fit=crop&q=80' },
+  { id:'snk_risolmayo',    name:'Risol Mayo',         cat:'snack', catLabel:'🍿 Snack',    coa:'1-1305-02', price:10000, stock:50, isHero:false, desc:'Risol isi telur, smoked beef & creamy mayo', img:'https://images.unsplash.com/photo-1606755962773-d324e0a13086?w=200&h=200&fit=crop&q=80' },
+  { id:'snk_udangkeju',    name:'Udang Keju',         cat:'snack', catLabel:'🍿 Snack',    coa:'1-1305-03', price:10000, stock:50, isHero:false, desc:'Olahan udang crispy lumer isi keju gurih', img:'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=200&h=200&fit=crop&q=80' },
+  { id:'snk_udangrambutan',name:'Udang Rambutan',     cat:'snack', catLabel:'🍿 Snack',    coa:'1-1305-04', price:10000, stock:50, isHero:false, desc:'Bola udang renyah kulit pangsit garing', img:'https://images.unsplash.com/photo-1544025162-d76694265947?w=200&h=200&fit=crop&q=80' },
 
   /* JAJANAN RINGAN 5K */
-  { id:'snk_pilus',      name:'Pilus Garuda',      cat:'snack', catLabel:'🍿 Snack', price:5000, stock:50, isHero:false, desc:'Snack renyah teman ngopi', img:'https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=200&h=200&fit=crop&q=80' },
-  { id:'snk_tango',      name:'Wafer Tango',       cat:'snack', catLabel:'🍿 Snack', price:5000, stock:50, isHero:false, desc:'Wafer cokelat renyah berpadu krim', img:'https://images.unsplash.com/photo-1549007994-ac3acb1d8905?w=200&h=200&fit=crop&q=80' },
-  { id:'snk_chocolatos', name:'Chocolatos Roll',   cat:'snack', catLabel:'🍿 Snack', price:5000, stock:50, isHero:false, desc:'Wafer roll isi cokelat lumer padat', img:'https://images.unsplash.com/photo-1606312619070-d4f4f8b76d90?w=200&h=200&fit=crop&q=80' },
-  { id:'snk_kripiikusus',name:'Kripik Usus Gurih', cat:'snack', catLabel:'🍿 Snack', price:5000, stock:50, isHero:false, desc:'Kripik usus krispi bumbu gurih', img:'https://images.unsplash.com/photo-1536510233921-8e7e2f6a4dc2?w=200&h=200&fit=crop&q=80' }
+  { id:'snk_pilus',      name:'Pilus Garuda',      cat:'snack', catLabel:'🍿 Snack',    coa:'1-1305-05', price:5000, stock:50, isHero:false, desc:'Snack renyah teman ngopi', img:'https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=200&h=200&fit=crop&q=80' },
+  { id:'snk_tango',      name:'Wafer Tango',       cat:'snack', catLabel:'🍿 Snack',    coa:'1-1305-06', price:5000, stock:50, isHero:false, desc:'Wafer cokelat renyah berpadu krim', img:'https://images.unsplash.com/photo-1549007994-ac3acb1d8905?w=200&h=200&fit=crop&q=80' },
+  { id:'snk_chocolatos', name:'Chocolatos Roll',   cat:'snack', catLabel:'🍿 Snack',    coa:'1-1305-07', price:5000, stock:50, isHero:false, desc:'Wafer roll isi cokelat lumer padat', img:'https://images.unsplash.com/photo-1606312619070-d4f4f8b76d90?w=200&h=200&fit=crop&q=80' },
+  { id:'snk_kripiikusus',name:'Kripik Usus Gurih', cat:'snack', catLabel:'🍿 Snack',    coa:'1-1305-08', price:5000, stock:50, isHero:false, desc:'Kripik usus krispi bumbu gurih', img:'https://images.unsplash.com/photo-1536510233921-8e7e2f6a4dc2?w=200&h=200&fit=crop&q=80' }
 ];
 
-/* ── DATABASE STORAGE (Excel Integration) ── */
+/* ── DATABASE STORAGE (Local & Multi-Device Cloud Sync) ── */
 var DB = {
   getProducts: function(){
-    var s = localStorage.getItem('wh_v8_products');
+    var s = localStorage.getItem('wh_kartika_products') || localStorage.getItem('wh_v8_products');
+    var ps;
     if(!s){
-      localStorage.setItem('wh_v8_products', JSON.stringify(MASTER_PRODUCTS));
-      return JSON.parse(JSON.stringify(MASTER_PRODUCTS));
+      ps = JSON.parse(JSON.stringify(MASTER_PRODUCTS));
+      localStorage.setItem('wh_kartika_products', JSON.stringify(ps));
+      localStorage.setItem('wh_v8_products', JSON.stringify(ps));
+      return ps;
     }
-    return JSON.parse(s);
+    try{
+      ps = JSON.parse(s);
+    }catch(e){
+      ps = JSON.parse(JSON.stringify(MASTER_PRODUCTS));
+    }
+    // Pastikan setiap produk selalu memiliki kode COA akuntansi
+    var updated = false;
+    for(var i=0; i<ps.length; i++){
+      if(!ps[i].coa){
+        ps[i].coa = getProductCoa(ps[i]);
+        updated = true;
+      }
+    }
+    if(updated){
+      localStorage.setItem('wh_kartika_products', JSON.stringify(ps));
+      localStorage.setItem('wh_v8_products', JSON.stringify(ps));
+    }
+    return ps;
   },
-  setProducts: function(p){
+  setProducts: function(p, skipSync){
+    localStorage.setItem('wh_kartika_products', JSON.stringify(p));
     localStorage.setItem('wh_v8_products', JSON.stringify(p));
+    if(!skipSync && typeof CloudSync !== 'undefined'){
+      CloudSync.schedulePush();
+    }
+  },
+  addProduct: function(newProduct){
+    var ps = DB.getProducts();
+    ps.push(newProduct);
+    DB.setProducts(ps);
+    return ps;
+  },
+  deleteProduct: function(prodId){
+    var ps = DB.getProducts();
+    var filtered = [];
+    for(var i=0; i<ps.length; i++){
+      if(ps[i].id !== prodId) filtered.push(ps[i]);
+    }
+    DB.setProducts(filtered);
+    // Bersihkan dari keranjang jika sedang dipilih
+    if(window.CART && window.CART.length > 0){
+      window.CART = window.CART.filter(function(it){ return it.id !== prodId; });
+      saveCartState();
+    }
+    return filtered;
+  },
+  updateProduct: function(prodId, updatedFields){
+    var ps = DB.getProducts();
+    for(var i=0; i<ps.length; i++){
+      if(ps[i].id === prodId){
+        for(var k in updatedFields){
+          if(updatedFields.hasOwnProperty(k)){
+            ps[i][k] = updatedFields[k];
+          }
+        }
+        break;
+      }
+    }
+    DB.setProducts(ps);
+    // Sinkronkan ke keranjang kasir jika sedang aktif
+    if(window.CART && window.CART.length > 0){
+      for(var j=0; j<window.CART.length; j++){
+        if(window.CART[j].id === prodId){
+          if(updatedFields.name) window.CART[j].name = updatedFields.name;
+          if(updatedFields.price !== undefined) window.CART[j].price = updatedFields.price;
+          if(updatedFields.img) window.CART[j].img = updatedFields.img;
+        }
+      }
+      saveCartState();
+    }
+    return ps;
   },
   getOrders: function(){
-    var s = localStorage.getItem('wh_v8_orders') || localStorage.getItem('wh_v7_orders') || localStorage.getItem('wh_v6_orders');
+    var s = localStorage.getItem('wh_kartika_orders') || localStorage.getItem('wh_v8_orders') || localStorage.getItem('wh_v7_orders') || localStorage.getItem('wh_v6_orders');
     return s ? JSON.parse(s) : [];
   },
-  addOrder: function(o){
+  addOrder: function(o, skipSync){
     var arr = DB.getOrders();
     arr.unshift(o);
+    localStorage.setItem('wh_kartika_orders', JSON.stringify(arr));
     localStorage.setItem('wh_v8_orders', JSON.stringify(arr));
+    if(!skipSync && typeof CloudSync !== 'undefined'){
+      CloudSync.schedulePush();
+    }
+  },
+  setOrders: function(ordersArr, skipSync){
+    localStorage.setItem('wh_kartika_orders', JSON.stringify(ordersArr));
+    localStorage.setItem('wh_v8_orders', JSON.stringify(ordersArr));
+    if(!skipSync && typeof CloudSync !== 'undefined'){
+      CloudSync.schedulePush();
+    }
   },
   deductStockBatch: function(cartItems){
     var ps = DB.getProducts();
@@ -879,6 +1634,391 @@ var DB = {
     DB.setProducts(ps);
   }
 };
+
+/* ── CLOUD SYNC ENGINE (Multi-Device Auto Synchronization) ── */
+var CloudSync = {
+  ENDPOINT: 'https://api.restful-api.dev/objects/ff808181a09d98f701a0f56593dd5293',
+  isSyncing: false,
+  pushTimer: null,
+  lastSyncTime: null,
+
+  schedulePush: function(){
+    clearTimeout(this.pushTimer);
+    this.updateStatusUI('pending', 'Menyimpan ke Cloud…');
+    this.pushTimer = setTimeout(function(){
+      CloudSync.push();
+    }, 800);
+  },
+
+  push: function(callback){
+    if(this.isSyncing) return;
+    this.isSyncing = true;
+    this.updateStatusUI('syncing', 'Menyinkronkan…');
+
+    var payload = {
+      name: 'kartika_warkop',
+      updatedAt: Date.now(),
+      data: {
+        cashier: 'kartika',
+        updatedAt: Date.now(),
+        orders: DB.getOrders(),
+        products: DB.getProducts(),
+        deviceInfo: navigator.userAgent.substring(0, 60)
+      }
+    };
+
+    fetch(this.ENDPOINT, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(function(res){
+      if(!res.ok) throw new Error('Cloud HTTP ' + res.status);
+      return res.json();
+    })
+    .then(function(resData){
+      CloudSync.isSyncing = false;
+      CloudSync.lastSyncTime = new Date();
+      localStorage.setItem('wh_kartika_last_sync', CloudSync.lastSyncTime.toISOString());
+      CloudSync.updateStatusUI('synced', 'Tersinkron Cloud');
+      if(callback) callback(null, resData);
+    })
+    .catch(function(err){
+      CloudSync.isSyncing = false;
+      console.warn('Cloud sync offline/fallback local:', err);
+      CloudSync.updateStatusUI('offline', 'Lokal (Offline)');
+      if(callback) callback(err);
+    });
+  },
+
+  pull: function(silent, callback){
+    if(this.isSyncing) return;
+    this.isSyncing = true;
+    this.updateStatusUI('syncing', 'Memeriksa Cloud…');
+
+    fetch(this.ENDPOINT)
+    .then(function(res){
+      if(!res.ok) throw new Error('Cloud HTTP ' + res.status);
+      return res.json();
+    })
+    .then(function(resData){
+      CloudSync.isSyncing = false;
+      if(resData && resData.data){
+        CloudSync.mergeFromCloud(resData.data);
+        CloudSync.lastSyncTime = new Date();
+        localStorage.setItem('wh_kartika_last_sync', CloudSync.lastSyncTime.toISOString());
+        CloudSync.updateStatusUI('synced', 'Tersinkron Cloud');
+        if(!silent){
+          toast('Data kasir berhasil disinkronkan dari Cloud! ☁️', 'ok');
+        }
+      } else {
+        CloudSync.updateStatusUI('synced', 'Tersinkron Cloud');
+      }
+      if(callback) callback(null, resData);
+    })
+    .catch(function(err){
+      CloudSync.isSyncing = false;
+      console.warn('Cloud pull error (tetap menggunakan lokal):', err);
+      CloudSync.updateStatusUI('offline', 'Lokal (Offline)');
+      if(callback) callback(err);
+    });
+  },
+
+  mergeFromCloud: function(cloudData){
+    var localOrders = DB.getOrders();
+    var cloudOrders = Array.isArray(cloudData.orders) ? cloudData.orders : [];
+
+    // Gabungkan transaksi berdasarkan unique ID (tidak akan duplikat)
+    var orderMap = {};
+    for(var i=0; i<localOrders.length; i++){
+      orderMap[localOrders[i].id] = localOrders[i];
+    }
+    for(var j=0; j<cloudOrders.length; j++){
+      if(!orderMap[cloudOrders[j].id]){
+        orderMap[cloudOrders[j].id] = cloudOrders[j];
+      }
+    }
+
+    var mergedOrders = Object.values(orderMap).sort(function(a,b){
+      return new Date(b.ts) - new Date(a.ts);
+    });
+
+    DB.setOrders(mergedOrders, true);
+
+    // Sinkronkan data produk & sisa stok jika di cloud ada perubahan
+    if(Array.isArray(cloudData.products) && cloudData.products.length > 0){
+      var localProducts = DB.getProducts();
+      var cloudProdMap = {};
+      for(var k=0; k<cloudData.products.length; k++){
+        cloudProdMap[cloudData.products[k].id] = cloudData.products[k];
+      }
+      var changedProd = false;
+      for(var m=0; m<localProducts.length; m++){
+        var cp = cloudProdMap[localProducts[m].id];
+        if(cp){
+          if(typeof cp.stock === 'number' && localProducts[m].stock !== cp.stock){
+            localProducts[m].stock = cp.stock;
+            changedProd = true;
+          }
+          if(cp.coa && localProducts[m].coa !== cp.coa){
+            localProducts[m].coa = cp.coa;
+            changedProd = true;
+          }
+        }
+      }
+      for(var n=0; n<cloudData.products.length; n++){
+        var cItem = cloudData.products[n];
+        var exists = localProducts.some(function(lp){ return lp.id === cItem.id; });
+        if(!exists){
+          localProducts.push(cItem);
+          changedProd = true;
+        }
+      }
+      if(changedProd){
+        DB.setProducts(localProducts, true);
+      }
+    }
+
+    // Refresh UI jika sedang aktif
+    if(window.CUR_VIEW === 'kasir') renderPosProducts();
+    if(window.CUR_VIEW === 'stok') renderStokTable();
+    if(window.CUR_VIEW === 'lap') renderAdminDashboard();
+  },
+
+  forceSync: function(){
+    var btn = document.getElementById('btn-force-sync');
+    if(btn){
+      btn.innerHTML = '<span class="ms animate-spin" style="font-size:16px">sync</span> Menyinkronkan…';
+      btn.disabled = true;
+    }
+    CloudSync.pull(false, function(){
+      CloudSync.push(function(){
+        if(btn){
+          btn.innerHTML = '<span class="ms" style="font-size:16px">sync</span> Sinkronkan Sekarang';
+          btn.disabled = false;
+        }
+        toast('Sinkronisasi multi-perangkat selesai! ✨', 'ok');
+      });
+    });
+  },
+
+  updateStatusUI: function(status, label){
+    var dot = document.getElementById('sync-status-dot');
+    var badge = document.getElementById('sidebar-sync-badge');
+    var headerIcon = document.getElementById('header-sync-icon');
+    var headerStatus = document.getElementById('header-sync-status');
+    var profStatus = document.getElementById('profile-sync-status');
+    var profTime = document.getElementById('profile-sync-time');
+    var mDot = document.getElementById('m-sync-dot');
+
+    var color = '#10B981';
+    var icon = 'cloud_done';
+    if(status === 'syncing' || status === 'pending'){
+      color = '#F59E0B';
+      icon = 'sync';
+    } else if(status === 'offline'){
+      color = '#64748B';
+      icon = 'cloud_off';
+    }
+
+    if(dot) dot.style.background = color;
+    if(mDot) mDot.style.background = color;
+    if(badge){
+      badge.textContent = status === 'syncing' ? 'SYNCING…' : (status === 'offline' ? 'OFFLINE' : 'SYNC AKTIF');
+      badge.style.color = color;
+      badge.style.background = status === 'offline' ? '#F1F5F9' : '#ECFDF5';
+    }
+    if(headerIcon){
+      headerIcon.textContent = icon;
+      headerIcon.style.color = color;
+      if(status === 'syncing') headerIcon.classList.add('animate-spin');
+      else headerIcon.classList.remove('animate-spin');
+    }
+    if(headerStatus) headerStatus.textContent = label;
+    if(profStatus){
+      profStatus.textContent = label;
+      profStatus.style.color = color;
+      profStatus.style.background = status === 'offline' ? '#F1F5F9' : '#ECFDF5';
+    }
+    if(profTime && CloudSync.lastSyncTime){
+      var t = CloudSync.lastSyncTime;
+      var hh = String(t.getHours()).padStart(2,'0');
+      var mm = String(t.getMinutes()).padStart(2,'0');
+      var ss = String(t.getSeconds()).padStart(2,'0');
+      profTime.textContent = 'Terakhir sinkron: ' + hh + ':' + mm + ':' + ss + ' WIB';
+    }
+  },
+
+  exportBackup: function(){
+    var data = {
+      app: 'Warkop Hidayah POS',
+      version: 'v8-kartika',
+      cashier: 'kartika',
+      exportedAt: new Date().toISOString(),
+      orders: DB.getOrders(),
+      products: DB.getProducts()
+    };
+    var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'WarkopHidayah_Backup_Kartika_' + new Date().toISOString().slice(0,10) + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('File cadangan database berhasil diunduh! 💾', 'ok');
+  },
+
+  importBackup: function(fileInput){
+    var file = fileInput.files && fileInput.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e){
+      try {
+        var parsed = JSON.parse(e.target.result);
+        if(parsed.orders && Array.isArray(parsed.orders)){
+          DB.setOrders(parsed.orders);
+        }
+        if(parsed.products && Array.isArray(parsed.products)){
+          DB.setProducts(parsed.products);
+        }
+        toast('Database berhasil dipulihkan dari file! 📥', 'ok');
+        CloudSync.push();
+        if(window.CUR_VIEW === 'kasir') renderPosProducts();
+        if(window.CUR_VIEW === 'stok') renderStokTable();
+        if(window.CUR_VIEW === 'lap') renderAdminDashboard();
+        closeUserProfileModal();
+      } catch(err){
+        toast('Format file cadangan tidak valid!', 'err');
+      }
+    };
+    reader.readAsText(file);
+    fileInput.value = '';
+  }
+};
+
+/* ── KASIR LOGIN & SESSION MANAGEMENT ── */
+function checkAuthOnStartup(){
+  var user = localStorage.getItem('wh_auth_user');
+  if(!user || user.toLowerCase() !== 'kartika'){
+    showLoginModal();
+  } else {
+    window.CURRENT_USER = 'kartika';
+    updateKasirUI();
+    setTimeout(function(){
+      CloudSync.pull(true);
+    }, 400);
+  }
+}
+
+function showLoginModal(){
+  var m = document.getElementById('m-login');
+  if(m) m.classList.add('open');
+  var uInp = document.getElementById('login-username');
+  if(uInp) uInp.value = 'kartika';
+  var pInp = document.getElementById('login-pin');
+  if(pInp) pInp.value = '1234';
+  var err = document.getElementById('login-err-msg');
+  if(err) err.style.display = 'none';
+}
+
+function quickFillLogin(username, pin){
+  var uInp = document.getElementById('login-username');
+  if(uInp) uInp.value = username;
+  var pInp = document.getElementById('login-pin');
+  if(pInp) pInp.value = pin;
+  processLogin();
+}
+
+function processLogin(){
+  var u = (document.getElementById('login-username').value || '').trim().toLowerCase();
+  var err = document.getElementById('login-err-msg');
+
+  if(u !== 'kartika'){
+    err.style.display = 'block';
+    err.innerHTML = '<span class="ms" style="font-size:14px;vertical-align:middle;margin-right:4px">error</span> Nama login kasir yang terdaftar adalah: <strong>kartika</strong>';
+    return;
+  }
+
+  err.style.display = 'none';
+  window.CURRENT_USER = 'kartika';
+  localStorage.setItem('wh_auth_user', 'kartika');
+  localStorage.setItem('wh_auth_time', new Date().toISOString());
+
+  var m = document.getElementById('m-login');
+  if(m) m.classList.remove('open');
+
+  updateKasirUI();
+  toast('Login berhasil! Selamat bertugas, Kak Kartika 🌸', 'ok');
+
+  // Tarik data terbaru dari Cloud agar sinkron dengan perangkat lain
+  CloudSync.pull(false);
+}
+
+function logoutKasir(){
+  if(!confirm('Apakah Kak Kartika ingin keluar dari sesi kasir? Data transaksi tetap aman tersimpan.')) return;
+  localStorage.removeItem('wh_auth_user');
+  window.CURRENT_USER = null;
+  closeUserProfileModal();
+  showLoginModal();
+  toast('Sesi kasir telah ditutup.', 'ok');
+}
+
+function updateKasirUI(){
+  var avatarSrc = 'images/kartika_avatar.jpg';
+  var sAvatar = document.getElementById('sidebar-user-avatar');
+  if(sAvatar) sAvatar.src = avatarSrc;
+  var sName = document.getElementById('sidebar-user-name');
+  if(sName) sName.textContent = 'Kartika';
+
+  var hAvatar = document.getElementById('header-user-avatar');
+  if(hAvatar) hAvatar.src = avatarSrc;
+  var hName = document.getElementById('header-user-name');
+  if(hName) hName.textContent = 'Kartika';
+
+  var pAvatar = document.getElementById('profile-modal-avatar');
+  if(pAvatar) pAvatar.src = avatarSrc;
+}
+
+function openUserProfileModal(){
+  document.getElementById('m-user-profile').classList.add('open');
+  var orders = DB.getOrders();
+  var totOmzet = 0;
+  for(var i=0; i<orders.length; i++) totOmzet += orders[i].total;
+  var countEl = document.getElementById('prof-stat-orders');
+  if(countEl) countEl.textContent = orders.length + ' Pesanan';
+  var omzetEl = document.getElementById('prof-stat-omzet');
+  if(omzetEl) omzetEl.textContent = fmtRp(totOmzet);
+  CloudSync.updateStatusUI(CloudSync.isSyncing ? 'syncing' : 'synced', 'Tersinkron Multi-Perangkat');
+}
+
+function closeUserProfileModal(){
+  document.getElementById('m-user-profile').classList.remove('open');
+}
+
+function openDeviceGuideModal(){
+  document.getElementById('m-device-guide').classList.add('open');
+}
+function closeDeviceGuideModal(){
+  document.getElementById('m-device-guide').classList.remove('open');
+}
+
+/* ── PERSISTENSI KERANJANG BELANJA (CART) ── */
+function saveCartState(){
+  try{
+    localStorage.setItem('wh_kartika_cart', JSON.stringify(window.CART));
+  }catch(e){}
+}
+function loadCartState(){
+  try{
+    var s = localStorage.getItem('wh_kartika_cart');
+    if(s){
+      window.CART = JSON.parse(s);
+      window.CART_SEQ = window.CART.reduce(function(m, it){ return Math.max(m, it.cartId||0); }, 0);
+    }
+  }catch(e){}
+}
 
 /* ── STATE ── */
 window.CART = [];
@@ -961,8 +2101,8 @@ function switchView(viewName){
 }
 
 function verifyAdminAuth(){
-  var pwd = document.getElementById('auth-pwd-inp').value;
-  if(pwd === ADMIN_PWD){
+  var pwd = (document.getElementById('auth-pwd-inp').value || '').trim().toLowerCase();
+  if(pwd === ADMIN_PWD || pwd === 'kartika' || pwd === '1234'){
     window.IS_ADMIN_AUTH = true;
     closeAuthModal();
     switchView(window._targetViewAfterAuth || 'stok');
@@ -1019,8 +2159,9 @@ function renderPosProducts(){
 
   for(var i=0; i<ps.length; i++){
     var p = ps[i];
+    var pCoa = p.coa || getProductCoa(p);
     if(window.ACTIVE_CAT !== 'all' && p.cat !== window.ACTIVE_CAT) continue;
-    if(q && p.name.toLowerCase().indexOf(q)<0 && p.desc.toLowerCase().indexOf(q)<0) continue;
+    if(q && p.name.toLowerCase().indexOf(q)<0 && (p.desc||'').toLowerCase().indexOf(q)<0 && pCoa.toLowerCase().indexOf(q)<0) continue;
 
     var isOos = p.stock <= 0 && !p.isCustomSeblak;
     var clickAction = p.isCustomSeblak ? 'openSblkModal()' : 'quickAddProduct(\'' + p.id + '\')';
@@ -1033,10 +2174,14 @@ function renderPosProducts(){
           '<img src="' + imgSrc + '" alt="' + p.name + '" loading="lazy" onerror="this.onerror=null; this.src=\'' + safeFallback + '\';">' +
         '</div>' +
         '<div style="text-align:center;width:100%;flex:1;display:flex;flex-direction:column">' +
+          '<div style="margin-bottom:3px"><span style="font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:8.5px;font-weight:800;color:#64748B;background:#F1F5F9;border:1px solid #E2E8F0;padding:1px 6px;border-radius:4px" title="Bagan Akun Persediaan (COA)">COA ' + pCoa + '</span></div>' +
           '<h3 style="font-size:13px;font-weight:800;color:var(--text-main);line-height:1.2;margin-bottom:3px">' + p.name + '</h3>' +
-          '<p style="font-size:10px;color:var(--text-sub);line-height:1.3;margin-bottom:10px;flex:1">' + p.desc + '</p>' +
+          '<p style="font-size:10px;color:var(--text-sub);line-height:1.3;margin-bottom:8px;flex:1">' + (p.desc || p.portion || '') + '</p>' +
           '<div style="display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:auto">' +
-            '<span style="font-size:14px;font-weight:900;color:var(--text-main)">' + fmtRp(p.price) + '</span>' +
+            '<div style="text-align:left">' +
+              '<div style="font-size:14px;font-weight:900;color:var(--text-main)">' + fmtRp(p.price) + '</div>' +
+              '<div style="font-size:9px;color:var(--text-sub);font-weight:700">Stok: ' + p.stock + '</div>' +
+            '</div>' +
             '<button onclick="event.stopPropagation();' + clickAction + '" ' +
               'style="width:30px;height:30px;border-radius:50%;background:var(--navy);color:#FFFFFF;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 3px 8px rgba(27,32,43,.2)">' +
               '<span class="ms" style="font-size:16px">' + (p.isCustomSeblak ? 'tune' : 'add') + '</span>' +
@@ -1050,9 +2195,17 @@ function renderPosProducts(){
           '<img src="' + imgSrc + '" alt="' + p.name + '" loading="lazy" onerror="this.onerror=null; this.src=\'' + safeFallback + '\';">' +
         '</div>' +
         '<div style="flex:1;min-width:0">' +
-          '<h4 style="font-size:11px;font-weight:800;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + p.name + '</h4>' +
-          '<div style="font-size:9px;color:var(--text-sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + p.desc + '</div>' +
-          '<div style="font-size:11px;font-weight:900;color:var(--text-main);margin-top:1px">' + fmtRp(p.price) + '</div>' +
+          '<div style="display:flex;align-items:center;gap:4px">' +
+            '<h4 style="font-size:11px;font-weight:800;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + p.name + '</h4>' +
+          '</div>' +
+          '<div style="font-size:9px;color:var(--text-sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' +
+            '<span style="font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-weight:800;color:#64748B;background:#F1F5F9;border:1px solid #E2E8F0;padding:0 4px;border-radius:3px;margin-right:4px">COA ' + pCoa + '</span>' +
+            (p.desc || p.portion || '') +
+          '</div>' +
+          '<div style="display:flex;align-items:center;gap:6px;margin-top:1px">' +
+            '<span style="font-size:11px;font-weight:900;color:var(--text-main)">' + fmtRp(p.price) + '</span>' +
+            '<span style="font-size:9px;color:var(--text-sub);font-weight:600">• Stok: ' + p.stock + '</span>' +
+          '</div>' +
         '</div>' +
         '<button onclick="event.stopPropagation();' + clickAction + '" ' +
           'style="width:26px;height:26px;border-radius:50%;background:#F8FAFC;border:1px solid var(--border-soft);color:var(--text-main);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">' +
@@ -1287,6 +2440,7 @@ function renderCartUI(){
   }
 
   updateClock();
+  saveCartState();
 }
 
 function toggleMobileCartSheet(){
@@ -1378,11 +2532,12 @@ function submitCheckoutOrder(){
   // 1. Kurangi stok di DB
   DB.deductStockBatch(window.CART);
 
-  // 2. Simpan order ke DB (Excel terintegrasi)
+  // 2. Simpan order ke DB (Excel & Cloud terintegrasi)
   var orderData = {
     id: orderId,
     ts: now.toISOString(),
     tableName: tableName,
+    cashier: window.CURRENT_USER || 'kartika',
     payMethod: window.SELECTED_PAY_TAB,
     total: tot,
     cash: cash,
@@ -1399,6 +2554,8 @@ function submitCheckoutOrder(){
 function showReceiptStruk(order){
   window.PENDING_ORDER = order;
   document.getElementById('rec-id').textContent = order.id;
+  var recCashier = document.getElementById('rec-cashier');
+  if(recCashier) recCashier.textContent = (order.cashier || 'Kartika').toUpperCase();
   var d = new Date(order.ts);
   document.getElementById('rec-time').textContent = d.toLocaleDateString('id-ID') + ' ' + d.toLocaleTimeString('id-ID', {hour:'2-digit',minute:'2-digit'});
   document.getElementById('rec-table').textContent = order.tableName.split('•')[0].trim();
@@ -1498,42 +2655,88 @@ function confirmSeblakToCart(){
   toast('Seblak Racik ditambahkan! 🍜', 'ok');
 }
 
-/* ── STOK MANAGEMENT TABLE ── */
+/* ── STOK MANAGEMENT TABLE & COA CRUD ── */
 function renderStokTable(){
   var ps = DB.getProducts();
   var q = (document.getElementById('stok-filter-inp').value || '').toLowerCase().trim();
   var tbody = document.getElementById('stok-table-tbody');
+  var countEl = document.getElementById('stok-total-count');
   var h = '';
+  var matchCount = 0;
 
   for(var i=0; i<ps.length; i++){
     var p = ps[i];
-    if(p.isCustomSeblak) continue;
-    if(q && p.name.toLowerCase().indexOf(q)<0 && p.catLabel.toLowerCase().indexOf(q)<0) continue;
+    var coa = p.coa || getProductCoa(p);
+    if(q && p.name.toLowerCase().indexOf(q)<0 && (p.catLabel||'').toLowerCase().indexOf(q)<0 && coa.toLowerCase().indexOf(q)<0 && (p.desc||'').toLowerCase().indexOf(q)<0) continue;
+    matchCount++;
 
     var statusBadge = p.stock === 0 
-      ? '<span style="background:#FEF2F2;color:#B91C1C;padding:2px 6px;border-radius:99px;font-size:9px;font-weight:800">HABIS</span>'
+      ? '<span style="background:#FEF2F2;color:#B91C1C;padding:2px 7px;border-radius:99px;font-size:9px;font-weight:800;border:1px solid #FECACA">HABIS</span>'
       : (p.stock <= 10 
-        ? '<span style="background:#FFFBEB;color:#B45309;padding:2px 6px;border-radius:99px;font-size:9px;font-weight:800">MENIPIS</span>'
-        : '<span style="background:#ECFDF5;color:#047857;padding:2px 6px;border-radius:99px;font-size:9px;font-weight:800">AMAN</span>');
+        ? '<span style="background:#FFFBEB;color:#B45309;padding:2px 7px;border-radius:99px;font-size:9px;font-weight:800;border:1px solid #FDE68A">MENIPIS</span>'
+        : '<span style="background:#ECFDF5;color:#047857;padding:2px 7px;border-radius:99px;font-size:9px;font-weight:800;border:1px solid #A7F3D0">AMAN</span>');
 
-    h += '<tr>' +
-      '<td><div style="font-weight:800;color:var(--text-main);font-size:12px">' + p.name + '</div></td>' +
-      '<td><span style="font-size:10px;color:var(--text-sub);font-weight:600">' + p.catLabel + '</span></td>' +
-      '<td style="text-align:center;font-weight:800;color:var(--navy)">' + fmtRp(p.price) + '</td>' +
-      '<td style="text-align:center"><div style="display:flex;align-items:center;justify-content:center;gap:4px"><span style="font-size:13px;font-weight:900">' + p.stock + '</span>' + statusBadge + '</div></td>' +
+    var safeFallback = ONLINE_FALLBACKS[p.id] || ONLINE_FALLBACKS['default'];
+    var imgSrc = getSafeImgSrc(p);
+
+    h += '<tr style="transition:background .12s">' +
+      '<td>' +
+        '<div style="display:inline-flex;align-items:center;gap:4px;background:#F1F5F9;border:1px solid #CBD5E1;border-radius:7px;padding:3px 8px" title="Bagan Akun Persediaan (COA)">' +
+          '<span class="ms" style="font-size:13px;color:#64748B">tag</span>' +
+          '<span style="font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:11px;font-weight:800;color:#1E293B">' + coa + '</span>' +
+        '</div>' +
+      '</td>' +
+      '<td>' +
+        '<div style="display:flex;align-items:center;gap:10px">' +
+          '<div style="width:36px;height:36px;border-radius:10px;overflow:hidden;background:#F8FAFC;border:1px solid var(--border-soft);flex-shrink:0">' +
+            '<img src="' + imgSrc + '" alt="' + p.name + '" style="width:100%;height:100%;object-fit:cover" onerror="this.src=\'' + safeFallback + '\'">' +
+          '</div>' +
+          '<div>' +
+            '<div style="font-weight:800;color:var(--text-main);font-size:12px;line-height:1.2">' + p.name + '</div>' +
+            '<div style="font-size:10px;color:var(--text-sub);line-height:1.2;margin-top:2px">' + (p.desc || p.portion || '-') + '</div>' +
+          '</div>' +
+        '</div>' +
+      '</td>' +
+      '<td><span style="font-size:10.5px;color:var(--text-body);font-weight:700;background:#F8FAFC;border:1px solid var(--border-soft);padding:3px 8px;border-radius:8px">' + (p.catLabel || p.cat) + '</span></td>' +
+      '<td style="text-align:center;font-weight:800;color:var(--navy);font-size:12px">' + fmtRp(p.price) + '</td>' +
+      '<td style="text-align:center">' +
+        '<div style="display:flex;align-items:center;justify-content:center;gap:6px">' +
+          '<span style="font-size:13px;font-weight:900;color:var(--text-main)">' + p.stock + '</span>' +
+          statusBadge +
+        '</div>' +
+      '</td>' +
       '<td style="text-align:center">' +
         '<div style="display:flex;align-items:center;justify-content:center;gap:4px">' +
-          '<input id="inp-stk-' + p.id + '" type="number" value="10" min="0" style="width:44px;height:26px;border:1px solid var(--border-soft);border-radius:6px;text-align:center;font-size:10px;font-weight:700;outline:none">' +
-          '<button onclick="adjustProductStock(\'' + p.id + '\',1)" style="height:26px;padding:0 7px;background:var(--green);color:#FFFFFF;border:none;border-radius:6px;font-size:11px;font-weight:800;cursor:pointer">+</button>' +
-          '<button onclick="adjustProductStock(\'' + p.id + '\',-1)" style="height:26px;padding:0 7px;background:var(--red);color:#FFFFFF;border:none;border-radius:6px;font-size:11px;font-weight:800;cursor:pointer">−</button>' +
-          '<button onclick="setProductStockExact(\'' + p.id + '\')" style="height:26px;padding:0 8px;background:var(--navy);color:#FFFFFF;border:none;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer">Set</button>' +
+          '<input id="inp-stk-' + p.id + '" type="number" value="10" min="0" style="width:46px;height:28px;border:1.5px solid var(--border-soft);border-radius:7px;text-align:center;font-size:11px;font-weight:700;outline:none">' +
+          '<button onclick="adjustProductStock(\'' + p.id + '\',1)" title="Tambah Stok" style="height:28px;padding:0 8px;background:var(--green);color:#FFFFFF;border:none;border-radius:7px;font-size:12px;font-weight:800;cursor:pointer">+</button>' +
+          '<button onclick="adjustProductStock(\'' + p.id + '\',-1)" title="Kurangi Stok" style="height:28px;padding:0 8px;background:var(--red);color:#FFFFFF;border:none;border-radius:7px;font-size:12px;font-weight:800;cursor:pointer">−</button>' +
+          '<button onclick="setProductStockExact(\'' + p.id + '\')" title="Atur Nilai Stok Pas" style="height:28px;padding:0 9px;background:var(--navy);color:#FFFFFF;border:none;border-radius:7px;font-size:10.5px;font-weight:700;cursor:pointer">Set</button>' +
+        '</div>' +
+      '</td>' +
+      '<td style="text-align:center">' +
+        '<div style="display:flex;align-items:center;justify-content:center;gap:4px">' +
+          '<button onclick="openEditProductModal(\'' + p.id + '\')" title="Edit Data &amp; COA" style="width:30px;height:30px;border-radius:8px;background:#F1F5F9;border:1px solid #CBD5E1;color:#475569;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s" onmouseover="this.style.background=\'#E2E8F0\'" onmouseout="this.style.background=\'#F1F5F9\'">' +
+            '<span class="ms" style="font-size:16px">edit</span>' +
+          '</button>' +
+          '<button onclick="openDeleteProductModal(\'' + p.id + '\')" title="Hapus Barang Ini" style="width:30px;height:30px;border-radius:8px;background:#FEF2F2;border:1px solid #FECACA;color:#EF4444;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s" onmouseover="this.style.background=\'#FEE2E2\'" onmouseout="this.style.background=\'#FEF2F2\'">' +
+            '<span class="ms" style="font-size:16px">delete</span>' +
+          '</button>' +
         '</div>' +
       '</td>' +
     '</tr>';
   }
 
+  if(matchCount === 0){
+    h = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-sub);font-size:12px">' +
+      '<div style="font-size:24px;margin-bottom:6px">🔍</div>' +
+      'Tidak ada barang yang cocok dengan pencarian "<strong>' + q + '</strong>".' +
+      '</td></tr>';
+  }
+
   tbody.innerHTML = h;
+  if(countEl) countEl.textContent = matchCount + ' Barang Terdaftar';
 }
+
 function adjustProductStock(id, dir){
   var delta = parseInt(document.getElementById('inp-stk-' + id).value) || 1;
   var ps = DB.getProducts();
@@ -1547,6 +2750,7 @@ function adjustProductStock(id, dir){
   renderPosProducts();
   toast('Stok diperbarui', 'ok');
 }
+
 function setProductStockExact(id){
   var val = parseInt(document.getElementById('inp-stk-' + id).value);
   if(isNaN(val) || val < 0) return;
@@ -1554,6 +2758,208 @@ function setProductStockExact(id){
   renderStokTable();
   renderPosProducts();
   toast('Stok diatur ke ' + val, 'ok');
+}
+
+/* ── MODAL LOGIC: TAMBAH BARANG & STOK BARU ── */
+function openAddProductModal(){
+  document.getElementById('add-prod-name').value = '';
+  document.getElementById('add-prod-cat').value = 'kopi';
+  document.getElementById('add-prod-price').value = '';
+  document.getElementById('add-prod-stock').value = '50';
+  document.getElementById('add-prod-portion').value = '1 porsi';
+  document.getElementById('add-prod-desc').value = '';
+  document.getElementById('add-prod-img').value = '';
+  document.getElementById('add-prod-err').style.display = 'none';
+  onAddCatChange();
+  document.getElementById('m-add-product').classList.add('open');
+  setTimeout(function(){ document.getElementById('add-prod-name').focus(); }, 120);
+}
+
+function closeAddProductModal(){
+  document.getElementById('m-add-product').classList.remove('open');
+}
+
+function onAddCatChange(){
+  var cat = document.getElementById('add-prod-cat').value;
+  var nextCoa = generateNextCoaCode(cat);
+  document.getElementById('add-prod-coa').value = nextCoa;
+  if(CATEGORY_DEFAULTS[cat]){
+    document.getElementById('add-prod-portion').value = CATEGORY_DEFAULTS[cat].portion;
+  }
+}
+
+function submitAddProduct(){
+  var name = (document.getElementById('add-prod-name').value || '').trim();
+  var cat = document.getElementById('add-prod-cat').value;
+  var coa = (document.getElementById('add-prod-coa').value || '').trim();
+  var price = parseInt(document.getElementById('add-prod-price').value, 10);
+  var stock = parseInt(document.getElementById('add-prod-stock').value, 10);
+  var portion = (document.getElementById('add-prod-portion').value || '').trim();
+  var desc = (document.getElementById('add-prod-desc').value || '').trim();
+  var img = (document.getElementById('add-prod-img').value || '').trim();
+  var errEl = document.getElementById('add-prod-err');
+
+  if(!name){
+    errEl.style.display = 'block';
+    errEl.textContent = 'Nama barang / produk wajib diisi!';
+    return;
+  }
+  if(!coa){
+    errEl.style.display = 'block';
+    errEl.textContent = 'Kode COA (Bagan Akun) wajib diisi!';
+    return;
+  }
+  if(isNaN(price) || price < 0){
+    errEl.style.display = 'block';
+    errEl.textContent = 'Harga jual harus berupa angka valid (minimal Rp 0)!';
+    return;
+  }
+  if(isNaN(stock) || stock < 0){
+    errEl.style.display = 'block';
+    errEl.textContent = 'Jumlah stok awal harus berupa angka (minimal 0)!';
+    return;
+  }
+
+  errEl.style.display = 'none';
+
+  var catDef = CATEGORY_DEFAULTS[cat] || { label: '🍿 Snack', img: ONLINE_FALLBACKS['default'], portion: '1 porsi' };
+  var uniqueId = 'prod_' + Date.now() + '_' + Math.floor(Math.random()*1000);
+
+  var newProduct = {
+    id: uniqueId,
+    name: name,
+    cat: cat,
+    catLabel: catDef.label,
+    coa: coa,
+    price: price,
+    stock: stock,
+    isHero: false,
+    desc: desc || ('Menu lezat ' + name),
+    portion: portion || catDef.portion,
+    img: img || catDef.img
+  };
+
+  DB.addProduct(newProduct);
+  closeAddProductModal();
+  renderStokTable();
+  renderPosProducts();
+  toast('Barang "' + name + '" (COA: ' + coa + ') berhasil ditambahkan! 🎉', 'ok');
+}
+
+/* ── MODAL LOGIC: EDIT BARANG & COA ── */
+function openEditProductModal(id){
+  var ps = DB.getProducts();
+  var p = null;
+  for(var i=0; i<ps.length; i++){ if(ps[i].id === id){ p = ps[i]; break; } }
+  if(!p) return;
+
+  document.getElementById('edit-prod-id').value = p.id;
+  document.getElementById('edit-prod-name').value = p.name;
+  document.getElementById('edit-prod-cat').value = p.cat || 'snack';
+  document.getElementById('edit-prod-coa').value = p.coa || getProductCoa(p);
+  document.getElementById('edit-prod-price').value = p.price;
+  document.getElementById('edit-prod-stock').value = p.stock;
+  document.getElementById('edit-prod-portion').value = p.portion || '1 porsi';
+  document.getElementById('edit-prod-desc').value = p.desc || '';
+  document.getElementById('edit-prod-img').value = p.img || '';
+  document.getElementById('edit-prod-err').style.display = 'none';
+
+  document.getElementById('m-edit-product').classList.add('open');
+  setTimeout(function(){ document.getElementById('edit-prod-name').focus(); }, 120);
+}
+
+function closeEditProductModal(){
+  document.getElementById('m-edit-product').classList.remove('open');
+}
+
+function submitEditProduct(){
+  var id = document.getElementById('edit-prod-id').value;
+  var name = (document.getElementById('edit-prod-name').value || '').trim();
+  var cat = document.getElementById('edit-prod-cat').value;
+  var coa = (document.getElementById('edit-prod-coa').value || '').trim();
+  var price = parseInt(document.getElementById('edit-prod-price').value, 10);
+  var stock = parseInt(document.getElementById('edit-prod-stock').value, 10);
+  var portion = (document.getElementById('edit-prod-portion').value || '').trim();
+  var desc = (document.getElementById('edit-prod-desc').value || '').trim();
+  var img = (document.getElementById('edit-prod-img').value || '').trim();
+  var errEl = document.getElementById('edit-prod-err');
+
+  if(!name){
+    errEl.style.display = 'block';
+    errEl.textContent = 'Nama barang / produk wajib diisi!';
+    return;
+  }
+  if(!coa){
+    errEl.style.display = 'block';
+    errEl.textContent = 'Kode COA (Bagan Akun) wajib diisi!';
+    return;
+  }
+  if(isNaN(price) || price < 0){
+    errEl.style.display = 'block';
+    errEl.textContent = 'Harga jual harus berupa angka valid (minimal Rp 0)!';
+    return;
+  }
+  if(isNaN(stock) || stock < 0){
+    errEl.style.display = 'block';
+    errEl.textContent = 'Jumlah stok harus berupa angka (minimal 0)!';
+    return;
+  }
+
+  errEl.style.display = 'none';
+  var catDef = CATEGORY_DEFAULTS[cat] || { label: '🍿 Snack', img: ONLINE_FALLBACKS['default'] };
+
+  var updated = {
+    name: name,
+    cat: cat,
+    catLabel: catDef.label,
+    coa: coa,
+    price: price,
+    stock: stock,
+    portion: portion,
+    desc: desc
+  };
+  if(img) updated.img = img;
+
+  DB.updateProduct(id, updated);
+  closeEditProductModal();
+  renderStokTable();
+  renderPosProducts();
+  toast('Barang "' + name + '" berhasil diperbarui! ✨', 'ok');
+}
+
+/* ── MODAL LOGIC: HAPUS BARANG ── */
+function openDeleteProductModal(id){
+  var ps = DB.getProducts();
+  var p = null;
+  for(var i=0; i<ps.length; i++){ if(ps[i].id === id){ p = ps[i]; break; } }
+  if(!p) return;
+
+  document.getElementById('del-prod-id').value = p.id;
+  document.getElementById('del-prod-name').textContent = p.name;
+  document.getElementById('del-prod-coa').textContent = p.coa || getProductCoa(p);
+  document.getElementById('del-prod-stock').textContent = p.stock + ' unit/porsi';
+
+  document.getElementById('m-delete-product').classList.add('open');
+}
+
+function closeDeleteProductModal(){
+  document.getElementById('m-delete-product').classList.remove('open');
+}
+
+function executeDeleteProduct(){
+  var id = document.getElementById('del-prod-id').value;
+  var ps = DB.getProducts();
+  var prodName = 'Barang';
+  for(var i=0; i<ps.length; i++){
+    if(ps[i].id === id){ prodName = ps[i].name; break; }
+  }
+
+  DB.deleteProduct(id);
+  closeDeleteProductModal();
+  renderStokTable();
+  renderPosProducts();
+  renderCartUI();
+  toast('Barang "' + prodName + '" berhasil dihapus dari inventori & kasir. 🗑️', 'ok');
 }
 
 /* ── ADMIN DASHBOARD & LAPORAN ── */
@@ -1751,7 +3157,7 @@ function doExportExcel(type){
   if(type === 'trx' || type === 'all'){
     var rows = [
       [{ v:'LAPORAN TRANSAKSI PENJUALAN — WARKOP HIDAYAH', s:STYLES.title }, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}],
-      [{ v:'Tanggal Ekspor: ' + dateStr + ' | Total: ' + orders.length + ' transaksi', s:STYLES.dataOdd }, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}],
+      [{ v:'Tanggal Ekspor: ' + dateStr + ' | Kasir: ' + ((window.CURRENT_USER||'Kartika').toUpperCase()) + ' | Total: ' + orders.length + ' transaksi', s:STYLES.dataOdd }, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}],
       [],
       ['No', 'ID Transaksi', 'Waktu', 'Meja', 'Daftar Menu', 'Metode', 'Total (Rp)', 'Kembalian'].map(function(h){ return { v:h, s:STYLES.header }; })
     ];
@@ -1787,25 +3193,26 @@ function doExportExcel(type){
     XLSX.utils.book_append_sheet(wb, ws, 'Transaksi');
   }
 
-  /* 2. LAPORAN STOK */
+  /* 2. LAPORAN STOK & COA INVENTORI */
   if(type === 'stok' || type === 'all'){
     var rowsS = [
-      [{ v:'INVENTORI STOK PRODUK — WARKOP HIDAYAH', s:STYLES.title }, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}],
-      [{ v:'Tanggal Ekspor: ' + dateStr, s:STYLES.dataOdd }, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}],
+      [{ v:'INVENTORI STOK & BAGAN AKUN (COA) — WARKOP HIDAYAH', s:STYLES.title }, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}],
+      [{ v:'Tanggal Ekspor: ' + dateStr, s:STYLES.dataOdd }, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}],
       [],
-      ['No', 'Nama Produk', 'Kategori', 'Harga Jual (Rp)', 'Sisa Stok', 'Status Stok'].map(function(h){ return { v:h, s:STYLES.header }; })
+      ['No', 'Kode COA / Akun', 'Nama Produk', 'Kategori', 'Harga Jual (Rp)', 'Sisa Stok', 'Status Stok'].map(function(h){ return { v:h, s:STYLES.header }; })
     ];
     var totStock = 0;
     for(var i=0; i<products.length; i++){
       var p = products[i];
-      if(p.isCustomSeblak) continue;
       var isOdd = (i % 2 === 1);
       var sD = isOdd ? STYLES.dataOdd : STYLES.dataEven;
       var sN = isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven;
       var status = p.stock === 0 ? 'HABIS' : (p.stock <= 10 ? 'MENIPIS' : 'AMAN');
       totStock += p.stock;
+      var coa = p.coa || getProductCoa(p);
       rowsS.push([
         { v: i+1, s: sD },
+        { v: coa, s: sD },
         { v: p.name, s: sD },
         { v: p.catLabel, s: sD },
         { v: p.price, s: sN },
@@ -1814,16 +3221,16 @@ function doExportExcel(type){
       ]);
     }
     rowsS.push([
-      { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow },
+      { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow },
       { v:'TOTAL STOK', s:STYLES.totalRow },
       { v:totStock, s:STYLES.totalRow },
       { v:'', s:STYLES.totalRow }
     ]);
 
     var wsS = XLSX.utils.aoa_to_sheet(rowsS);
-    wsS['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:5} }, { s:{r:1,c:0}, e:{r:1,c:5} }];
-    wsS['!cols'] = [{wch:5},{wch:28},{wch:18},{wch:16},{wch:12},{wch:14}];
-    XLSX.utils.book_append_sheet(wb, wsS, 'Stok');
+    wsS['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:6} }, { s:{r:1,c:0}, e:{r:1,c:6} }];
+    wsS['!cols'] = [{wch:5},{wch:16},{wch:28},{wch:18},{wch:16},{wch:12},{wch:14}];
+    XLSX.utils.book_append_sheet(wb, wsS, 'Stok & COA');
   }
 
   /* 3. LAPORAN LABA RUGI (INCOME STATEMENT) */
@@ -1882,8 +3289,35 @@ function initApp(){
   setInterval(updateClock, 1000);
   renderCategoryCapsules();
   renderPosProducts();
+  loadCartState();
   renderCartUI();
   window.addEventListener('resize', adaptDeviceLayout);
+
+  // Periksa autentikasi Kasir Kartika saat mulai
+  checkAuthOnStartup();
+
+  // Sinkronisasi background berkala setiap 45 detik saat login
+  setInterval(function(){
+    if(window.CURRENT_USER === 'kartika'){
+      CloudSync.pull(true);
+    }
+  }, 45000);
+
+  // Sinkronisasi otomatis saat jendela kembali aktif (misal setelah buka tab/aplikasi lain)
+  window.addEventListener('focus', function(){
+    if(window.CURRENT_USER === 'kartika'){
+      CloudSync.pull(true);
+    }
+  });
+
+  // Sinkronisasi saat koneksi internet kembali online
+  window.addEventListener('online', function(){
+    if(window.CURRENT_USER === 'kartika'){
+      CloudSync.pull(true, function(){
+        CloudSync.push();
+      });
+    }
+  });
 }
 
 document.addEventListener('DOMContentLoaded', initApp);

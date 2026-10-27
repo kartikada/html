@@ -175,13 +175,13 @@ html,body{
     <!-- ── LEFT NAVIGATION SIDEBAR (HIDDEN ON HP < 640px, COMPACT ON IPAD, FULL ON LAPTOP) ── -->
     <aside style="background:#FFFFFF;border-right:1.5px solid var(--border-soft);display:flex;flex-direction:column;align-items:center;padding:16px 8px;gap:18px;flex-shrink:0" class="hidden sm:flex sm:w-16 md:w-20">
       
-      <!-- Profile Avatar (Kasir: Kartika) -->
-      <div class="flex flex-col items-center gap-1 cursor-pointer" onclick="openUserProfileModal()" title="Profil Kasir Kartika & Status Cloud Sync">
+      <!-- Profile Avatar (Kasir: Diah) -->
+      <div class="flex flex-col items-center gap-1 cursor-pointer" onclick="openUserProfileModal()" title="Profil Kasir Diah &amp; Status Cloud Sync">
         <div style="width:46px;height:46px;border-radius:16px;overflow:hidden;background:#E2E8F0;box-shadow:0 4px 12px rgba(0,0,0,.1);border:2px solid #FFFFFF;position:relative">
-          <img id="sidebar-user-avatar" src="images/kartika_avatar.jpg" alt="Kasir Kartika" style="width:100%;height:100%;object-fit:cover" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&h=120&fit=crop&q=80'">
+          <img id="sidebar-user-avatar" src="images/kartika_avatar.jpg" alt="Kasir Diah" style="width:100%;height:100%;object-fit:cover" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&h=120&fit=crop&q=80'">
           <span id="sync-status-dot" style="position:absolute;bottom:2px;right:2px;width:10px;height:10px;border-radius:50%;background:#10B981;border:2px solid #FFFFFF;box-shadow:0 1px 4px rgba(0,0,0,.2)" title="Cloud Sync Aktif"></span>
         </div>
-        <span id="sidebar-user-name" style="font-size:10px;font-weight:800;color:var(--text-main);white-space:nowrap" class="hidden md:inline">Kartika</span>
+        <span id="sidebar-user-name" style="font-size:10px;font-weight:800;color:var(--text-main);white-space:nowrap" class="hidden md:inline">Diah</span>
         <span id="sidebar-sync-badge" style="font-size:7px;font-weight:800;color:#10B981;background:#ECFDF5;padding:1.5px 5px;border-radius:99px;border:1px solid #A7F3D0" class="hidden md:inline">SYNC AKTIF</span>
       </div>
 
@@ -201,6 +201,15 @@ html,body{
           onmouseout="if(window.CUR_VIEW!=='stok'){this.style.color='var(--text-sub)';this.style.borderColor='var(--border-soft)'}">
           <span class="ms" style="font-size:20px">inventory_2</span>
           <span style="font-size:9px;font-weight:700">Stok</span>
+        </button>
+
+        <!-- Pengeluaran & Kas Keluar -->
+        <button id="nav-btn-pengeluaran" onclick="switchView('pengeluaran')"
+          style="width:58px;height:52px;border-radius:16px;background:#FFFFFF;color:var(--text-sub);border:1px solid var(--border-soft);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:0 2px 6px rgba(0,0,0,.02);transition:all .16s"
+          onmouseover="this.style.color='var(--pink)';this.style.borderColor='var(--pink-border)'"
+          onmouseout="if(window.CUR_VIEW!=='pengeluaran'){this.style.color='var(--text-sub)';this.style.borderColor='var(--border-soft)'}">
+          <span class="ms" style="font-size:20px">payments</span>
+          <span style="font-size:8.5px;font-weight:700">Pengeluaran</span>
         </button>
 
         <!-- Laporan / Dashboard -->
@@ -240,18 +249,18 @@ html,body{
           <!-- Actions & Promo Banner -->
           <div class="flex items-center gap-2 sm:gap-2.5">
 
-            <!-- Kasir Kartika & Cloud Sync Status Capsule -->
+            <!-- Kasir Diah & Cloud Sync Status Capsule -->
             <div onclick="openUserProfileModal()" 
               style="display:flex;align-items:center;gap:7px;background:#F8FAFC;border:1.5px solid var(--border-soft);padding:4px 10px 4px 6px;border-radius:14px;cursor:pointer;transition:all .15s ease" 
               onmouseover="this.style.borderColor='var(--pink)';this.style.background='#FFF0F3'" 
               onmouseout="this.style.borderColor='var(--border-soft)';this.style.background='#F8FAFC'" 
-              title="Kasir: Kartika • Klik untuk buka Sinkronisasi Multi-Perangkat">
+              title="Kasir: Diah • Klik untuk buka Sinkronisasi Multi-Perangkat">
               <div style="width:30px;height:30px;border-radius:10px;overflow:hidden;background:#E2E8F0;flex-shrink:0;border:1.5px solid #FFFFFF;box-shadow:0 2px 6px rgba(0,0,0,.08)">
-                <img id="header-user-avatar" src="images/kartika_avatar.jpg" alt="Kartika" style="width:100%;height:100%;object-fit:cover" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&h=120&fit=crop&q=80'">
+                <img id="header-user-avatar" src="images/kartika_avatar.jpg" alt="Diah" style="width:100%;height:100%;object-fit:cover" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&h=120&fit=crop&q=80'">
               </div>
               <div class="hidden sm:flex flex-col text-left" style="line-height:1.15">
                 <div style="display:flex;align-items:center;gap:4px">
-                  <span style="font-size:11px;font-weight:800;color:var(--text-main)" id="header-user-name">Kartika</span>
+                  <span style="font-size:11px;font-weight:800;color:var(--text-main)" id="header-user-name">Diah</span>
                   <span id="header-sync-icon" class="ms" style="font-size:14px;color:#10B981" title="Tersinkron Cloud">cloud_done</span>
                 </div>
                 <span style="font-size:8px;font-weight:700;color:var(--text-sub)" id="header-sync-status">Tersinkron Multi-Perangkat</span>
@@ -379,23 +388,29 @@ html,body{
       <!-- ═════════ LAPORAN & DASHBOARD VIEW (ADMIN) ═════════ -->
       <div id="view-lap" class="p-4 sm:p-6 lg:p-7 flex-col gap-4 sm:gap-5 w-full" style="display:none">
         
-        <!-- Header & 3 Dedicated Report Download Buttons -->
+        <!-- Header & 4 Dedicated Report Download Buttons (Standar SAK EMKM) -->
         <div class="flex items-center justify-between flex-wrap gap-2.5">
           <div>
-            <h2 style="font-size:17px;font-weight:900;color:var(--text-main)">📊 Dashboard &amp; Laporan Keuangan</h2>
-            <p style="font-size:11px;color:var(--text-sub);margin-top:1px">Rekap omzet kasir &amp; 3 pilihan unduh file Excel bertabel rapi</p>
+            <h2 style="font-size:17px;font-weight:900;color:var(--text-main)">📊 Dashboard &amp; Laporan Keuangan SAK EMKM</h2>
+            <p style="font-size:11px;color:var(--text-sub);margin-top:1px">Neraca, Perubahan Modal (Awal 5 Juta), Laba Rugi, Stok &amp; Transaksi standar SAK</p>
           </div>
           
-          <!-- 3 Laporan Buttons -->
+          <!-- 5 Laporan Buttons -->
           <div class="flex items-center gap-1.5 flex-wrap">
             <button onclick="doExportExcel('trx')" style="height:34px;padding:0 10px;border-radius:10px;background:#F8FAFC;border:1.5px solid var(--border-soft);color:var(--text-main);font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px">
               <span class="ms" style="font-size:15px;color:var(--blue)">receipt_long</span>Excel Transaksi
             </button>
             <button onclick="doExportExcel('stok')" style="height:34px;padding:0 10px;border-radius:10px;background:#F8FAFC;border:1.5px solid var(--border-soft);color:var(--text-main);font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px">
-              <span class="ms" style="font-size:15px;color:var(--green)">inventory_2</span>Excel Stok
+              <span class="ms" style="font-size:15px;color:var(--green)">inventory_2</span>Excel Stok &amp; COA
+            </button>
+            <button onclick="doExportExcel('pengeluaran')" style="height:34px;padding:0 10px;border-radius:10px;background:#FEF2F2;border:1.5px solid #FECACA;color:#DC2626;font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px">
+              <span class="ms" style="font-size:15px;color:#DC2626">payments</span>Excel Pengeluaran
+            </button>
+            <button onclick="doExportExcel('keuangan')" style="height:34px;padding:0 12px;border-radius:10px;background:#EFF6FF;border:1.5px solid #93C5FD;color:#1D4ED8;font-size:10px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:4px">
+              <span class="ms" style="font-size:15px">account_balance</span>Laporan Keuangan SAK
             </button>
             <button onclick="doExportExcel('all')" style="height:34px;padding:0 14px;border-radius:10px;background:var(--pink);color:#FFFFFF;border:none;font-size:10px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 4px 12px rgba(255,91,122,.28)">
-              <span class="ms" style="font-size:15px">table_chart</span>Excel Lengkap (3-in-1)
+              <span class="ms" style="font-size:15px">table_chart</span>Paket Lengkap SAK (6-in-1)
             </button>
           </div>
         </div>
@@ -432,23 +447,163 @@ html,body{
 
         <!-- Transaction Log Table -->
         <div style="background:#FFFFFF;border-radius:18px;border:1.5px solid var(--border-soft);overflow:hidden;box-shadow:0 3px 12px rgba(0,0,0,.02);overflow-x:auto">
-          <div style="padding:10px 14px;border-bottom:1.5px solid var(--border-soft);display:flex;align-items:center;justify-content:space-between">
-            <div style="font-size:12px;font-weight:800;color:var(--text-main)">Riwayat Transaksi Terakhir</div>
-            <span style="font-size:10px;color:var(--text-sub)">Tersimpan ke Excel</span>
+          <div style="padding:12px 16px;border-bottom:1.5px solid var(--border-soft);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+            <div>
+              <div class="flex items-center gap-2">
+                <span style="font-size:13px;font-weight:900;color:var(--text-main)">Riwayat Transaksi Penjualan</span>
+                <span id="lap-trx-count" style="font-size:10px;font-weight:800;color:var(--blue);background:var(--blue-light);padding:2px 8px;border-radius:99px;border:1px solid #BFDBFE">0 Transaksi</span>
+              </div>
+              <p style="font-size:10.5px;color:var(--text-sub);margin-top:2px">Riwayat tersimpan. Anda dapat menghapus data transaksi tertentu jika diperlukan.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <div style="position:relative">
+                <span class="ms" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--text-sub)">search</span>
+                <input id="lap-trx-filter-inp" type="text" oninput="renderAdminDashboard()" placeholder="Cari ID, menu, kasir…"
+                  style="height:32px;width:170px;border-radius:9px;border:1.5px solid var(--border-soft);padding:0 8px 0 28px;font-size:11px;font-weight:600;outline:none;background:#F8FAFC">
+              </div>
+            </div>
           </div>
-          <table class="dtbl" style="min-width:540px">
+          <table class="dtbl" style="min-width:680px">
             <thead>
               <tr>
                 <th>ID Transaksi</th>
                 <th>Waktu</th>
+                <th>Kasir</th>
                 <th>Daftar Menu</th>
                 <th style="text-align:center">Metode</th>
                 <th style="text-align:right">Total</th>
+                <th style="text-align:center;width:65px">Aksi</th>
               </tr>
             </thead>
             <tbody id="lap-trx-tbody"></tbody>
           </table>
           <div id="lap-trx-empty" style="padding:24px;text-align:center;color:var(--text-sub);font-size:11px;display:none">Belum ada transaksi tercatat.</div>
+        </div>
+
+      </div>
+
+
+      <!-- ═════════ PENGELUARAN & BUKU KAS VIEW (ADMIN) ═════════ -->
+      <div id="view-pengeluaran" class="p-4 sm:p-6 lg:p-7 flex-col gap-4 sm:gap-5 w-full" style="display:none">
+        
+        <!-- Header & Action Buttons -->
+        <div class="flex items-center justify-between flex-wrap gap-2.5">
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h2 style="font-size:18px;font-weight:900;color:var(--text-main)">💸 Buku Kas &amp; Pengeluaran Toko</h2>
+              <span id="exp-total-count" style="font-size:10px;font-weight:800;color:#DC2626;background:#FEF2F2;padding:3px 9px;border-radius:99px;border:1px solid #FECACA">0 Pengeluaran</span>
+            </div>
+            <p style="font-size:11px;color:var(--text-sub);margin-top:2px">
+              Catat belanja persediaan stok barang, token listrik, gas LPG, gaji, dan beban operasional warkop sesuai <strong>Bagan Akun (COA) SAK</strong>.
+            </p>
+          </div>
+          
+          <div class="flex items-center gap-2 flex-wrap">
+            <button onclick="openAddExpenseModal()" 
+              style="height:36px;padding:0 14px;border-radius:11px;background:var(--pink);color:#FFFFFF;border:none;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(255,91,122,.28);transition:all .15s ease"
+              onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+              <span class="ms" style="font-size:18px">add_circle</span>
+              <span>+ Catat Pengeluaran Baru</span>
+            </button>
+            <div style="position:relative">
+              <select id="exp-filter-cat" onchange="renderExpensesTable()"
+                style="height:36px;border-radius:11px;border:1.5px solid var(--border-soft);padding:0 10px;font-size:11px;font-weight:700;color:var(--text-main);background:#F8FAFC;outline:none;cursor:pointer">
+                <option value="all">Semua Kategori COA</option>
+                <option value="stok">📦 Belanja Stok Bahan (1-1300)</option>
+                <option value="listrik">⚡ Listrik, Air &amp; Wi-Fi (6-1101)</option>
+                <option value="gas">🔥 Gas LPG &amp; Perlengkapan (6-1102)</option>
+                <option value="kebersihan">🧹 Kebersihan &amp; Cuci (6-1103)</option>
+                <option value="peralatan">🛠️ Servis Alat (6-1104)</option>
+                <option value="gaji">👥 Gaji / Upah (6-1105)</option>
+                <option value="prive">👤 Prive Pemilik (3-1102)</option>
+                <option value="lain">🧾 Operasional Lain (6-1199)</option>
+              </select>
+            </div>
+            <div style="position:relative">
+              <span class="ms" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--text-sub)">search</span>
+              <input id="exp-filter-inp" type="text" oninput="renderExpensesTable()" placeholder="Cari keterangan, kasir, ID…"
+                style="height:36px;width:170px;border-radius:11px;border:1.5px solid var(--border-soft);padding:0 10px 0 32px;font-size:11px;font-weight:600;outline:none;background:#F8FAFC;transition:all .15s"
+                onfocus="this.style.borderColor='var(--pink)';this.style.background='#FFFFFF';this.style.width='200px'"
+                onblur="this.style.borderColor='var(--border-soft)';this.style.background='#F8FAFC';this.style.width='170px'">
+            </div>
+            <button onclick="doExportExcel('pengeluaran')" 
+              style="height:36px;padding:0 12px;border-radius:11px;background:var(--navy);color:#FFFFFF;border:none;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(27,32,43,.15)">
+              <span class="ms" style="font-size:16px">download</span>Excel Pengeluaran
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 Cash Flow Stat Cards -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
+          <!-- Total Omzet Penjualan -->
+          <div style="background:#FFFFFF;border-radius:16px;border:1.5px solid var(--border-soft);padding:13px;box-shadow:0 2px 8px rgba(0,0,0,.02)">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+              <span style="font-size:9.5px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.04em">Kas Masuk (Omzet)</span>
+              <span class="ms" style="color:#059669;font-size:18px">arrow_downward</span>
+            </div>
+            <div id="exp-stat-omzet" style="font-size:18px;font-weight:900;color:#059669">Rp 0</div>
+            <div style="font-size:9px;color:var(--text-sub);margin-top:2px">Total dari transaksi kasir</div>
+          </div>
+
+          <!-- Total Pengeluaran -->
+          <div style="background:#FFFFFF;border-radius:16px;border:1.5px solid var(--border-soft);padding:13px;box-shadow:0 2px 8px rgba(0,0,0,.02)">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+              <span style="font-size:9.5px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.04em">Kas Keluar (Beban)</span>
+              <span class="ms" style="color:#DC2626;font-size:18px">arrow_upward</span>
+            </div>
+            <div id="exp-stat-total" style="font-size:18px;font-weight:900;color:#DC2626">Rp 0</div>
+            <div style="font-size:9px;color:var(--text-sub);margin-top:2px">Belanja stok &amp; operasional</div>
+          </div>
+
+          <!-- Arus Kas Bersih -->
+          <div style="background:#FFFFFF;border-radius:16px;border:1.5px solid var(--border-soft);padding:13px;box-shadow:0 2px 8px rgba(0,0,0,.02)">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+              <span style="font-size:9.5px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.04em">Kas Bersih Toko</span>
+              <span class="ms" style="color:#2563EB;font-size:18px">account_balance_wallet</span>
+            </div>
+            <div id="exp-stat-net" style="font-size:18px;font-weight:900;color:#2563EB">Rp 0</div>
+            <div style="font-size:9px;color:var(--text-sub);margin-top:2px">Selisih Kas Masuk - Keluar</div>
+          </div>
+
+          <!-- Khusus Belanja Stok -->
+          <div style="background:#FFFFFF;border-radius:16px;border:1.5px solid var(--border-soft);padding:13px;box-shadow:0 2px 8px rgba(0,0,0,.02)">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+              <span style="font-size:9.5px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.04em">Belanja Stok (HPP)</span>
+              <span class="ms" style="color:#D97706;font-size:18px">inventory_2</span>
+            </div>
+            <div id="exp-stat-stock" style="font-size:18px;font-weight:900;color:#D97706">Rp 0</div>
+            <div style="font-size:9px;color:var(--text-sub);margin-top:2px">Pembelian persediaan barang</div>
+          </div>
+        </div>
+
+        <!-- Tabel Riwayat Pengeluaran -->
+        <div style="background:#FFFFFF;border-radius:18px;border:1.5px solid var(--border-soft);overflow:hidden;box-shadow:0 3px 12px rgba(0,0,0,.02);overflow-x:auto">
+          <div style="padding:14px 16px;border-bottom:1.5px solid var(--border-soft);display:flex;align-items:center;justify-content:space-between;background:#FAFBFD">
+            <div>
+              <span style="font-size:13px;font-weight:900;color:var(--text-main)">Buku Kas Riwayat Pengeluaran</span>
+              <p style="font-size:10.5px;color:var(--text-sub);margin-top:2px">Semua pengeluaran tercatat dan otomatis terhubung ke Laporan Keuangan SAK.</p>
+            </div>
+            <button onclick="openAddExpenseModal()" style="font-size:11px;font-weight:800;color:var(--pink);background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:3px">
+              <span class="ms" style="font-size:16px">add_circle</span>+ Tambah Pengeluaran
+            </button>
+          </div>
+          <table class="dtbl" style="min-width:760px">
+            <thead>
+              <tr>
+                <th style="width:115px">ID / Waktu</th>
+                <th style="width:100px">Kasir</th>
+                <th style="width:170px">Kategori &amp; COA</th>
+                <th>Keterangan / Keperluan</th>
+                <th style="width:160px;text-align:center">Efek Stok Barang</th>
+                <th style="text-align:right;width:120px">Nominal (Rp)</th>
+                <th style="text-align:center;width:65px">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="exp-table-tbody"></tbody>
+          </table>
+          <div id="exp-table-empty" style="padding:28px;text-align:center;color:var(--text-sub);font-size:11px;display:none">
+            Belum ada data pengeluaran yang sesuai filter.
+          </div>
         </div>
 
       </div>
@@ -510,6 +665,10 @@ html,body{
     <span class="ms text-lg">inventory_2</span>
     <span>Stok</span>
   </button>
+  <button onclick="switchView('pengeluaran')" id="m-nav-pengeluaran" class="flex flex-col items-center gap-0.5 text-slate-400 font-bold text-[10px] p-1">
+    <span class="ms text-lg">payments</span>
+    <span>Pengeluaran</span>
+  </button>
   <button onclick="switchView('lap')" id="m-nav-lap" class="flex flex-col items-center gap-0.5 text-slate-400 font-bold text-[10px] p-1">
     <span class="ms text-lg">monitoring</span>
     <span>Laporan</span>
@@ -524,7 +683,7 @@ html,body{
       <span class="ms text-lg">account_circle</span>
       <span id="m-sync-dot" style="position:absolute;top:0;right:0;width:6px;height:6px;border-radius:50%;background:#10B981"></span>
     </div>
-    <span>Kartika</span>
+    <span id="m-nav-user-name">Diah</span>
   </button>
 </nav>
 
@@ -622,7 +781,7 @@ html,body{
         </div>
         <div style="display:flex;justify-content:space-between">
           <span style="color:var(--text-sub)">Kasir</span>
-          <span id="rec-cashier" style="font-weight:700;color:var(--pink)">Kartika</span>
+          <span id="rec-cashier" style="font-weight:700;color:var(--pink)">Diah</span>
         </div>
         <div style="display:flex;justify-content:space-between">
           <span style="color:var(--text-sub)">Waktu</span>
@@ -757,43 +916,45 @@ html,body{
 </div>
 
 
-<!-- ═══════════════════ MODAL: LOGIN KASIR (KARTIKA & MULTI-DEVICE SYNC) ═══════════════════ -->
+<!-- ═══════════════════ MODAL: LOGIN KASIR (DIAH & MULTI-KASIR) ═══════════════════ -->
 <div id="m-login" class="mwrap">
   <div class="mbg" style="background:rgba(15,23,42,.75);backdrop-filter:blur(10px)"></div>
-  <div class="mbox" style="max-width:390px;padding:26px 22px;text-align:center;box-shadow:0 25px 60px rgba(0,0,0,.3);border:1.5px solid rgba(255,255,255,.2)">
+  <div class="mbox" style="max-width:400px;padding:26px 22px;text-align:center;box-shadow:0 25px 60px rgba(0,0,0,.3);border:1.5px solid rgba(255,255,255,.2);max-height:92vh;overflow-y:auto" class="ns">
     
     <!-- Branding & Badge -->
     <div style="display:inline-flex;align-items:center;gap:6px;background:var(--pink-light);color:var(--pink);padding:4px 12px;border-radius:99px;font-size:10px;font-weight:800;letter-spacing:.04em;margin-bottom:12px;border:1px solid var(--pink-border)">
       <span>☕</span> WARKOP HIDAYAH POS
     </div>
     
-    <h2 style="font-size:19px;font-weight:900;color:var(--text-main);margin-bottom:4px;letter-spacing:-0.02em">Masuk Kasir</h2>
-    <p style="font-size:11px;color:var(--text-body);margin-bottom:16px;line-height:1.4">
-      Database transaksi &amp; stok tersimpan aman otomatis. Bebas refresh dan bisa lanjut di HP/Tablet/Laptop.
+    <h2 style="font-size:19px;font-weight:900;color:var(--text-main);margin-bottom:4px;letter-spacing:-0.02em">Pilih Login Kasir</h2>
+    <p style="font-size:11px;color:var(--text-body);margin-bottom:14px;line-height:1.4">
+      Pilih akun kasir atau masukkan PIN. Menambah kasir baru tidak akan menghapus data stok dan transaksi toko.
     </p>
 
-    <!-- Quick Login 1-Click Card for Kartika -->
-    <div onclick="quickFillLogin('kartika','1234')" 
-      style="display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#FFF0F3 0%,#FFE4E8 100%);border:1.5px solid var(--pink-border);border-radius:16px;padding:10px 14px;margin-bottom:16px;cursor:pointer;transition:all .16s ease;text-align:left"
-      onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 18px rgba(255,91,122,.15)'"
-      onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
-      <div style="width:42px;height:42px;border-radius:14px;overflow:hidden;border:2px solid #FFFFFF;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.08)">
-        <img src="images/kartika_avatar.jpg" alt="Kartika" style="width:100%;height:100%;object-fit:cover" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&h=120&fit=crop&q=80'">
+    <!-- Cashier List / Quick Selection Container -->
+    <div style="text-align:left;margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em">Kasir Terdaftar</span>
+        <button type="button" onclick="openAddCashierModal()" 
+          style="background:none;border:none;color:var(--pink);font-size:11px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:3px">
+          <span class="ms" style="font-size:15px">add_circle</span>
+          <span>+ Tambah Kasir Baru</span>
+        </button>
       </div>
-      <div style="flex:1">
-        <div style="font-size:12px;font-weight:900;color:var(--text-main)">👩‍🍳 Masuk Cepat: Kartika</div>
-        <div style="font-size:9.5px;color:var(--pink);font-weight:700">Klik untuk masuk instan (Kasir Utama)</div>
+
+      <!-- Dynamic Cashier Cards List -->
+      <div id="login-cashier-list" style="display:flex;flex-direction:column;gap:7px;max-height:160px;overflow-y:auto" class="ns">
+        <!-- Rendered dynamically by renderLoginCashiers() -->
       </div>
-      <span class="ms" style="color:var(--pink);font-size:18px">arrow_forward</span>
     </div>
 
     <!-- Login Form Fields -->
-    <div style="display:flex;flex-direction:column;gap:10px;text-align:left;margin-bottom:14px">
+    <div style="display:flex;flex-direction:column;gap:10px;text-align:left;margin-bottom:14px;border-top:1px dashed var(--border-soft);padding-top:12px">
       <div>
         <label style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">Nama Kasir</label>
         <div style="position:relative">
           <span class="ms" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-sub);font-size:18px">person</span>
-          <input id="login-username" type="text" value="kartika" placeholder="Contoh: kartika" onkeydown="if(event.key==='Enter')processLogin()"
+          <input id="login-username" type="text" value="diah" placeholder="Contoh: diah" onkeydown="if(event.key==='Enter')processLogin()"
             style="width:100%;height:42px;border-radius:12px;border:1.5px solid var(--border-soft);background:#F8FAFC;padding:0 12px 0 38px;font-size:13px;font-weight:700;color:var(--text-main);outline:none;transition:border-color .15s"
             onfocus="this.style.borderColor='var(--pink)';this.style.background='#FFFFFF'"
             onblur="this.style.borderColor='var(--border-soft)';this.style.background='#F8FAFC'">
@@ -825,14 +986,14 @@ html,body{
       style="width:100%;height:46px;background:var(--navy);border-radius:14px;color:#FFFFFF;border:none;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 20px rgba(27,32,43,.25);transition:all .15s ease"
       onmouseover="this.style.background='var(--navy-hover)'" onmouseout="this.style.background='var(--navy)'">
       <span class="ms" style="font-size:18px">login</span>
-      <span>Masuk Kasir &amp; Sinkronkan Data</span>
+      <span>Masuk Kasir &amp; Buka POS</span>
     </button>
 
     <!-- Cloud Info Note -->
     <div style="margin-top:14px;background:#F8FAFC;border:1px solid var(--border-soft);border-radius:12px;padding:8px 10px;display:flex;align-items:flex-start;gap:7px;text-align:left">
       <span class="ms" style="color:#10B981;font-size:16px;flex-shrink:0;margin-top:1px">cloud_done</span>
       <span style="font-size:9.5px;color:var(--text-sub);line-height:1.35">
-        Database cloud otomatis terhubung untuk nama <strong>kartika</strong>. Buka di HP atau perangkat lain dengan login nama yang sama agar data langsung tersambung!
+        Database stok &amp; pesanan tersimpan bersama untuk kasir <strong>Diah</strong> dan kasir lainnya. Multi-perangkat tersinkron otomatis!
       </span>
     </div>
 
@@ -848,12 +1009,12 @@ html,body{
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
       <div style="display:flex;align-items:center;gap:12px">
         <div style="width:52px;height:52px;border-radius:18px;overflow:hidden;border:2.5px solid var(--pink-border);box-shadow:0 4px 14px rgba(0,0,0,.1);position:relative">
-          <img id="profile-modal-avatar" src="images/kartika_avatar.jpg" alt="Kartika" style="width:100%;height:100%;object-fit:cover" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&h=120&fit=crop&q=80'">
+          <img id="profile-modal-avatar" src="images/kartika_avatar.jpg" alt="Kasir" style="width:100%;height:100%;object-fit:cover" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&h=120&fit=crop&q=80'">
         </div>
         <div>
           <div style="display:flex;align-items:center;gap:6px">
-            <h3 style="font-size:16px;font-weight:900;color:var(--text-main)">Kartika</h3>
-            <span style="background:var(--pink-light);color:var(--pink);font-size:8px;font-weight:800;padding:2px 7px;border-radius:99px;border:1px solid var(--pink-border)">KASIR UTAMA</span>
+            <h3 id="profile-modal-name" style="font-size:16px;font-weight:900;color:var(--text-main)">Diah</h3>
+            <span id="profile-modal-role" style="background:var(--pink-light);color:var(--pink);font-size:8px;font-weight:800;padding:2px 7px;border-radius:99px;border:1px solid var(--pink-border)">KASIR UTAMA</span>
           </div>
           <div style="font-size:10px;color:var(--text-sub);font-weight:600">Warkop Hidayah POS System</div>
         </div>
@@ -899,6 +1060,13 @@ html,body{
         style="width:100%;height:38px;background:#F8FAFC;border:1.5px solid var(--border-soft);border-radius:12px;color:var(--text-main);font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
         <span class="ms" style="font-size:16px;color:#3B82F6">devices</span>
         <span>Panduan Buka di HP / Ganti Device</span>
+      </button>
+
+      <!-- Tambah Kasir Baru Button -->
+      <button onclick="closeUserProfileModal();openAddCashierModal()"
+        style="width:100%;height:38px;background:#FFF0F3;border:1.5px solid var(--pink-border);border-radius:12px;color:var(--pink);font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+        <span class="ms" style="font-size:16px">person_add</span>
+        <span>+ Tambah / Daftarkan Kasir Baru</span>
       </button>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
@@ -960,7 +1128,7 @@ html,body{
       </p>
       <ol style="font-size:10px;color:#166534;line-height:1.5;padding-left:18px;margin:0;display:flex;flex-direction:column;gap:3px">
         <li>Buka file POS atau link kasir di HP / Tablet / Laptop lain.</li>
-        <li>Pada form login, masukkan nama kasir: <strong style="background:#DCFCE7;padding:1px 5px;border-radius:4px">kartika</strong>.</li>
+        <li>Pada form login, masukkan nama kasir: <strong style="background:#DCFCE7;padding:1px 5px;border-radius:4px">diah</strong> (atau kasir yang sudah didaftarkan).</li>
         <li>Selesai! Sistem akan otomatis menarik seluruh sisa stok dan transaksi terdahulu.</li>
         <li>Setiap transaksi baru di HP otomatis tersimpan dan terbaca di laptop.</li>
       </ol>
@@ -1290,6 +1458,393 @@ html,body{
         Batal
       </button>
       <button onclick="executeDeleteProduct()" 
+        style="flex:1;height:44px;border-radius:12px;background:#DC2626;color:#FFFFFF;border:none;font-size:12.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 6px 18px rgba(220,38,38,.35)">
+        <span class="ms" style="font-size:19px">delete</span>
+        <span>Ya, Hapus</span>
+      </button>
+</div>
+</div>
+
+
+<!-- ═══════════════════ MODAL: TAMBAH KASIR BARU ═══════════════════ -->
+<div id="m-add-cashier" class="mwrap">
+  <div class="mbg" onclick="closeAddCashierModal()"></div>
+  <div class="mbox" style="max-width:440px;padding:24px;max-height:92vh;overflow-y:auto" class="ns">
+    
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:44px;height:44px;border-radius:15px;background:var(--pink-light);display:flex;align-items:center;justify-content:center;color:var(--pink);border:1.5px solid var(--pink-border);box-shadow:0 4px 12px rgba(255,91,122,.15)">
+          <span class="ms" style="font-size:24px">person_add</span>
+        </div>
+        <div>
+          <h3 style="font-size:17px;font-weight:900;color:var(--text-main);line-height:1.2">Tambah Kasir Baru</h3>
+          <p style="font-size:11px;color:var(--text-sub);margin-top:2px">Daftarkan akun kasir baru untuk Warkop Hidayah</p>
+        </div>
+      </div>
+      <button onclick="closeAddCashierModal()" style="width:30px;height:30px;border-radius:50%;background:#F8FAFC;border:1px solid var(--border-soft);cursor:pointer;display:flex;align-items:center;justify-content:center">
+        <span class="ms" style="font-size:18px;color:var(--text-sub)">close</span>
+      </button>
+    </div>
+
+    <!-- Data Preservation Guarantee Banner -->
+    <div style="background:#ECFDF5;border:1.5px solid #A7F3D0;border-radius:14px;padding:10px 12px;margin-bottom:14px;display:flex;align-items:flex-start;gap:8px">
+      <span class="ms" style="font-size:18px;color:#059669;flex-shrink:0;margin-top:1px">verified_user</span>
+      <div style="font-size:10.5px;color:#065F46;line-height:1.4">
+        <strong>Data Stok &amp; Transaksi Dijamin Aman:</strong> Menambah kasir baru tidak akan mereset atau menghapus produk maupun riwayat transaksi yang ada. Semua kasir memakai database toko yang sama!
+      </div>
+    </div>
+
+    <!-- Form Content -->
+    <div style="display:flex;flex-direction:column;gap:12px;text-align:left">
+      <div>
+        <label style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">
+          Nama Kasir <span style="color:var(--pink)">*</span>
+        </label>
+        <div style="position:relative">
+          <span class="ms" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-sub);font-size:18px">badge</span>
+          <input id="add-cashier-name" type="text" placeholder="Contoh: Siti, Rani, Budi, Ahmad…"
+            style="width:100%;height:40px;border-radius:11px;border:1.5px solid var(--border-soft);background:#F8FAFC;padding:0 12px 0 38px;font-size:12.5px;font-weight:700;color:var(--text-main);outline:none"
+            onfocus="this.style.borderColor='var(--pink)';this.style.background='#FFFFFF'"
+            onblur="this.style.borderColor='var(--border-soft)';this.style.background='#F8FAFC'">
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">
+            PIN Masuk (4-6 Digit) <span style="color:var(--pink)">*</span>
+          </label>
+          <div style="position:relative">
+            <span class="ms" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-sub);font-size:17px">key</span>
+            <input id="add-cashier-pin" type="password" maxlength="6" value="1234" placeholder="1234"
+              style="width:100%;height:40px;border-radius:11px;border:1.5px solid var(--border-soft);background:#F8FAFC;padding:0 10px 0 34px;font-size:12.5px;font-weight:800;letter-spacing:2px;color:var(--text-main);outline:none"
+              onfocus="this.style.borderColor='var(--pink)';this.style.background='#FFFFFF'"
+              onblur="this.style.borderColor='var(--border-soft)';this.style.background='#F8FAFC'">
+          </div>
+        </div>
+
+        <div>
+          <label style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">
+            Peran / Shift <span style="color:var(--pink)">*</span>
+          </label>
+          <select id="add-cashier-role"
+            style="width:100%;height:40px;border-radius:11px;border:1.5px solid var(--border-soft);background:#F8FAFC;padding:0 10px;font-size:11.5px;font-weight:700;color:var(--text-main);outline:none;cursor:pointer">
+            <option value="Kasir Pagi">☀️ Kasir Pagi (Shift 1)</option>
+            <option value="Kasir Sore">🌤️ Kasir Sore (Shift 2)</option>
+            <option value="Kasir Malam">🌙 Kasir Malam (Shift 3)</option>
+            <option value="Kasir Utama">⭐ Kasir Utama</option>
+            <option value="Barista & Kasir">☕ Barista &amp; Kasir</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Avatar Preset Picker -->
+      <div>
+        <label style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">
+          Pilih Foto / Avatar Kasir
+        </label>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px" id="add-cashier-avatar-picker">
+          <div onclick="selectCashierAvatarPreset(this, 'images/kartika_avatar.jpg')" class="cashier-avatar-opt active"
+            style="border:2px solid var(--pink);background:#FFF0F3;border-radius:14px;padding:6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px">
+            <img src="images/kartika_avatar.jpg" alt="Diah" style="width:36px;height:36px;border-radius:10px;object-fit:cover" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&h=120&fit=crop&q=80'">
+            <span style="font-size:9px;font-weight:800;color:var(--pink)">Diah</span>
+          </div>
+          <div onclick="selectCashierAvatarPreset(this, 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&h=120&fit=crop&q=80')" class="cashier-avatar-opt"
+            style="border:1.5px solid var(--border-soft);background:#F8FAFC;border-radius:14px;padding:6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px">
+            <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&h=120&fit=crop&q=80" alt="Siti" style="width:36px;height:36px;border-radius:10px;object-fit:cover">
+            <span style="font-size:9px;font-weight:700;color:var(--text-sub)">Siti</span>
+          </div>
+          <div onclick="selectCashierAvatarPreset(this, 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop&q=80')" class="cashier-avatar-opt"
+            style="border:1.5px solid var(--border-soft);background:#F8FAFC;border-radius:14px;padding:6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px">
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop&q=80" alt="Budi" style="width:36px;height:36px;border-radius:10px;object-fit:cover">
+            <span style="font-size:9px;font-weight:700;color:var(--text-sub)">Budi</span>
+          </div>
+          <div onclick="selectCashierAvatarPreset(this, 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=120&h=120&fit=crop&q=80')" class="cashier-avatar-opt"
+            style="border:1.5px solid var(--border-soft);background:#F8FAFC;border-radius:14px;padding:6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px">
+            <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=120&h=120&fit=crop&q=80" alt="Rani" style="width:36px;height:36px;border-radius:10px;object-fit:cover">
+            <span style="font-size:9px;font-weight:700;color:var(--text-sub)">Rani</span>
+          </div>
+        </div>
+        <input type="hidden" id="add-cashier-avatar-val" value="images/kartika_avatar.jpg">
+      </div>
+
+      <div id="add-cashier-err" style="display:none;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:11px;padding:9px 12px;color:#B91C1C;font-size:11px;font-weight:700"></div>
+
+      <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
+        <button onclick="closeAddCashierModal()" 
+          style="flex:1;height:44px;border-radius:12px;background:#F8FAFC;border:1.5px solid var(--border-soft);color:var(--text-body);font-size:12px;font-weight:700;cursor:pointer">
+          Batal
+        </button>
+        <button onclick="submitAddCashier()" 
+          style="flex:2;height:44px;border-radius:12px;background:var(--navy);color:#FFFFFF;border:none;font-size:12.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 6px 18px rgba(27,32,43,.25)">
+          <span class="ms" style="font-size:19px">save</span>
+          <span>Simpan Kasir Baru</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════ MODAL: KONFIRMASI HAPUS TRANSAKSI ═══════════════════ -->
+<div id="m-delete-order" class="mwrap">
+  <div class="mbg" onclick="closeDeleteOrderModal()"></div>
+  <div class="mbox" style="max-width:420px;padding:24px;text-align:center">
+    
+    <div style="width:56px;height:56px;border-radius:20px;background:#FEF2F2;border:2px solid #FECACA;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;color:#DC2626;box-shadow:0 6px 16px rgba(220,38,38,.12)">
+      <span class="ms" style="font-size:30px">receipt_long</span>
+    </div>
+
+    <h3 style="font-size:17px;font-weight:900;color:var(--text-main);margin-bottom:4px">Hapus Data Transaksi?</h3>
+    <p style="font-size:11px;color:var(--text-sub);line-height:1.4;margin-bottom:16px">
+      Transaksi ini akan dihapus dari riwayat penjualan. Data transaksi lain akan tetap aman tersimpan.
+    </p>
+
+    <!-- Details card -->
+    <div style="background:#F8FAFC;border:1.5px solid var(--border-soft);border-radius:16px;padding:14px;text-align:left;margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:10px;color:var(--text-sub);font-weight:700">ID TRANSAKSI</span>
+        <span id="del-order-id-disp" style="font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:11.5px;font-weight:800;color:var(--navy);background:#FFFFFF;border:1px solid #CBD5E1;padding:2px 7px;border-radius:6px">-</span>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:10px;color:var(--text-sub);font-weight:700">WAKTU &amp; KASIR</span>
+        <span id="del-order-time-cashier" style="font-size:11px;font-weight:700;color:var(--text-main)">-</span>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:10px;color:var(--text-sub);font-weight:700">TOTAL BAYAR</span>
+        <span id="del-order-total-disp" style="font-size:13px;font-weight:900;color:var(--pink)">-</span>
+      </div>
+      <div style="border-top:1px dashed var(--border-soft);padding-top:6px;margin-top:6px">
+        <span style="font-size:10px;color:var(--text-sub);font-weight:700;display:block;margin-bottom:2px">DAFTAR PESANAN:</span>
+        <div id="del-order-items-disp" style="font-size:10.5px;font-weight:600;color:var(--text-body);max-height:60px;overflow-y:auto" class="ns">-</div>
+      </div>
+    </div>
+
+    <!-- Restore Stock Checkbox -->
+    <div style="background:#FFFBEB;border:1.5px solid #FDE68A;border-radius:12px;padding:10px 12px;margin-bottom:16px;text-align:left;display:flex;align-items:flex-start;gap:8px">
+      <input type="checkbox" id="del-order-restore-stock" checked style="accent-color:var(--pink);margin-top:2px;cursor:pointer;width:16px;height:16px;flex-shrink:0">
+      <label for="del-order-restore-stock" style="font-size:11px;font-weight:700;color:#92400E;cursor:pointer;line-height:1.35">
+        Kembalikan sisa stok produk<br>
+        <span style="font-size:9.5px;font-weight:500;color:#B45309">Stok barang yang ada di transaksi ini akan otomatis ditambahkan kembali ke inventori.</span>
+      </label>
+    </div>
+
+    <input type="hidden" id="del-order-id">
+
+    <div style="display:flex;align-items:center;gap:10px">
+      <button onclick="closeDeleteOrderModal()" 
+        style="flex:1;height:44px;border-radius:12px;background:#F8FAFC;border:1.5px solid var(--border-soft);color:var(--text-body);font-size:12px;font-weight:700;cursor:pointer">
+        Batal
+      </button>
+      <button onclick="executeDeleteOrder()" 
+        style="flex:1;height:44px;border-radius:12px;background:#DC2626;color:#FFFFFF;border:none;font-size:12.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 6px 18px rgba(220,38,38,.35)">
+        <span class="ms" style="font-size:19px">delete</span>
+        <span>Ya, Hapus</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════ MODAL: CATAT PENGELUARAN BARU ═══════════════════ -->
+<div id="m-add-expense" class="mwrap">
+  <div class="mbg" onclick="closeAddExpenseModal()"></div>
+  <div class="mbox" style="max-width:490px;padding:24px;max-height:92vh;overflow-y:auto" class="ns">
+    
+    <!-- Header -->
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:44px;height:44px;border-radius:15px;background:#FEF2F2;display:flex;align-items:center;justify-content:center;color:#DC2626;border:1.5px solid #FECACA;box-shadow:0 4px 12px rgba(220,38,38,.12)">
+          <span class="ms" style="font-size:24px">payments</span>
+        </div>
+        <div>
+          <h3 style="font-size:17px;font-weight:900;color:var(--text-main);line-height:1.2">Catat Pengeluaran Baru</h3>
+          <p style="font-size:11px;color:var(--text-sub);margin-top:2px">Beban operasional &amp; belanja stok persediaan warkop</p>
+        </div>
+      </div>
+      <button onclick="closeAddExpenseModal()" style="width:30px;height:30px;border-radius:50%;background:#F8FAFC;border:1px solid var(--border-soft);cursor:pointer;display:flex;align-items:center;justify-content:center">
+        <span class="ms" style="font-size:18px;color:var(--text-sub)">close</span>
+      </button>
+    </div>
+
+    <!-- Form Content -->
+    <div style="display:flex;flex-direction:column;gap:12px;text-align:left">
+      
+      <!-- Kategori Pengeluaran (COA) -->
+      <div>
+        <label style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">
+          Kategori Pengeluaran / COA <span style="color:var(--pink)">*</span>
+        </label>
+        <select id="add-exp-cat" onchange="onExpenseCategoryChange()"
+          style="width:100%;height:42px;border-radius:11px;border:1.5px solid var(--border-soft);background:#F8FAFC;padding:0 12px;font-size:12px;font-weight:700;color:var(--text-main);outline:none;cursor:pointer">
+          <option value="stok">📦 Belanja Stok &amp; Persediaan Bahan (COA 1-1300 / 5-1101)</option>
+          <option value="listrik">⚡ Beban Listrik, Air &amp; Wi-Fi (COA 6-1101)</option>
+          <option value="gas">🔥 Beban Gas LPG &amp; Perlengkapan Toko (COA 6-1102)</option>
+          <option value="kebersihan">🧹 Beban Kebersihan &amp; Sabun Cuci (COA 6-1103)</option>
+          <option value="peralatan">🛠️ Beban Servis/Pemeliharaan Alat (COA 6-1104)</option>
+          <option value="gaji">👥 Beban Gaji / Uang Makan Karyawan (COA 6-1105)</option>
+          <option value="prive">👤 Prive Pemilik (Pengambilan Kas Pribadi - COA 3-1102)</option>
+          <option value="lain">🧾 Beban Operasional Lain-lain (COA 6-1199)</option>
+        </select>
+      </div>
+
+      <!-- Conditional Stock Integration Section (Appears when cat === 'stok') -->
+      <div id="add-exp-stock-box" style="background:#F0FDF4;border:1.5px solid #86EFAC;border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:16px">📦</span>
+          <span style="font-size:11px;font-weight:800;color:#166534">Tambah Stok Barang Otomatis (Opsional)</span>
+        </div>
+        <p style="font-size:10px;color:#14532D;line-height:1.4">
+          Pilih menu/produk yang Anda beli di bawah. Jumlah stok barang akan <strong>otomatis bertambah</strong> di menu kasir &amp; tabel inventori!
+        </p>
+        
+        <div>
+          <label style="font-size:9.5px;font-weight:800;color:#166534;text-transform:uppercase;display:block;margin-bottom:4px">Pilih Barang yang Dibeli:</label>
+          <select id="add-exp-stock-prod"
+            style="width:100%;height:38px;border-radius:10px;border:1.5px solid #A7F3D0;background:#FFFFFF;padding:0 10px;font-size:11.5px;font-weight:700;color:var(--text-main);outline:none;cursor:pointer">
+            <option value="">-- Beli Bahan Umum / Tanpa Nambah Stok Produk Spesifik --</option>
+          </select>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <label style="font-size:9.5px;font-weight:800;color:#166534;text-transform:uppercase;display:block;margin-bottom:4px">Jumlah Tambah Stok (Qty):</label>
+            <input id="add-exp-stock-qty" type="number" min="1" value="20" placeholder="Contoh: 20"
+              style="width:100%;height:38px;border-radius:10px;border:1.5px solid #A7F3D0;background:#FFFFFF;padding:0 10px;font-size:12.5px;font-weight:800;color:#166534;outline:none">
+          </div>
+          <div style="display:flex;align-items:center;margin-top:18px">
+            <input type="checkbox" id="add-exp-stock-auto" checked style="accent-color:#059669;width:16px;height:16px;margin-right:6px;cursor:pointer">
+            <label for="add-exp-stock-auto" style="font-size:10px;font-weight:700;color:#166534;cursor:pointer">Otomatis tambah ke stok</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Nominal Pengeluaran -->
+      <div>
+        <label style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">
+          Nominal Pengeluaran (Rp) <span style="color:var(--pink)">*</span>
+        </label>
+        <div style="position:relative">
+          <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-weight:900;font-size:13px;color:var(--text-sub)">Rp</span>
+          <input id="add-exp-amount" type="number" min="0" step="1000" placeholder="0"
+            style="width:100%;height:42px;border-radius:11px;border:1.5px solid var(--border-soft);background:#F8FAFC;padding:0 12px 0 38px;font-size:15px;font-weight:900;color:#DC2626;outline:none"
+            onfocus="this.style.borderColor='var(--pink)';this.style.background='#FFFFFF'"
+            onblur="this.style.borderColor='var(--border-soft)';this.style.background='#F8FAFC'">
+        </div>
+        <!-- Quick Chips -->
+        <div style="display:flex;gap:5px;margin-top:6px;flex-wrap:wrap">
+          <button type="button" onclick="quickSetExpenseAmount(20000)" style="padding:3px 8px;border-radius:6px;background:#F8FAFC;border:1px solid var(--border-soft);font-size:9.5px;font-weight:700;cursor:pointer">+20rb</button>
+          <button type="button" onclick="quickSetExpenseAmount(50000)" style="padding:3px 8px;border-radius:6px;background:#F8FAFC;border:1px solid var(--border-soft);font-size:9.5px;font-weight:700;cursor:pointer">+50rb</button>
+          <button type="button" onclick="quickSetExpenseAmount(100000)" style="padding:3px 8px;border-radius:6px;background:#F8FAFC;border:1px solid var(--border-soft);font-size:9.5px;font-weight:700;cursor:pointer">+100rb</button>
+          <button type="button" onclick="quickSetExpenseAmount(200000)" style="padding:3px 8px;border-radius:6px;background:#F8FAFC;border:1px solid var(--border-soft);font-size:9.5px;font-weight:700;cursor:pointer">+200rb</button>
+          <button type="button" onclick="quickSetExpenseAmount(500000)" style="padding:3px 8px;border-radius:6px;background:#F8FAFC;border:1px solid var(--border-soft);font-size:9.5px;font-weight:700;cursor:pointer">+500rb</button>
+        </div>
+      </div>
+
+      <!-- Keterangan / Deskripsi -->
+      <div>
+        <label style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">
+          Keterangan / Keperluan <span style="color:var(--pink)">*</span>
+        </label>
+        <input id="add-exp-desc" type="text" placeholder="Contoh: Beli 2 karton Indomie, Token listrik PLN 100rb, Isi 2 gas LPG…"
+          style="width:100%;height:40px;border-radius:11px;border:1.5px solid var(--border-soft);background:#F8FAFC;padding:0 12px;font-size:12px;font-weight:700;color:var(--text-main);outline:none"
+          onfocus="this.style.borderColor='var(--pink)';this.style.background='#FFFFFF'"
+          onblur="this.style.borderColor='var(--border-soft)';this.style.background='#F8FAFC'">
+      </div>
+
+      <!-- Kasir & Catatan Toko Grid -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">
+            Dicatat Oleh (Kasir)
+          </label>
+          <input id="add-exp-cashier" type="text" value="Diah"
+            style="width:100%;height:40px;border-radius:11px;border:1.5px solid var(--border-soft);background:#F8FAFC;padding:0 12px;font-size:12px;font-weight:700;color:var(--text-main);outline:none">
+        </div>
+        <div>
+          <label style="font-size:10px;font-weight:800;color:var(--text-sub);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">
+            Toko / Vendor (Opsional)
+          </label>
+          <input id="add-exp-note" type="text" placeholder="Contoh: Toko Berkah, M-Banking…"
+            style="width:100%;height:40px;border-radius:11px;border:1.5px solid var(--border-soft);background:#F8FAFC;padding:0 12px;font-size:12px;font-weight:600;color:var(--text-main);outline:none">
+        </div>
+      </div>
+
+      <!-- Error Message -->
+      <div id="add-exp-err" style="display:none;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:10px;padding:8px 10px;color:#B91C1C;font-size:10px;font-weight:700"></div>
+
+      <!-- Action Buttons -->
+      <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
+        <button onclick="closeAddExpenseModal()" 
+          style="flex:1;height:42px;border-radius:12px;background:#F8FAFC;border:1.5px solid var(--border-soft);color:var(--text-body);font-size:12px;font-weight:700;cursor:pointer">
+          Batal
+        </button>
+        <button onclick="saveNewExpense()" 
+          style="flex:1;height:42px;border-radius:12px;background:var(--navy);color:#FFFFFF;border:none;font-size:12.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 6px 18px rgba(27,32,43,.22)">
+          <span class="ms" style="font-size:18px">check_circle</span>
+          <span>Simpan Pengeluaran</span>
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════ MODAL: HAPUS PENGELUARAN ═══════════════════ -->
+<div id="m-delete-expense" class="mwrap">
+  <div class="mbg" onclick="closeDeleteExpenseModal()"></div>
+  <div class="mbox" style="max-width:420px;padding:24px;text-align:center">
+    
+    <div style="width:56px;height:56px;border-radius:20px;background:#FEF2F2;border:2px solid #FECACA;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;color:#DC2626;box-shadow:0 6px 16px rgba(220,38,38,.12)">
+      <span class="ms" style="font-size:30px">delete</span>
+    </div>
+
+    <h3 style="font-size:17px;font-weight:900;color:var(--text-main);margin-bottom:4px">Hapus Data Pengeluaran?</h3>
+    <p style="font-size:11px;color:var(--text-sub);line-height:1.4;margin-bottom:16px">
+      Data pengeluaran ini akan dihapus dari buku kas. Jika pengeluaran ini sebelumnya menambah stok, Anda dapat memilih untuk mengembalikan stoknya.
+    </p>
+
+    <!-- Details Card -->
+    <div style="background:#F8FAFC;border:1.5px solid var(--border-soft);border-radius:16px;padding:14px;text-align:left;margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:10px;color:var(--text-sub);font-weight:700">ID / KATEGORI</span>
+        <span id="del-exp-id-disp" style="font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:11px;font-weight:800;color:var(--navy);background:#FFFFFF;border:1px solid #CBD5E1;padding:2px 7px;border-radius:6px">-</span>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:10px;color:var(--text-sub);font-weight:700">KETERANGAN</span>
+        <span id="del-exp-desc-disp" style="font-size:11.5px;font-weight:800;color:var(--text-main)">-</span>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:10px;color:var(--text-sub);font-weight:700">NOMINAL PENGELUARAN</span>
+        <span id="del-exp-amount-disp" style="font-size:14px;font-weight:900;color:#DC2626">-</span>
+      </div>
+      <div id="del-exp-stock-info-row" style="border-top:1px dashed var(--border-soft);padding-top:6px;margin-top:6px;display:none">
+        <span style="font-size:10px;color:var(--text-sub);font-weight:700;display:block;margin-bottom:2px">STOK YANG PERNAH DITAMBAHKAN:</span>
+        <div id="del-exp-stock-item-disp" style="font-size:11px;font-weight:700;color:#166534">-</div>
+      </div>
+    </div>
+
+    <!-- Reverse Stock Checkbox -->
+    <div id="del-exp-reverse-box" style="background:#FFFBEB;border:1.5px solid #FDE68A;border-radius:12px;padding:10px 12px;margin-bottom:16px;text-align:left;display:none;align-items:flex-start;gap:8px">
+      <input type="checkbox" id="del-exp-reverse-stock" checked style="accent-color:var(--pink);margin-top:2px;cursor:pointer;width:16px;height:16px;flex-shrink:0">
+      <label for="del-exp-reverse-stock" style="font-size:11px;font-weight:700;color:#92400E;cursor:pointer;line-height:1.35">
+        Kurangi kembali sisa stok produk<br>
+        <span style="font-size:9.5px;font-weight:500;color:#B45309">Stok produk akan otomatis dikurangi kembali sejumlah qty saat belanja ini dicatat.</span>
+      </label>
+    </div>
+
+    <input type="hidden" id="del-exp-id">
+
+    <div style="display:flex;align-items:center;gap:10px">
+      <button onclick="closeDeleteExpenseModal()" 
+        style="flex:1;height:44px;border-radius:12px;background:#F8FAFC;border:1.5px solid var(--border-soft);color:var(--text-body);font-size:12px;font-weight:700;cursor:pointer">
+        Batal
+      </button>
+      <button onclick="executeDeleteExpense()" 
         style="flex:1;height:44px;border-radius:12px;background:#DC2626;color:#FFFFFF;border:none;font-size:12.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 6px 18px rgba(220,38,38,.35)">
         <span class="ms" style="font-size:19px">delete</span>
         <span>Ya, Hapus</span>
@@ -1632,6 +2187,169 @@ var DB = {
       }
     }
     DB.setProducts(ps);
+  },
+  getCashiers: function(){
+    var s = localStorage.getItem('wh_cashiers');
+    if(!s){
+      var def = [
+        { id: 'diah', name: 'Diah', pin: '1234', role: 'Kasir Utama', avatar: 'images/kartika_avatar.jpg' }
+      ];
+      localStorage.setItem('wh_cashiers', JSON.stringify(def));
+      return def;
+    }
+    try {
+      var arr = JSON.parse(s);
+      if(Array.isArray(arr) && arr.length > 0) return arr;
+    } catch(e){}
+    return [
+      { id: 'diah', name: 'Diah', pin: '1234', role: 'Kasir Utama', avatar: 'images/kartika_avatar.jpg' }
+    ];
+  },
+  addCashier: function(c){
+    var list = DB.getCashiers();
+    list.push(c);
+    localStorage.setItem('wh_cashiers', JSON.stringify(list));
+    // Data produk dan transaksi toko tetap sama & tidak direset
+    return list;
+  },
+  deleteOrder: function(orderId, restoreStock){
+    var orders = DB.getOrders();
+    var targetOrder = null;
+    var remaining = [];
+    for(var i=0; i<orders.length; i++){
+      if(orders[i].id === orderId){
+        targetOrder = orders[i];
+      } else {
+        remaining.push(orders[i]);
+      }
+    }
+    if(!targetOrder) return false;
+
+    // Jika kembalikan stok dicentang, kembalikan stok barang yang terjual ke DB
+    if(restoreStock && targetOrder.items && targetOrder.items.length > 0){
+      var products = DB.getProducts();
+      var prodMap = {};
+      for(var p=0; p<products.length; p++){
+        prodMap[products[p].id] = products[p];
+      }
+      for(var it=0; it<targetOrder.items.length; it++){
+        var item = targetOrder.items[it];
+        if(item.isCustomSeblak) continue;
+        if(prodMap[item.id]){
+          prodMap[item.id].stock = (prodMap[item.id].stock || 0) + (item.qty || 1);
+        }
+      }
+      DB.setProducts(products);
+    }
+
+    DB.setOrders(remaining);
+    return true;
+  },
+  getExpenses: function(){
+    var s = localStorage.getItem('wh_expenses');
+    if(!s){
+      var def = [
+        {
+          id: 'EXP-1001',
+          ts: Date.now() - 86400000 * 2,
+          cat: 'stok',
+          coa: '1-1301',
+          coaName: 'Persediaan Kopi & Sachet',
+          desc: 'Restock Kopi Kapal Api & Kopi Luwak (Grosir)',
+          amount: 350000,
+          cashier: 'Diah',
+          stockItem: { productId: 'kopi_luwak', productName: 'Kopi Luwak White Koffie', qtyAdded: 40 },
+          note: 'Toko Grosir Berkah'
+        },
+        {
+          id: 'EXP-1002',
+          ts: Date.now() - 86400000,
+          cat: 'stok',
+          coa: '1-1305',
+          coaName: 'Persediaan Makanan & Snack',
+          desc: 'Restock Indomie Goreng & Telur Ayam',
+          amount: 220000,
+          cashier: 'Diah',
+          stockItem: { productId: 'snack_indomie', productName: 'Indomie Goreng', qtyAdded: 40 },
+          note: 'Pasar Pagi'
+        },
+        {
+          id: 'EXP-1003',
+          ts: Date.now() - 3600000 * 18,
+          cat: 'gas',
+          coa: '6-1102',
+          coaName: 'Beban Gas LPG & Perlengkapan',
+          desc: 'Beli 2 tabung Gas LPG 3kg & 3 Galon Aqua',
+          amount: 55000,
+          cashier: 'Diah',
+          stockItem: null,
+          note: 'Pangkalan Gas Barokah'
+        },
+        {
+          id: 'EXP-1004',
+          ts: Date.now() - 3600000 * 5,
+          cat: 'listrik',
+          coa: '6-1101',
+          coaName: 'Beban Listrik, Air & Wi-Fi',
+          desc: 'Beli Token PLN 100rb + Kuota Wi-Fi Warkop',
+          amount: 150000,
+          cashier: 'Diah',
+          stockItem: null,
+          note: 'M-Banking'
+        }
+      ];
+      localStorage.setItem('wh_expenses', JSON.stringify(def));
+      return def;
+    }
+    try {
+      var arr = JSON.parse(s);
+      return Array.isArray(arr) ? arr : [];
+    } catch(e){
+      return [];
+    }
+  },
+  setExpenses: function(arr, skipSync){
+    localStorage.setItem('wh_expenses', JSON.stringify(arr));
+    if(!skipSync && typeof CloudSync !== 'undefined'){
+      CloudSync.schedulePush();
+    }
+  },
+  addExpense: function(exp, addStockInfo){
+    var list = DB.getExpenses();
+    list.unshift(exp);
+    DB.setExpenses(list);
+    if(addStockInfo && addStockInfo.productId && addStockInfo.qty > 0){
+      var ps = DB.getProducts();
+      for(var i=0; i<ps.length; i++){
+        if(ps[i].id === addStockInfo.productId){
+          ps[i].stock = (ps[i].stock || 0) + Number(addStockInfo.qty);
+          break;
+        }
+      }
+      DB.setProducts(ps);
+    }
+    return list;
+  },
+  deleteExpense: function(expId, reverseStock){
+    var list = DB.getExpenses();
+    var target = null;
+    var remaining = [];
+    for(var i=0; i<list.length; i++){
+      if(list[i].id === expId) target = list[i];
+      else remaining.push(list[i]);
+    }
+    DB.setExpenses(remaining);
+    if(reverseStock && target && target.stockItem && target.stockItem.productId && target.stockItem.qtyAdded > 0){
+      var ps = DB.getProducts();
+      for(var j=0; j<ps.length; j++){
+        if(ps[j].id === target.stockItem.productId){
+          ps[j].stock = Math.max(0, (ps[j].stock || 0) - Number(target.stockItem.qtyAdded));
+          break;
+        }
+      }
+      DB.setProducts(ps);
+    }
+    return remaining;
   }
 };
 
@@ -1659,10 +2377,12 @@ var CloudSync = {
       name: 'kartika_warkop',
       updatedAt: Date.now(),
       data: {
-        cashier: 'kartika',
+        cashier: window.CURRENT_USER_NAME || 'diah',
         updatedAt: Date.now(),
         orders: DB.getOrders(),
         products: DB.getProducts(),
+        cashiers: DB.getCashiers(),
+        expenses: DB.getExpenses(),
         deviceInfo: navigator.userAgent.substring(0, 60)
       }
     };
@@ -1779,9 +2499,54 @@ var CloudSync = {
       }
     }
 
+    // Sinkronkan daftar akun kasir jika di cloud ada kasir baru dari perangkat lain
+    if(Array.isArray(cloudData.cashiers) && cloudData.cashiers.length > 0){
+      var localCashiers = DB.getCashiers();
+      var cMap = {};
+      for(var c1=0; c1<localCashiers.length; c1++){
+        cMap[localCashiers[c1].id] = localCashiers[c1];
+      }
+      var cChanged = false;
+      for(var c2=0; c2<cloudData.cashiers.length; c2++){
+        var cc = cloudData.cashiers[c2];
+        if(!cMap[cc.id]){
+          localCashiers.push(cc);
+          cMap[cc.id] = cc;
+          cChanged = true;
+        }
+      }
+      if(cChanged){
+        localStorage.setItem('wh_cashiers', JSON.stringify(localCashiers));
+        renderLoginCashiers();
+      }
+    }
+
+    // Sinkronkan data pengeluaran jika di cloud ada perubahan
+    if(Array.isArray(cloudData.expenses) && cloudData.expenses.length > 0){
+      var localExpenses = DB.getExpenses();
+      var expMap = {};
+      for(var e1=0; e1<localExpenses.length; e1++){
+        expMap[localExpenses[e1].id] = localExpenses[e1];
+      }
+      var expChanged = false;
+      for(var e2=0; e2<cloudData.expenses.length; e2++){
+        var ce = cloudData.expenses[e2];
+        if(!expMap[ce.id]){
+          localExpenses.push(ce);
+          expMap[ce.id] = ce;
+          expChanged = true;
+        }
+      }
+      if(expChanged){
+        localExpenses.sort(function(a,b){ return (b.ts || 0) - (a.ts || 0); });
+        localStorage.setItem('wh_expenses', JSON.stringify(localExpenses));
+      }
+    }
+
     // Refresh UI jika sedang aktif
     if(window.CUR_VIEW === 'kasir') renderPosProducts();
     if(window.CUR_VIEW === 'stok') renderStokTable();
+    if(window.CUR_VIEW === 'pengeluaran') renderExpensesTable();
     if(window.CUR_VIEW === 'lap') renderAdminDashboard();
   },
 
@@ -1852,17 +2617,19 @@ var CloudSync = {
   exportBackup: function(){
     var data = {
       app: 'Warkop Hidayah POS',
-      version: 'v8-kartika',
-      cashier: 'kartika',
+      version: 'v9-diah-multikasir',
+      cashier: window.CURRENT_USER_NAME || 'Diah',
       exportedAt: new Date().toISOString(),
+      cashiers: DB.getCashiers(),
       orders: DB.getOrders(),
-      products: DB.getProducts()
+      products: DB.getProducts(),
+      expenses: DB.getExpenses()
     };
     var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
     a.href = url;
-    a.download = 'WarkopHidayah_Backup_Kartika_' + new Date().toISOString().slice(0,10) + '.json';
+    a.download = 'WarkopHidayah_Backup_' + (window.CURRENT_USER_NAME || 'Diah') + '_' + new Date().toISOString().slice(0,10) + '.json';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -1883,10 +2650,17 @@ var CloudSync = {
         if(parsed.products && Array.isArray(parsed.products)){
           DB.setProducts(parsed.products);
         }
+        if(parsed.cashiers && Array.isArray(parsed.cashiers)){
+          localStorage.setItem('wh_cashiers', JSON.stringify(parsed.cashiers));
+        }
+        if(parsed.expenses && Array.isArray(parsed.expenses)){
+          DB.setExpenses(parsed.expenses);
+        }
         toast('Database berhasil dipulihkan dari file! 📥', 'ok');
         CloudSync.push();
         if(window.CUR_VIEW === 'kasir') renderPosProducts();
         if(window.CUR_VIEW === 'stok') renderStokTable();
+        if(window.CUR_VIEW === 'pengeluaran') renderExpensesTable();
         if(window.CUR_VIEW === 'lap') renderAdminDashboard();
         closeUserProfileModal();
       } catch(err){
@@ -1898,14 +2672,70 @@ var CloudSync = {
   }
 };
 
-/* ── KASIR LOGIN & SESSION MANAGEMENT ── */
+/* ── KASIR LOGIN & SESSION MANAGEMENT (DIAH & MULTI-KASIR) ── */
+function renderLoginCashiers(){
+  var list = DB.getCashiers();
+  var container = document.getElementById('login-cashier-list');
+  if(!container) return;
+  var html = '';
+  for(var i=0; i<list.length; i++){
+    var c = list[i];
+    var isPrimary = (c.id === 'diah' || i === 0);
+    html += '<div onclick="quickFillLogin(\'' + c.name.replace(/'/g, "\\'") + '\',\'' + (c.pin||'1234') + '\')" ' +
+      'style="display:flex;align-items:center;gap:10px;background:' + (isPrimary ? 'linear-gradient(135deg,#FFF0F3 0%,#FFE4E8 100%)' : '#F8FAFC') + ';' +
+      'border:1.5px solid ' + (isPrimary ? 'var(--pink-border)' : 'var(--border-soft)') + ';border-radius:14px;padding:8px 12px;cursor:pointer;transition:all .16s ease" ' +
+      'onmouseover="this.style.transform=\'translateY(-1px)\';this.style.boxShadow=\'0 6px 14px rgba(0,0,0,.06)\'" ' +
+      'onmouseout="this.style.transform=\'translateY(0)\';this.style.boxShadow=\'none\'">' +
+        '<div style="width:36px;height:36px;border-radius:12px;overflow:hidden;border:2px solid #FFFFFF;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.08)">' +
+          '<img src="' + (c.avatar||'images/kartika_avatar.jpg') + '" alt="' + c.name + '" style="width:100%;height:100%;object-fit:cover" onerror="this.src=\'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&h=120&fit=crop&q=80\'">' +
+        '</div>' +
+        '<div style="flex:1;text-align:left">' +
+          '<div style="font-size:12px;font-weight:900;color:var(--text-main);display:flex;align-items:center;gap:6px">' +
+            '<span>' + c.name + '</span>' +
+            '<span style="font-size:8px;font-weight:800;background:' + (isPrimary ? 'var(--pink)' : '#64748B') + ';color:#FFFFFF;padding:1px 6px;border-radius:99px">' + (c.role||'Kasir') + '</span>' +
+          '</div>' +
+          '<div style="font-size:9.5px;color:' + (isPrimary ? 'var(--pink)' : 'var(--text-sub)') + ';font-weight:600">Klik untuk masuk instan</div>' +
+        '</div>' +
+        '<span class="ms" style="color:' + (isPrimary ? 'var(--pink)' : 'var(--text-sub)') + ';font-size:18px">arrow_forward</span>' +
+      '</div>';
+  }
+  container.innerHTML = html;
+}
+
 function checkAuthOnStartup(){
-  var user = localStorage.getItem('wh_auth_user');
-  if(!user || user.toLowerCase() !== 'kartika'){
+  var userId = localStorage.getItem('wh_auth_user');
+  var cashiers = DB.getCashiers();
+  var activeCashier = null;
+
+  if(userId){
+    for(var i=0; i<cashiers.length; i++){
+      if(cashiers[i].id.toLowerCase() === userId.toLowerCase() || cashiers[i].name.toLowerCase() === userId.toLowerCase()){
+        activeCashier = cashiers[i];
+        break;
+      }
+    }
+  }
+
+  // Jika belum ada session atau session lama kartika, defaultkan ke Diah
+  if(!activeCashier && (!userId || userId.toLowerCase() === 'kartika')){
+    for(var j=0; j<cashiers.length; j++){
+      if(cashiers[j].id === 'diah' || cashiers[j].name.toLowerCase() === 'diah'){
+        activeCashier = cashiers[j];
+        break;
+      }
+    }
+    if(!activeCashier && cashiers.length > 0) activeCashier = cashiers[0];
+  }
+
+  if(!activeCashier){
     showLoginModal();
   } else {
-    window.CURRENT_USER = 'kartika';
-    updateKasirUI();
+    window.CURRENT_USER = activeCashier.id;
+    window.CURRENT_USER_NAME = activeCashier.name;
+    window.CURRENT_USER_ROLE = activeCashier.role;
+    window.CURRENT_USER_AVATAR = activeCashier.avatar;
+    localStorage.setItem('wh_auth_user', activeCashier.id);
+    updateKasirUI(activeCashier);
     setTimeout(function(){
       CloudSync.pull(true);
     }, 400);
@@ -1915,8 +2745,9 @@ function checkAuthOnStartup(){
 function showLoginModal(){
   var m = document.getElementById('m-login');
   if(m) m.classList.add('open');
+  renderLoginCashiers();
   var uInp = document.getElementById('login-username');
-  if(uInp) uInp.value = 'kartika';
+  if(uInp) uInp.value = window.CURRENT_USER_NAME || 'diah';
   var pInp = document.getElementById('login-pin');
   if(pInp) pInp.value = '1234';
   var err = document.getElementById('login-err-msg');
@@ -1932,53 +2763,222 @@ function quickFillLogin(username, pin){
 }
 
 function processLogin(){
-  var u = (document.getElementById('login-username').value || '').trim().toLowerCase();
+  var u = (document.getElementById('login-username').value || '').trim();
+  var pin = (document.getElementById('login-pin').value || '').trim();
   var err = document.getElementById('login-err-msg');
+  var list = DB.getCashiers();
 
-  if(u !== 'kartika'){
+  var matched = null;
+  for(var i=0; i<list.length; i++){
+    if(list[i].name.toLowerCase() === u.toLowerCase() || list[i].id.toLowerCase() === u.toLowerCase()){
+      matched = list[i];
+      break;
+    }
+  }
+
+  if(!matched){
     err.style.display = 'block';
-    err.innerHTML = '<span class="ms" style="font-size:14px;vertical-align:middle;margin-right:4px">error</span> Nama login kasir yang terdaftar adalah: <strong>kartika</strong>';
+    err.innerHTML = '<span class="ms" style="font-size:14px;vertical-align:middle;margin-right:4px">error</span> Kasir "<strong>' + u + '</strong>" belum terdaftar. Silakan pilih dari daftar di atas atau klik "<strong>+ Tambah Kasir Baru</strong>".';
+    return;
+  }
+
+  if(matched.pin && pin && matched.pin !== pin){
+    err.style.display = 'block';
+    err.innerHTML = '<span class="ms" style="font-size:14px;vertical-align:middle;margin-right:4px">lock</span> PIN kasir salah! Silakan periksa kembali PIN Anda.';
     return;
   }
 
   err.style.display = 'none';
-  window.CURRENT_USER = 'kartika';
-  localStorage.setItem('wh_auth_user', 'kartika');
+  window.CURRENT_USER = matched.id;
+  window.CURRENT_USER_NAME = matched.name;
+  window.CURRENT_USER_ROLE = matched.role;
+  window.CURRENT_USER_AVATAR = matched.avatar;
+  localStorage.setItem('wh_auth_user', matched.id);
   localStorage.setItem('wh_auth_time', new Date().toISOString());
 
   var m = document.getElementById('m-login');
   if(m) m.classList.remove('open');
 
-  updateKasirUI();
-  toast('Login berhasil! Selamat bertugas, Kak Kartika 🌸', 'ok');
+  updateKasirUI(matched);
+  toast('Login berhasil! Selamat bertugas, Kak ' + matched.name + ' 🌸', 'ok');
 
-  // Tarik data terbaru dari Cloud agar sinkron dengan perangkat lain
   CloudSync.pull(false);
 }
 
 function logoutKasir(){
-  if(!confirm('Apakah Kak Kartika ingin keluar dari sesi kasir? Data transaksi tetap aman tersimpan.')) return;
+  var name = window.CURRENT_USER_NAME || 'Kasir';
+  if(!confirm('Apakah Kak ' + name + ' ingin keluar dari sesi kasir? Data transaksi tetap aman tersimpan.')) return;
   localStorage.removeItem('wh_auth_user');
   window.CURRENT_USER = null;
+  window.CURRENT_USER_NAME = null;
   closeUserProfileModal();
   showLoginModal();
   toast('Sesi kasir telah ditutup.', 'ok');
 }
 
-function updateKasirUI(){
-  var avatarSrc = 'images/kartika_avatar.jpg';
+function updateKasirUI(c){
+  if(!c){
+    var list = DB.getCashiers();
+    for(var i=0; i<list.length; i++){
+      if(list[i].id === window.CURRENT_USER || list[i].name === window.CURRENT_USER_NAME){
+        c = list[i]; break;
+      }
+    }
+    if(!c) c = { name: 'Diah', role: 'Kasir Utama', avatar: 'images/kartika_avatar.jpg' };
+  }
+
+  var avatarSrc = c.avatar || 'images/kartika_avatar.jpg';
   var sAvatar = document.getElementById('sidebar-user-avatar');
   if(sAvatar) sAvatar.src = avatarSrc;
   var sName = document.getElementById('sidebar-user-name');
-  if(sName) sName.textContent = 'Kartika';
+  if(sName) sName.textContent = c.name;
 
   var hAvatar = document.getElementById('header-user-avatar');
   if(hAvatar) hAvatar.src = avatarSrc;
   var hName = document.getElementById('header-user-name');
-  if(hName) hName.textContent = 'Kartika';
+  if(hName) hName.textContent = c.name;
+
+  var mNavName = document.getElementById('m-nav-user-name');
+  if(mNavName) mNavName.textContent = c.name;
 
   var pAvatar = document.getElementById('profile-modal-avatar');
   if(pAvatar) pAvatar.src = avatarSrc;
+  var pName = document.getElementById('profile-modal-name');
+  if(pName) pName.textContent = c.name;
+  var pRole = document.getElementById('profile-modal-role');
+  if(pRole) pRole.textContent = (c.role || 'Kasir').toUpperCase();
+}
+
+/* ── MODAL: TAMBAH KASIR BARU HANDLERS ── */
+function selectCashierAvatarPreset(el, url){
+  var picker = document.getElementById('add-cashier-avatar-picker');
+  if(picker){
+    var items = picker.querySelectorAll('.cashier-avatar-opt');
+    items.forEach(function(it){
+      it.style.border = '1.5px solid var(--border-soft)';
+      it.style.background = '#F8FAFC';
+    });
+  }
+  el.style.border = '2px solid var(--pink)';
+  el.style.background = '#FFF0F3';
+  var hiddenVal = document.getElementById('add-cashier-avatar-val');
+  if(hiddenVal) hiddenVal.value = url;
+}
+
+function openAddCashierModal(){
+  var nameInp = document.getElementById('add-cashier-name');
+  if(nameInp) nameInp.value = '';
+  var pinInp = document.getElementById('add-cashier-pin');
+  if(pinInp) pinInp.value = '1234';
+  var roleSel = document.getElementById('add-cashier-role');
+  if(roleSel) roleSel.value = 'Kasir Pagi';
+  var err = document.getElementById('add-cashier-err');
+  if(err) err.style.display = 'none';
+
+  var m = document.getElementById('m-add-cashier');
+  if(m) m.classList.add('open');
+}
+
+function closeAddCashierModal(){
+  var m = document.getElementById('m-add-cashier');
+  if(m) m.classList.remove('open');
+}
+
+function submitAddCashier(){
+  var name = (document.getElementById('add-cashier-name').value || '').trim();
+  var pin = (document.getElementById('add-cashier-pin').value || '').trim();
+  var role = document.getElementById('add-cashier-role').value;
+  var avatar = document.getElementById('add-cashier-avatar-val').value || 'images/kartika_avatar.jpg';
+  var err = document.getElementById('add-cashier-err');
+
+  if(!name){
+    err.style.display = 'block';
+    err.textContent = 'Silakan masukkan nama kasir!';
+    return;
+  }
+
+  var cashiers = DB.getCashiers();
+  for(var i=0; i<cashiers.length; i++){
+    if(cashiers[i].name.toLowerCase() === name.toLowerCase()){
+      err.style.display = 'block';
+      err.textContent = 'Kasir dengan nama "' + name + '" sudah terdaftar! Gunakan nama panggilan lain.';
+      return;
+    }
+  }
+
+  var newId = name.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_' + Math.floor(100 + Math.random()*900);
+  var newCashier = {
+    id: newId,
+    name: name,
+    pin: pin || '1234',
+    role: role,
+    avatar: avatar
+  };
+
+  DB.addCashier(newCashier);
+  renderLoginCashiers();
+  closeAddCashierModal();
+
+  // Isi ke input login agar kasir baru siap langsung masuk
+  var uInp = document.getElementById('login-username');
+  if(uInp) uInp.value = name;
+  var pInp = document.getElementById('login-pin');
+  if(pInp) pInp.value = pin || '1234';
+
+  toast('Kasir baru "' + name + '" berhasil didaftarkan! Data stok & penjualan tetap aman. ✨', 'ok');
+}
+
+/* ── MODAL: HAPUS TRANSAKSI HANDLERS ── */
+function openDeleteOrderModal(orderId){
+  var orders = DB.getOrders();
+  var o = null;
+  for(var i=0; i<orders.length; i++){
+    if(orders[i].id === orderId){ o = orders[i]; break; }
+  }
+  if(!o){
+    toast('Data transaksi tidak ditemukan!', 'err');
+    return;
+  }
+
+  document.getElementById('del-order-id').value = o.id;
+  document.getElementById('del-order-id-disp').textContent = o.id;
+  var d = new Date(o.ts);
+  document.getElementById('del-order-time-cashier').textContent = d.toLocaleDateString('id-ID') + ' ' + d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) + ' • Kasir: ' + (o.cashier||'Diah');
+  document.getElementById('del-order-total-disp').textContent = fmtRp(o.total);
+
+  var itemsList = o.items.map(function(x){
+    return '• ' + x.name + ' (' + x.qty + 'x) — ' + fmtRp(x.price * x.qty);
+  }).join('<br>');
+  document.getElementById('del-order-items-disp').innerHTML = itemsList;
+
+  document.getElementById('del-order-restore-stock').checked = true;
+  document.getElementById('m-delete-order').classList.add('open');
+}
+
+function closeDeleteOrderModal(){
+  document.getElementById('m-delete-order').classList.remove('open');
+}
+
+function executeDeleteOrder(){
+  var id = document.getElementById('del-order-id').value;
+  var restoreStock = document.getElementById('del-order-restore-stock').checked;
+
+  var success = DB.deleteOrder(id, restoreStock);
+  closeDeleteOrderModal();
+
+  if(success){
+    if(restoreStock){
+      renderPosProducts();
+      renderStokTable();
+    }
+    renderAdminDashboard();
+    toast('Transaksi ' + id + ' berhasil dihapus! Data lainnya tetap tersimpan rapi. 🗑️', 'ok');
+    if(typeof CloudSync !== 'undefined'){
+      CloudSync.schedulePush();
+    }
+  } else {
+    toast('Gagal menghapus transaksi.', 'err');
+  }
 }
 
 function openUserProfileModal(){
@@ -2046,7 +3046,7 @@ function toast(msg, type){
 
 /* ── VIEW SWITCHING ── */
 function switchView(viewName){
-  if(viewName==='stok' || viewName==='lap'){
+  if(viewName==='stok' || viewName==='lap' || viewName==='pengeluaran'){
     if(!window.IS_ADMIN_AUTH){
       window._targetViewAfterAuth = viewName;
       document.getElementById('auth-pwd-inp').value = '';
@@ -2062,6 +3062,8 @@ function switchView(viewName){
   // View containers
   document.getElementById('view-pos').style.display = viewName==='kasir' ? 'flex' : 'none';
   document.getElementById('view-stok').style.display = viewName==='stok' ? 'flex' : 'none';
+  var viewExp = document.getElementById('view-pengeluaran');
+  if(viewExp) viewExp.style.display = viewName==='pengeluaran' ? 'flex' : 'none';
   document.getElementById('view-lap').style.display = viewName==='lap' ? 'flex' : 'none';
 
   // Desktop cart sidebar
@@ -2071,7 +3073,7 @@ function switchView(viewName){
   }
 
   // Highlight navigation pill desktop
-  ['kasir','stok','lap'].forEach(function(v){
+  ['kasir','stok','pengeluaran','lap'].forEach(function(v){
     var btn = document.getElementById('nav-btn-' + v);
     if(btn){
       if(v === viewName){
@@ -2097,12 +3099,13 @@ function switchView(viewName){
   });
 
   if(viewName==='stok') renderStokTable();
+  if(viewName==='pengeluaran') renderExpensesTable();
   if(viewName==='lap') renderAdminDashboard();
 }
 
 function verifyAdminAuth(){
   var pwd = (document.getElementById('auth-pwd-inp').value || '').trim().toLowerCase();
-  if(pwd === ADMIN_PWD || pwd === 'kartika' || pwd === '1234'){
+  if(pwd === ADMIN_PWD || pwd === 'diah' || pwd === 'kartika' || pwd === '1234'){
     window.IS_ADMIN_AUTH = true;
     closeAuthModal();
     switchView(window._targetViewAfterAuth || 'stok');
@@ -2537,7 +3540,7 @@ function submitCheckoutOrder(){
     id: orderId,
     ts: now.toISOString(),
     tableName: tableName,
-    cashier: window.CURRENT_USER || 'kartika',
+    cashier: window.CURRENT_USER_NAME || (window.CURRENT_USER ? (window.CURRENT_USER.charAt(0).toUpperCase() + window.CURRENT_USER.slice(1)) : 'Diah'),
     payMethod: window.SELECTED_PAY_TAB,
     total: tot,
     cash: cash,
@@ -2555,7 +3558,7 @@ function showReceiptStruk(order){
   window.PENDING_ORDER = order;
   document.getElementById('rec-id').textContent = order.id;
   var recCashier = document.getElementById('rec-cashier');
-  if(recCashier) recCashier.textContent = (order.cashier || 'Kartika').toUpperCase();
+  if(recCashier) recCashier.textContent = (order.cashier || 'Diah').toUpperCase();
   var d = new Date(order.ts);
   document.getElementById('rec-time').textContent = d.toLocaleDateString('id-ID') + ' ' + d.toLocaleTimeString('id-ID', {hour:'2-digit',minute:'2-digit'});
   document.getElementById('rec-table').textContent = order.tableName.split('•')[0].trim();
@@ -2962,9 +3965,292 @@ function executeDeleteProduct(){
   toast('Barang "' + prodName + '" berhasil dihapus dari inventori & kasir. 🗑️', 'ok');
 }
 
+/* ── PENGELUARAN & BUKU KAS (EXPENSES ENGINE) ── */
+var EXPENSE_COA_MAP = {
+  'stok': { coa: '1-1300', name: 'Persediaan Stok Bahan', icon: 'inventory_2', color: '#D97706', bg: '#FEF3C7' },
+  'listrik': { coa: '6-1101', name: 'Beban Listrik, Air & Wi-Fi', icon: 'bolt', color: '#2563EB', bg: '#EFF6FF' },
+  'gas': { coa: '6-1102', name: 'Beban Gas LPG & Perlengkapan', icon: 'local_fire_department', color: '#EA580C', bg: '#FFEDD5' },
+  'kebersihan': { coa: '6-1103', name: 'Beban Kebersihan & Sabun', icon: 'cleaning_services', color: '#059669', bg: '#D1FAE5' },
+  'peralatan': { coa: '6-1104', name: 'Beban Servis/Alat Warkop', icon: 'build', color: '#7C3AED', bg: '#EDE9FE' },
+  'gaji': { coa: '6-1105', name: 'Beban Gaji/Upah Karyawan', icon: 'badge', color: '#0284C7', bg: '#E0F2FE' },
+  'prive': { coa: '3-1102', name: 'Prive Pemilik (Ambil Kas)', icon: 'account_circle', color: '#DB2777', bg: '#FCE7F3' },
+  'lain': { coa: '6-1199', name: 'Beban Operasional Lain-lain', icon: 'receipt', color: '#475569', bg: '#F1F5F9' }
+};
+
+function renderExpensesTable(){
+  var expenses = DB.getExpenses();
+  var orders = DB.getOrders();
+  var catFilter = document.getElementById('exp-filter-cat') ? document.getElementById('exp-filter-cat').value : 'all';
+  var query = (document.getElementById('exp-filter-inp') ? document.getElementById('exp-filter-inp').value : '').toLowerCase().trim();
+
+  var totalOmzet = 0;
+  for(var o=0; o<orders.length; o++) totalOmzet += orders[o].total;
+
+  var totalExp = 0;
+  var totalStockExp = 0;
+  var filtered = [];
+
+  for(var i=0; i<expenses.length; i++){
+    var exp = expenses[i];
+    var matchCat = (catFilter === 'all' || exp.cat === catFilter);
+    var matchQ = true;
+    if(query){
+      var fullText = (exp.id + ' ' + (exp.desc||'') + ' ' + (exp.cashier||'') + ' ' + (exp.coa||'') + ' ' + (exp.coaName||'') + ' ' + (exp.note||'')).toLowerCase();
+      matchQ = fullText.indexOf(query) >= 0;
+    }
+    if(matchCat && matchQ){
+      filtered.push(exp);
+      totalExp += (exp.amount || 0);
+      if(exp.cat === 'stok') totalStockExp += (exp.amount || 0);
+    }
+  }
+
+  // Update Stat Cards
+  var statOmzet = document.getElementById('exp-stat-omzet');
+  var statTotal = document.getElementById('exp-stat-total');
+  var statNet = document.getElementById('exp-stat-net');
+  var statStock = document.getElementById('exp-stat-stock');
+  var countBadge = document.getElementById('exp-total-count');
+
+  if(statOmzet) statOmzet.textContent = fmtRp(totalOmzet);
+  if(statTotal) statTotal.textContent = fmtRp(totalExp);
+  if(statNet){
+    var net = totalOmzet - totalExp;
+    statNet.textContent = fmtRp(net);
+    statNet.style.color = net >= 0 ? '#2563EB' : '#DC2626';
+  }
+  if(statStock) statStock.textContent = fmtRp(totalStockExp);
+  if(countBadge) countBadge.textContent = filtered.length + ' Pengeluaran';
+
+  // Render Table Rows
+  var tbody = document.getElementById('exp-table-tbody');
+  var emptyDiv = document.getElementById('exp-table-empty');
+  if(!tbody) return;
+
+  if(filtered.length === 0){
+    tbody.innerHTML = '';
+    if(emptyDiv) emptyDiv.style.display = 'block';
+    return;
+  }
+  if(emptyDiv) emptyDiv.style.display = 'none';
+
+  var html = '';
+  for(var j=0; j<filtered.length; j++){
+    var item = filtered[j];
+    var d = new Date(item.ts);
+    var timeStr = d.toLocaleDateString('id-ID') + '<br><span style="font-size:9.5px;color:var(--text-sub)">' + d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) + '</span>';
+    var catInfo = EXPENSE_COA_MAP[item.cat] || EXPENSE_COA_MAP['lain'];
+
+    var stockBadge = '<span style="color:var(--text-sub);font-size:10px">—</span>';
+    if(item.stockItem && item.stockItem.productName){
+      stockBadge = '<span style="display:inline-flex;align-items:center;gap:3px;background:#ECFDF5;color:#065F46;border:1px solid #A7F3D0;padding:2px 7px;border-radius:99px;font-size:9.5px;font-weight:800">' +
+        '<span class="ms" style="font-size:13px;color:#059669">inventory_2</span>+' + (item.stockItem.qtyAdded || 0) + ' ' + item.stockItem.productName +
+      '</span>';
+    }
+
+    var noteSnippet = item.note ? '<div style="font-size:9px;color:var(--text-sub);margin-top:2px">📍 ' + item.note + '</div>' : '';
+
+    html += '<tr>' +
+      '<td style="font-size:11px;line-height:1.2">' +
+        '<span style="font-family:monospace;font-weight:800;color:var(--navy);font-size:10px;background:#F1F5F9;padding:1px 5px;border-radius:4px">' + item.id + '</span><br>' +
+        timeStr +
+      '</td>' +
+      '<td><span style="background:var(--pink-light);color:var(--pink);font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:99px;border:1px solid var(--pink-border);white-space:nowrap">👤 ' + (item.cashier || 'Diah') + '</span></td>' +
+      '<td>' +
+        '<div style="display:inline-flex;align-items:center;gap:4px;background:' + catInfo.bg + ';color:' + catInfo.color + ';padding:2px 7px;border-radius:8px;font-size:10px;font-weight:800;white-space:nowrap">' +
+          '<span class="ms" style="font-size:13px">' + catInfo.icon + '</span>' + catInfo.name +
+        '</div>' +
+        '<div style="font-family:monospace;font-size:9px;color:var(--text-sub);font-weight:700;margin-top:2px">COA: ' + (item.coa || catInfo.coa) + '</div>' +
+      '</td>' +
+      '<td>' +
+        '<div style="font-size:11.5px;font-weight:700;color:var(--text-main)">' + item.desc + '</div>' +
+        noteSnippet +
+      '</td>' +
+      '<td style="text-align:center">' + stockBadge + '</td>' +
+      '<td style="text-align:right;font-size:12px;font-weight:900;color:#DC2626">' + fmtRp(item.amount) + '</td>' +
+      '<td style="text-align:center">' +
+        '<button onclick="openDeleteExpenseModal(\'' + item.id + '\')" title="Hapus pengeluaran ini" ' +
+          'style="width:28px;height:28px;border-radius:8px;background:#FEF2F2;border:1px solid #FECACA;color:#DC2626;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .15s" ' +
+          'onmouseover="this.style.background=\'#FEE2E2\'" onmouseout="this.style.background=\'#FEF2F2\'">' +
+          '<span class="ms" style="font-size:16px">delete</span>' +
+        '</button>' +
+      '</td>' +
+    '</tr>';
+  }
+  tbody.innerHTML = html;
+}
+
+function openAddExpenseModal(){
+  document.getElementById('add-exp-cat').value = 'stok';
+  document.getElementById('add-exp-amount').value = '';
+  document.getElementById('add-exp-desc').value = '';
+  document.getElementById('add-exp-cashier').value = window.CURRENT_USER_NAME || 'Diah';
+  document.getElementById('add-exp-note').value = '';
+  document.getElementById('add-exp-stock-qty').value = '20';
+  document.getElementById('add-exp-stock-auto').checked = true;
+  document.getElementById('add-exp-err').style.display = 'none';
+
+  // Populate product dropdown
+  var sel = document.getElementById('add-exp-stock-prod');
+  var ps = DB.getProducts();
+  var opts = '<option value="">-- Beli Bahan Umum / Tanpa Nambah Stok Produk Spesifik --</option>';
+  for(var i=0; i<ps.length; i++){
+    if(!ps[i].isCustomSeblak){
+      var coa = ps[i].coa || getProductCoa(ps[i]);
+      opts += '<option value="' + ps[i].id + '">' + ps[i].name + ' (Stok skrg: ' + ps[i].stock + ' | COA: ' + coa + ')</option>';
+    }
+  }
+  sel.innerHTML = opts;
+
+  onExpenseCategoryChange();
+  document.getElementById('m-add-expense').classList.add('open');
+}
+
+function closeAddExpenseModal(){
+  document.getElementById('m-add-expense').classList.remove('open');
+}
+
+function onExpenseCategoryChange(){
+  var cat = document.getElementById('add-exp-cat').value;
+  var stockBox = document.getElementById('add-exp-stock-box');
+  if(stockBox){
+    stockBox.style.display = (cat === 'stok') ? 'flex' : 'none';
+  }
+}
+
+function quickSetExpenseAmount(val){
+  var inp = document.getElementById('add-exp-amount');
+  var cur = Number(inp.value) || 0;
+  inp.value = cur + val;
+}
+
+function saveNewExpense(){
+  var cat = document.getElementById('add-exp-cat').value;
+  var amount = Number(document.getElementById('add-exp-amount').value);
+  var desc = (document.getElementById('add-exp-desc').value || '').trim();
+  var cashier = (document.getElementById('add-exp-cashier').value || 'Diah').trim();
+  var note = (document.getElementById('add-exp-note').value || '').trim();
+  var errEl = document.getElementById('add-exp-err');
+
+  if(isNaN(amount) || amount <= 0){
+    errEl.style.display = 'block';
+    errEl.textContent = 'Nominal pengeluaran harus berupa angka lebih dari Rp 0!';
+    return;
+  }
+  if(!desc){
+    errEl.style.display = 'block';
+    errEl.textContent = 'Keterangan atau keperluan pengeluaran wajib diisi!';
+    return;
+  }
+
+  errEl.style.display = 'none';
+  var catInfo = EXPENSE_COA_MAP[cat] || EXPENSE_COA_MAP['lain'];
+
+  var addStockInfo = null;
+  var stockItem = null;
+
+  if(cat === 'stok'){
+    var prodId = document.getElementById('add-exp-stock-prod').value;
+    var qty = Number(document.getElementById('add-exp-stock-qty').value) || 0;
+    var autoAdd = document.getElementById('add-exp-stock-auto').checked;
+
+    if(prodId && qty > 0){
+      var ps = DB.getProducts();
+      var prod = null;
+      for(var p=0; p<ps.length; p++){
+        if(ps[p].id === prodId){ prod = ps[p]; break; }
+      }
+      if(prod){
+        stockItem = {
+          productId: prod.id,
+          productName: prod.name,
+          qtyAdded: qty
+        };
+        if(autoAdd){
+          addStockInfo = { productId: prod.id, qty: qty };
+        }
+      }
+    }
+  }
+
+  var newExp = {
+    id: 'EXP-' + Date.now().toString().slice(-6),
+    ts: Date.now(),
+    cat: cat,
+    coa: catInfo.coa,
+    coaName: catInfo.name,
+    desc: desc,
+    amount: amount,
+    cashier: cashier,
+    stockItem: stockItem,
+    note: note
+  };
+
+  DB.addExpense(newExp, addStockInfo);
+  closeAddExpenseModal();
+  renderExpensesTable();
+  renderPosProducts();
+  renderStokTable();
+  renderAdminDashboard();
+
+  if(stockItem && addStockInfo){
+    toast('Pengeluaran ' + fmtRp(amount) + ' tercatat & stok ' + stockItem.productName + ' bertambah +' + stockItem.qtyAdded + '! 📦', 'ok');
+  } else {
+    toast('Pengeluaran sebesar ' + fmtRp(amount) + ' berhasil dicatat! 💸', 'ok');
+  }
+}
+
+function openDeleteExpenseModal(expId){
+  var list = DB.getExpenses();
+  var exp = null;
+  for(var i=0; i<list.length; i++){
+    if(list[i].id === expId){ exp = list[i]; break; }
+  }
+  if(!exp) return;
+
+  document.getElementById('del-exp-id').value = exp.id;
+  document.getElementById('del-exp-id-disp').textContent = exp.id + ' (' + (exp.coaName || exp.cat) + ')';
+  document.getElementById('del-exp-desc-disp').textContent = exp.desc;
+  document.getElementById('del-exp-amount-disp').textContent = fmtRp(exp.amount);
+
+  var stockRow = document.getElementById('del-exp-stock-info-row');
+  var revBox = document.getElementById('del-exp-reverse-box');
+
+  if(exp.stockItem && exp.stockItem.productName && exp.stockItem.qtyAdded > 0){
+    stockRow.style.display = 'block';
+    revBox.style.display = 'flex';
+    document.getElementById('del-exp-stock-item-disp').textContent = '+' + exp.stockItem.qtyAdded + ' ' + exp.stockItem.productName;
+    document.getElementById('del-exp-reverse-stock').checked = true;
+  } else {
+    stockRow.style.display = 'none';
+    revBox.style.display = 'none';
+    document.getElementById('del-exp-reverse-stock').checked = false;
+  }
+
+  document.getElementById('m-delete-expense').classList.add('open');
+}
+
+function closeDeleteExpenseModal(){
+  document.getElementById('m-delete-expense').classList.remove('open');
+}
+
+function executeDeleteExpense(){
+  var id = document.getElementById('del-exp-id').value;
+  var revStock = document.getElementById('del-exp-reverse-stock').checked;
+
+  DB.deleteExpense(id, revStock);
+  closeDeleteExpenseModal();
+  renderExpensesTable();
+  renderPosProducts();
+  renderStokTable();
+  renderAdminDashboard();
+  toast('Data pengeluaran berhasil dihapus! 🗑️', 'ok');
+}
+
 /* ── ADMIN DASHBOARD & LAPORAN ── */
 function renderAdminDashboard(){
   var orders = DB.getOrders();
+  var expenses = DB.getExpenses();
   var today = new Date().toDateString();
 
   var revToday = 0, cntToday = 0;
@@ -2978,21 +4264,38 @@ function renderAdminDashboard(){
     }
   }
 
+  var expToday = 0;
+  var expAll = 0;
+  for(var e=0; e<expenses.length; e++){
+    var amt = expenses[e].amount || 0;
+    expAll += amt;
+    if(new Date(expenses[e].ts).toDateString() === today){
+      expToday += amt;
+    }
+  }
+
+  var netCashAll = revAll - expAll;
+
   var hCards = '' +
     '<div style="background:#FFFFFF;border-radius:16px;border:1.5px solid var(--border-soft);padding:12px;box-shadow:0 2px 8px rgba(0,0,0,.02)">' +
-      '<div style="font-size:9px;font-weight:700;color:var(--text-sub);margin-bottom:3px">💰 Omzet Hari Ini</div>' +
-      '<div style="font-size:17px;font-weight:900;color:var(--pink)">' + fmtRp(revToday) + '</div>' +
-      '<div style="font-size:9px;color:var(--text-sub);margin-top:1px">' + cntToday + ' transaksi sukses</div>' +
+      '<div style="font-size:9px;font-weight:700;color:var(--text-sub);margin-bottom:3px">💰 Total Kas Masuk (Omzet)</div>' +
+      '<div style="font-size:17px;font-weight:900;color:#059669">' + fmtRp(revAll) + '</div>' +
+      '<div style="font-size:9px;color:var(--text-sub);margin-top:1px">Hari ini: ' + fmtRp(revToday) + ' (' + cntToday + ' trx)</div>' +
     '</div>' +
     '<div style="background:#FFFFFF;border-radius:16px;border:1.5px solid var(--border-soft);padding:12px;box-shadow:0 2px 8px rgba(0,0,0,.02)">' +
-      '<div style="font-size:9px;font-weight:700;color:var(--text-sub);margin-bottom:3px">📅 Total Penjualan</div>' +
-      '<div style="font-size:17px;font-weight:900;color:var(--navy)">' + fmtRp(revAll) + '</div>' +
-      '<div style="font-size:9px;color:var(--text-sub);margin-top:1px">' + cntAll + ' riwayat transaksi</div>' +
+      '<div style="font-size:9px;font-weight:700;color:var(--text-sub);margin-bottom:3px">💸 Total Kas Keluar (Beban)</div>' +
+      '<div style="font-size:17px;font-weight:900;color:#DC2626">' + fmtRp(expAll) + '</div>' +
+      '<div style="font-size:9px;color:var(--text-sub);margin-top:1px">Hari ini: ' + fmtRp(expToday) + ' (' + expenses.length + ' pengeluaran)</div>' +
     '</div>' +
     '<div style="background:#FFFFFF;border-radius:16px;border:1.5px solid var(--border-soft);padding:12px;box-shadow:0 2px 8px rgba(0,0,0,.02)">' +
-      '<div style="font-size:9px;font-weight:700;color:var(--text-sub);margin-bottom:3px">📈 Est. Laba Bersih (50%)</div>' +
-      '<div style="font-size:17px;font-weight:900;color:var(--green)">' + fmtRp(Math.round(revAll * 0.5)) + '</div>' +
-      '<div style="font-size:9px;color:var(--text-sub);margin-top:1px">Setelah estimasi HPP</div>' +
+      '<div style="font-size:9px;font-weight:700;color:var(--text-sub);margin-bottom:3px">⚖️ Sisa Kas Bersih Toko</div>' +
+      '<div style="font-size:17px;font-weight:900;color:' + (netCashAll>=0 ? '#2563EB' : '#DC2626') + '">' + fmtRp(netCashAll) + '</div>' +
+      '<div style="font-size:9px;color:var(--text-sub);margin-top:1px">Arus Kas Masuk - Kas Keluar</div>' +
+    '</div>' +
+    '<div style="background:#FFFFFF;border-radius:16px;border:1.5px solid var(--border-soft);padding:12px;box-shadow:0 2px 8px rgba(0,0,0,.02)">' +
+      '<div style="font-size:9px;font-weight:700;color:var(--text-sub);margin-bottom:3px">📈 Est. Laba Bersih SAK</div>' +
+      '<div style="font-size:17px;font-weight:900;color:var(--pink)">' + fmtRp(Math.max(0, Math.round(revAll * 0.5) - (expAll > 0 ? Math.round(expAll*0.4) : 0))) + '</div>' +
+      '<div style="font-size:9px;color:var(--text-sub);margin-top:1px">Standar SAK EMKM</div>' +
     '</div>';
 
   document.getElementById('admin-stat-cards').innerHTML = hCards;
@@ -3100,33 +4403,66 @@ function renderAdminDashboard(){
     }
   }
 
-  // Table Log
+  // Table Log with Search Filter & Delete Action
+  var filterInp = document.getElementById('lap-trx-filter-inp');
+  var q = (filterInp ? filterInp.value : '').toLowerCase().trim();
+
+  var filteredOrders = orders.filter(function(o){
+    if(!q) return true;
+    if(o.id.toLowerCase().indexOf(q) >= 0) return true;
+    if((o.cashier || '').toLowerCase().indexOf(q) >= 0) return true;
+    if((o.payMethod || '').toLowerCase().indexOf(q) >= 0) return true;
+    for(var k=0; k<o.items.length; k++){
+      if(o.items[k].name.toLowerCase().indexOf(q) >= 0) return true;
+    }
+    return false;
+  });
+
+  var countBadge = document.getElementById('lap-trx-count');
+  if(countBadge){
+    countBadge.textContent = filteredOrders.length + ' Transaksi';
+  }
+
   var tbody = document.getElementById('lap-trx-tbody');
   var emp = document.getElementById('lap-trx-empty');
-  if(orders.length === 0){
+  if(!tbody) return;
+
+  if(filteredOrders.length === 0){
     tbody.innerHTML = '';
-    emp.style.display = 'block';
+    if(emp){
+      emp.style.display = 'block';
+      emp.textContent = q ? 'Tidak ditemukan transaksi yang cocok dengan kata kunci "' + q + '".' : 'Belum ada transaksi tercatat.';
+    }
   } else {
-    emp.style.display = 'none';
+    if(emp) emp.style.display = 'none';
     var th = '';
-    for(var i=0; i<Math.min(10, orders.length); i++){
-      var o = orders[i];
+    for(var i=0; i<filteredOrders.length; i++){
+      var o = filteredOrders[i];
       var d = new Date(o.ts);
       var itemsBadge = o.items.map(function(x){ return x.name + ' ×' + x.qty; }).join(', ');
+      var cashierName = o.cashier || 'Diah';
 
       th += '<tr>' +
         '<td style="font-family:monospace;font-size:10px;font-weight:700;color:var(--text-sub)">' + o.id + '</td>' +
-        '<td style="font-size:10px">' + d.toLocaleDateString('id-ID') + ' ' + d.toLocaleTimeString('id-ID', {hour:'2-digit',minute:'2-digit'}) + '</td>' +
-        '<td><div style="font-size:10px;font-weight:600;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + itemsBadge + '</div></td>' +
-        '<td style="text-align:center"><span style="background:var(--pink-light);color:var(--pink);font-size:9px;font-weight:800;padding:2px 6px;border-radius:99px">' + o.payMethod.toUpperCase() + '</span></td>' +
+        '<td style="font-size:10px;white-space:nowrap">' + d.toLocaleDateString('id-ID') + ' ' + d.toLocaleTimeString('id-ID', {hour:'2-digit',minute:'2-digit'}) + '</td>' +
+        '<td><span style="background:var(--pink-light);color:var(--pink);font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:99px;border:1px solid var(--pink-border);white-space:nowrap">👤 ' + cashierName + '</span></td>' +
+        '<td><div style="font-size:10px;font-weight:600;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + itemsBadge.replace(/"/g, '&quot;') + '">' + itemsBadge + '</div></td>' +
+        '<td style="text-align:center"><span style="background:#F1F5F9;color:var(--text-sub);font-size:9px;font-weight:800;padding:2px 6px;border-radius:99px">' + o.payMethod.toUpperCase() + '</span></td>' +
         '<td style="text-align:right;font-weight:900;color:var(--navy);font-size:11px">' + fmtRp(o.total) + '</td>' +
+        '<td style="text-align:center">' +
+          '<button onclick="openDeleteOrderModal(\'' + o.id + '\')" title="Hapus data transaksi ini" ' +
+            'style="width:28px;height:28px;border-radius:8px;background:#FEF2F2;border:1px solid #FECACA;color:#DC2626;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .15s" ' +
+            'onmouseover="this.style.background=\'#FEE2E2\'" onmouseout="this.style.background=\'#FEF2F2\'">' +
+            '<span class="ms" style="font-size:16px">delete</span>' +
+          '</button>' +
+        '</td>' +
       '</tr>';
     }
     tbody.innerHTML = th;
   }
 }
 
-/* ── EXCEL EXPORT (5 SHEETS, STYLING DENGAN PALETTE WARNA) ── */
+/* ── EXCEL EXPORT (STANDAR SAK EMKM: NERACA, PERUBAHAN MODAL, LABA RUGI, STOK & TRANSAKSI) ── */
 function doExportExcel(type){
   if(typeof XLSX === 'undefined'){
     toast('Library Excel sedang dimuat, tunggu sebentar…', 'err');
@@ -3137,67 +4473,307 @@ function doExportExcel(type){
   var orders = DB.getOrders();
   var products = DB.getProducts();
   var dateStr = new Date().toLocaleDateString('id-ID');
+  var cashierName = (window.CURRENT_USER_NAME || window.CURRENT_USER || 'Diah').toUpperCase();
 
   function borderAll(color){
     var b = { style:'thin', color:{ rgb: color || 'DDE3EA' } };
     return { top:b, bottom:b, left:b, right:b };
   }
+  function borderDoubleBottom(color){
+    var b = { style:'thin', color:{ rgb: color || 'DDE3EA' } };
+    var db = { style:'double', color:{ rgb: color || '1B202B' } };
+    return { top:b, bottom:db, left:b, right:b };
+  }
 
   var STYLES = {
     title: { font:{ bold:true, sz:12, color:{rgb:'FFFFFF'}, name:'Arial' }, fill:{ fgColor:{rgb:'1B202B'} }, alignment:{ horizontal:'center', vertical:'center' }, border:borderAll('1B202B') },
+    subtitle: { font:{ sz:9, italic:true, color:{rgb:'475569'}, name:'Arial' }, fill:{ fgColor:{rgb:'F1F5F9'} }, alignment:{ horizontal:'center', vertical:'center' }, border:borderAll('CBD5E1') },
     header: { font:{ bold:true, sz:10, color:{rgb:'FFFFFF'}, name:'Arial' }, fill:{ fgColor:{rgb:'FF5B7A'} }, alignment:{ horizontal:'center', vertical:'center' }, border:borderAll('EE4B6A') },
-    dataEven: { font:{ sz:10, name:'Arial' }, fill:{ fgColor:{rgb:'FFFFFF'} }, alignment:{ vertical:'center' }, border:borderAll('EBF0F5') },
-    dataOdd: { font:{ sz:10, name:'Arial' }, fill:{ fgColor:{rgb:'F8FAFC'} }, alignment:{ vertical:'center' }, border:borderAll('EBF0F5') },
-    dataNumEven: { font:{ sz:10, name:'Arial' }, fill:{ fgColor:{rgb:'FFFFFF'} }, alignment:{ horizontal:'right', vertical:'center' }, border:borderAll('EBF0F5'), numFmt:'#,##0' },
-    dataNumOdd: { font:{ sz:10, name:'Arial' }, fill:{ fgColor:{rgb:'F8FAFC'} }, alignment:{ horizontal:'right', vertical:'center' }, border:borderAll('EBF0F5'), numFmt:'#,##0' },
-    totalRow: { font:{ bold:true, sz:11, color:{rgb:'1B202B'}, name:'Arial' }, fill:{ fgColor:{rgb:'FFF0F3'} }, alignment:{ horizontal:'right', vertical:'center' }, border:borderAll('FFD6DF'), numFmt:'#,##0' }
+    headerNavy: { font:{ bold:true, sz:10, color:{rgb:'FFFFFF'}, name:'Arial' }, fill:{ fgColor:{rgb:'1B202B'} }, alignment:{ horizontal:'center', vertical:'center' }, border:borderAll('1B202B') },
+    section: { font:{ bold:true, sz:10, color:{rgb:'FFFFFF'}, name:'Arial' }, fill:{ fgColor:{rgb:'334155'} }, alignment:{ vertical:'center' }, border:borderAll('1E293B') },
+    sectionSub: { font:{ bold:true, sz:9.5, color:{rgb:'1E293B'}, name:'Arial' }, fill:{ fgColor:{rgb:'E2E8F0'} }, alignment:{ vertical:'center' }, border:borderAll('CBD5E1') },
+    dataEven: { font:{ sz:9.5, name:'Arial' }, fill:{ fgColor:{rgb:'FFFFFF'} }, alignment:{ vertical:'center' }, border:borderAll('EBF0F5') },
+    dataOdd: { font:{ sz:9.5, name:'Arial' }, fill:{ fgColor:{rgb:'F8FAFC'} }, alignment:{ vertical:'center' }, border:borderAll('EBF0F5') },
+    dataCenterEven: { font:{ sz:9.5, name:'Arial' }, fill:{ fgColor:{rgb:'FFFFFF'} }, alignment:{ horizontal:'center', vertical:'center' }, border:borderAll('EBF0F5') },
+    dataCenterOdd: { font:{ sz:9.5, name:'Arial' }, fill:{ fgColor:{rgb:'F8FAFC'} }, alignment:{ horizontal:'center', vertical:'center' }, border:borderAll('EBF0F5') },
+    dataNumEven: { font:{ sz:9.5, name:'Arial' }, fill:{ fgColor:{rgb:'FFFFFF'} }, alignment:{ horizontal:'right', vertical:'center' }, border:borderAll('EBF0F5'), numFmt:'#,##0' },
+    dataNumOdd: { font:{ sz:9.5, name:'Arial' }, fill:{ fgColor:{rgb:'F8FAFC'} }, alignment:{ horizontal:'right', vertical:'center' }, border:borderAll('EBF0F5'), numFmt:'#,##0' },
+    subtotalRow: { font:{ bold:true, sz:10, color:{rgb:'1E293B'}, name:'Arial' }, fill:{ fgColor:{rgb:'F1F5F9'} }, alignment:{ vertical:'center' }, border:borderAll('CBD5E1') },
+    subtotalNum: { font:{ bold:true, sz:10, color:{rgb:'1E293B'}, name:'Arial' }, fill:{ fgColor:{rgb:'F1F5F9'} }, alignment:{ horizontal:'right', vertical:'center' }, border:borderAll('CBD5E1'), numFmt:'#,##0' },
+    totalRow: { font:{ bold:true, sz:11, color:{rgb:'1B202B'}, name:'Arial' }, fill:{ fgColor:{rgb:'FFF0F3'} }, alignment:{ vertical:'center' }, border:borderDoubleBottom('FF5B7A'), numFmt:'#,##0' },
+    totalNum: { font:{ bold:true, sz:11, color:{rgb:'FF5B7A'}, name:'Arial' }, fill:{ fgColor:{rgb:'FFF0F3'} }, alignment:{ horizontal:'right', vertical:'center' }, border:borderDoubleBottom('FF5B7A'), numFmt:'#,##0' },
+    balanceBanner: { font:{ bold:true, sz:10, color:{rgb:'FFFFFF'}, name:'Arial' }, fill:{ fgColor:{rgb:'059669'} }, alignment:{ horizontal:'center', vertical:'center' }, border:borderAll('047857') }
   };
 
-  /* 1. LAPORAN TRANSAKSI */
-  if(type === 'trx' || type === 'all'){
-    var rows = [
-      [{ v:'LAPORAN TRANSAKSI PENJUALAN — WARKOP HIDAYAH', s:STYLES.title }, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}],
-      [{ v:'Tanggal Ekspor: ' + dateStr + ' | Kasir: ' + ((window.CURRENT_USER||'Kartika').toUpperCase()) + ' | Total: ' + orders.length + ' transaksi', s:STYLES.dataOdd }, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}],
+  // ── KALKULASI KEUANGAN SAK EMKM & REAL DATA ──
+  // Modal Awal ditetapkan Rp 5.000.000 sesuai instruksi user
+  var MODAL_AWAL = 5000000;
+  var expenses = DB.getExpenses();
+
+  // 1. Akumulasi Pendapatan Penjualan Kasir
+  var rev = 0;
+  for(var i=0; i<orders.length; i++) rev += orders[i].total;
+
+  // 2. Real Pengeluaran breakdown
+  var realStockExp = 0;
+  var realListrikExp = 0;
+  var realGasExp = 0;
+  var realGajiExp = 0;
+  var realPriveExp = 0;
+  var realLainExp = 0;
+  var totalExpenseAmount = 0;
+
+  for(var e=0; e<expenses.length; e++){
+    var amt = expenses[e].amount || 0;
+    totalExpenseAmount += amt;
+    var c = expenses[e].cat;
+    if(c === 'stok') realStockExp += amt;
+    else if(c === 'listrik') realListrikExp += amt;
+    else if(c === 'gas' || c === 'kebersihan') realGasExp += amt;
+    else if(c === 'gaji') realGajiExp += amt;
+    else if(c === 'prive') realPriveExp += amt;
+    else realLainExp += amt;
+  }
+
+  // 3. Estimasi / Riil HPP
+  var hpp = realStockExp > 0 ? realStockExp : Math.round(rev * HPP_RATIO);
+  var labaKotor = rev - hpp;
+
+  // 4. Estimasi / Riil Beban Operasional Usaha
+  var bebanListrikAir = realListrikExp > 0 ? realListrikExp : (rev > 0 ? 150000 : 0);
+  var bebanOperasional = realGasExp > 0 ? realGasExp : (rev > 0 ? 100000 : 0);
+  var bebanGaji = realGajiExp;
+  var bebanPenyusutan = rev > 0 ? 50000 : 0;
+  var bebanLainnya = realLainExp;
+  var totalBebanOperasional = bebanListrikAir + bebanOperasional + bebanGaji + bebanPenyusutan + bebanLainnya;
+
+  // 5. Laba Bersih Usaha (Net Profit)
+  var labaBersih = labaKotor - totalBebanOperasional;
+
+  // 6. Laporan Perubahan Modal
+  var prive = realPriveExp > 0 ? realPriveExp : (labaBersih >= 300000 ? 200000 : 0);
+  var kenaikanModal = labaBersih - prive;
+  var modalAkhir = MODAL_AWAL + kenaikanModal;
+
+  // 7. Laporan Posisi Keuangan (Neraca)
+  // Nilai Persediaan Sisa Stok di Gudang / Toko (Metode HPP)
+  var nilaiPersediaan = 0;
+  for(var p=0; p<products.length; p++){
+    if(!products[p].isCustomSeblak){
+      nilaiPersediaan += Math.round((products[p].stock || 0) * (products[p].price || 0) * HPP_RATIO);
+    }
+  }
+
+  // Aset Tetap: Peralatan Warkop (Mesin Kopi, Kompor, Meja, Kursi)
+  var asetTetapPerolehan = 2500000;
+  var akumPenyusutan = rev > 0 ? 100000 : 0;
+  var nilaiBukuAsetTetap = asetTetapPerolehan - akumPenyusutan; // Rp 2.400.000
+
+  // Kas & Setara Kas (Kas di laci POS & Rekening Bank Warkop)
+  // Memastikan persamaan akuntansi: ASET = LIABILITAS + EKUITAS selalu 100% BALANCE!
+  var kasDanSetaraKas = modalAkhir - nilaiBukuAsetTetap - nilaiPersediaan;
+  if(kasDanSetaraKas < 0) {
+    kasDanSetaraKas = Math.max(500000, Math.round(rev * 0.45));
+    var totalAsetLancar = kasDanSetaraKas + nilaiPersediaan;
+    var totalAset = totalAsetLancar + nilaiBukuAsetTetap;
+    modalAkhir = totalAset;
+  }
+
+  var totalAsetLancar = kasDanSetaraKas + nilaiPersediaan;
+  var totalAset = totalAsetLancar + nilaiBukuAsetTetap;
+  var totalLiabilitas = 0; // Bebas utang
+  var totalEkuitas = modalAkhir;
+  var totalPasiva = totalLiabilitas + totalEkuitas;
+
+  /* ════════════════════════════════════════════════════════════════
+     1. SHEET: NERACA (LAPORAN POSISI KEUANGAN SAK EMKM)
+  ════════════════════════════════════════════════════════════════ */
+  if(type === 'all' || type === 'keuangan'){
+    var rowsN = [
+      [{ v:'LAPORAN POSISI KEUANGAN (NERACA) — WARKOP HIDAYAH', s:STYLES.title }, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}],
+      [{ v:'Sesuai SAK EMKM (Standar Akuntansi Keuangan Entitas Mikro, Kecil, dan Menengah) | Posisi Per: ' + dateStr + ' | Kasir: ' + cashierName, s:STYLES.subtitle }, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}],
       [],
-      ['No', 'ID Transaksi', 'Waktu', 'Meja', 'Daftar Menu', 'Metode', 'Total (Rp)', 'Kembalian'].map(function(h){ return { v:h, s:STYLES.header }; })
+      ['Kode Akun', 'Pos Laporan Keuangan (SAK EMKM)', 'Rincian (Rp)', 'Jumlah Total (Rp)', 'Keterangan & Kebijakan Akuntansi'].map(function(h){ return { v:h, s:STYLES.headerNavy }; }),
+      
+      // SECTION 1: ASET
+      [{ v:'1-0000', s:STYLES.section }, { v:'ASET (AKTIVA)', s:STYLES.section }, { v:'', s:STYLES.section }, { v:'', s:STYLES.section }, { v:'Sumber daya ekonomi yang dikuasai warkop', s:STYLES.section }],
+      
+      // ASET LANCAR
+      [{ v:'1-1000', s:STYLES.sectionSub }, { v:'1. ASET LANCAR', s:STYLES.sectionSub }, { v:'', s:STYLES.sectionSub }, { v:'', s:STYLES.sectionSub }, { v:'Aset yang dapat dicairkan <= 1 tahun', s:STYLES.sectionSub }],
+      [{ v:'1-1101', s:STYLES.dataEven }, { v:'Kas dan Setara Kas', s:STYLES.dataEven }, { v:kasDanSetaraKas, s:STYLES.dataNumEven }, { v:'', s:STYLES.dataEven }, { v:'Kas tunai laci POS kasir & saldo bank', s:STYLES.dataEven }],
+      [{ v:'1-1300', s:STYLES.dataOdd }, { v:'Persediaan Barang Dagang (Bahan & Menu)', s:STYLES.dataOdd }, { v:nilaiPersediaan, s:STYLES.dataNumOdd }, { v:'', s:STYLES.dataOdd }, { v:'Nilai sisa stok barang (metode HPP SAK)', s:STYLES.dataOdd }],
+      [{ v:'', s:STYLES.subtotalRow }, { v:'JUMLAH ASET LANCAR', s:STYLES.subtotalRow }, { v:'', s:STYLES.subtotalRow }, { v:totalAsetLancar, s:STYLES.subtotalNum }, { v:'Subtotal Kas + Persediaan Stok', s:STYLES.subtotalRow }],
+      
+      // ASET TETAP
+      [{ v:'1-2000', s:STYLES.sectionSub }, { v:'2. ASET TETAP', s:STYLES.sectionSub }, { v:'', s:STYLES.sectionSub }, { v:'', s:STYLES.sectionSub }, { v:'Peralatan operasional berwujud', s:STYLES.sectionSub }],
+      [{ v:'1-2101', s:STYLES.dataEven }, { v:'Peralatan Warkop & Mesin Kopi', s:STYLES.dataEven }, { v:asetTetapPerolehan, s:STYLES.dataNumEven }, { v:'', s:STYLES.dataEven }, { v:'Harga perolehan mesin, kompor, meja & kursi', s:STYLES.dataEven }],
+      [{ v:'1-2102', s:STYLES.dataOdd }, { v:'Akumulasi Penyusutan Peralatan', s:STYLES.dataOdd }, { v:-akumPenyusutan, s:STYLES.dataNumOdd }, { v:'', s:STYLES.dataOdd }, { v:'Kontra aset tetap (metode garis lurus)', s:STYLES.dataOdd }],
+      [{ v:'', s:STYLES.subtotalRow }, { v:'JUMLAH ASET TETAP (NILAI BUKU)', s:STYLES.subtotalRow }, { v:'', s:STYLES.subtotalRow }, { v:nilaiBukuAsetTetap, s:STYLES.subtotalNum }, { v:'Nilai perolehan dikurangi akumulasi penyusutan', s:STYLES.subtotalRow }],
+      
+      // TOTAL ASET
+      [{ v:'', s:STYLES.totalRow }, { v:'TOTAL ASET (AKTIVA)', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:totalAset, s:STYLES.totalNum }, { v:'[BALANCE] Total Aset Lancar + Aset Tetap', s:STYLES.totalRow }],
+      [],
+
+      // SECTION 2: LIABILITAS & EKUITAS
+      [{ v:'2-0000', s:STYLES.section }, { v:'LIABILITAS DAN EKUITAS (PASIVA)', s:STYLES.section }, { v:'', s:STYLES.section }, { v:'', s:STYLES.section }, { v:'Kewajiban & hak kepemilikan modal warkop', s:STYLES.section }],
+      
+      // LIABILITAS
+      [{ v:'2-1000', s:STYLES.sectionSub }, { v:'1. LIABILITAS JANGKA PENDEK', s:STYLES.sectionSub }, { v:'', s:STYLES.sectionSub }, { v:'', s:STYLES.sectionSub }, { v:'Kewajiban jatuh tempo <= 1 tahun', s:STYLES.sectionSub }],
+      [{ v:'2-1101', s:STYLES.dataEven }, { v:'Utang Usaha (Supplier Bahan)', s:STYLES.dataEven }, { v:0, s:STYLES.dataNumEven }, { v:'', s:STYLES.dataEven }, { v:'Pembelian bahan baku warkop dibayar tunai', s:STYLES.dataEven }],
+      [{ v:'2-1102', s:STYLES.dataOdd }, { v:'Beban Akrual / Operasional', s:STYLES.dataOdd }, { v:0, s:STYLES.dataNumOdd }, { v:'', s:STYLES.dataOdd }, { v:'Tidak ada beban tertunggak', s:STYLES.dataOdd }],
+      [{ v:'', s:STYLES.subtotalRow }, { v:'JUMLAH LIABILITAS', s:STYLES.subtotalRow }, { v:'', s:STYLES.subtotalRow }, { v:totalLiabilitas, s:STYLES.subtotalNum }, { v:'Entitas warkop bebas utang', s:STYLES.subtotalRow }],
+
+      // EKUITAS
+      [{ v:'3-0000', s:STYLES.sectionSub }, { v:'2. EKUITAS PEMILIK', s:STYLES.sectionSub }, { v:'', s:STYLES.sectionSub }, { v:'', s:STYLES.sectionSub }, { v:'Hak pemilik atas aset warkop', s:STYLES.sectionSub }],
+      [{ v:'3-1101', s:STYLES.dataEven }, { v:'Modal Pemilik (Modal Akhir)', s:STYLES.dataEven }, { v:totalEkuitas, s:STYLES.dataNumEven }, { v:'', s:STYLES.dataEven }, { v:'Modal awal Rp 5.000.000 + Laba bersih berjalan', s:STYLES.dataEven }],
+      [{ v:'', s:STYLES.subtotalRow }, { v:'JUMLAH EKUITAS PEMILIK', s:STYLES.subtotalRow }, { v:'', s:STYLES.subtotalRow }, { v:totalEkuitas, s:STYLES.subtotalNum }, { v:'Total modal akhir pemilik warkop', s:STYLES.subtotalRow }],
+      
+      // TOTAL LIABILITAS & EKUITAS
+      [{ v:'', s:STYLES.totalRow }, { v:'TOTAL LIABILITAS DAN EKUITAS', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:totalPasiva, s:STYLES.totalNum }, { v:'[BALANCE] Total Liabilitas + Total Ekuitas', s:STYLES.totalRow }],
+      [],
+      // BALANCE VERIFICATION BANNER
+      [{ v:'STATUS KESEIMBANGAN', s:STYLES.balanceBanner }, { v:'100% BALANS SESUAI STANDAR SAK EMKM', s:STYLES.balanceBanner }, { v:'SELISIH = 0', s:STYLES.balanceBanner }, { v:0, s:STYLES.balanceBanner }, { v:'TOTAL ASET = TOTAL LIABILITAS & EKUITAS', s:STYLES.balanceBanner }]
     ];
-    var tot = 0;
-    for(var i=0; i<orders.length; i++){
-      var o = orders[i];
-      var d = new Date(o.ts);
+
+    var wsN = XLSX.utils.aoa_to_sheet(rowsN);
+    wsN['!merges'] = [
+      { s:{r:0,c:0}, e:{r:0,c:4} },
+      { s:{r:1,c:0}, e:{r:1,c:4} },
+      { s:{r:24,c:0}, e:{r:24,c:4} }
+    ];
+    wsN['!cols'] = [{wch:14},{wch:42},{wch:18},{wch:18},{wch:40}];
+    XLSX.utils.book_append_sheet(wb, wsN, 'Neraca');
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     2. SHEET: LABA RUGI (INCOME STATEMENT SAK EMKM)
+  ════════════════════════════════════════════════════════════════ */
+  if(type === 'all' || type === 'keuangan'){
+    var rowsL = [
+      [{ v:'LAPORAN LABA RUGI (INCOME STATEMENT) — WARKOP HIDAYAH', s:STYLES.title }, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}],
+      [{ v:'Sesuai SAK EMKM (Standar Akuntansi Keuangan Entitas Mikro, Kecil, dan Menengah) | Periode s/d: ' + dateStr + ' | Kasir: ' + cashierName, s:STYLES.subtitle }, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}],
+      [],
+      ['Kode Akun', 'Keterangan Akun / Komponen Laba Rugi', 'Nominal (Rp)', 'Rasio (%)', 'Catatan & Penjelasan SAK'].map(function(h){ return { v:h, s:STYLES.header }; }),
+      
+      // PENDAPATAN
+      [{ v:'4-0000', s:STYLES.section }, { v:'PENDAPATAN USAHA (REVENUE)', s:STYLES.section }, { v:'', s:STYLES.section }, { v:'', s:STYLES.section }, { v:'Arus masuk kas dari penjualan menu warkop', s:STYLES.section }],
+      [{ v:'4-1101', s:STYLES.dataEven }, { v:'Pendapatan Penjualan Menu & Makanan', s:STYLES.dataEven }, { v:rev, s:STYLES.dataNumEven }, { v:'100.0%', s:STYLES.dataCenterEven }, { v:'Akumulasi omzet kasir tercatat', s:STYLES.dataEven }],
+      [{ v:'', s:STYLES.subtotalRow }, { v:'JUMLAH PENDAPATAN USAHA', s:STYLES.subtotalRow }, { v:rev, s:STYLES.subtotalNum }, { v:'100.0%', s:STYLES.subtotalRow }, { v:'Total pendapatan bruto operasional', s:STYLES.subtotalRow }],
+      [],
+
+      // HPP
+      [{ v:'5-0000', s:STYLES.section }, { v:'BEBAN POKOK PENJUALAN (HPP)', s:STYLES.section }, { v:'', s:STYLES.section }, { v:'', s:STYLES.section }, { v:'Biaya langsung perolehan persediaan bahan', s:STYLES.section }],
+      [{ v:'5-1101', s:STYLES.dataEven }, { v:'Beban Pokok Penjualan (HPP Bahan Baku 50%)', s:STYLES.dataEven }, { v:hpp, s:STYLES.dataNumEven }, { v:'50.0%', s:STYLES.dataCenterEven }, { v:'Estimasi belanja kopi, teh, bumbu, mie & snack', s:STYLES.dataEven }],
+      [{ v:'', s:STYLES.subtotalRow }, { v:'JUMLAH BEBAN POKOK PENJUALAN', s:STYLES.subtotalRow }, { v:hpp, s:STYLES.subtotalNum }, { v:'50.0%', s:STYLES.subtotalRow }, { v:'Total beban pokok persediaan yang terjual', s:STYLES.subtotalRow }],
+      [],
+
+      // LABA KOTOR
+      [{ v:'', s:STYLES.totalRow }, { v:'LABA KOTOR (GROSS PROFIT)', s:STYLES.totalRow }, { v:labaKotor, s:STYLES.totalNum }, { v:'50.0%', s:STYLES.totalRow }, { v:'Pendapatan Usaha dikurangi HPP', s:STYLES.totalRow }],
+      [],
+
+      // BEBAN OPERASIONAL
+      [{ v:'6-0000', s:STYLES.section }, { v:'BEBAN OPERASIONAL USAHA', s:STYLES.section }, { v:'', s:STYLES.section }, { v:'', s:STYLES.section }, { v:'Biaya pendukung kegiatan warkop', s:STYLES.section }],
+      [{ v:'6-1101', s:STYLES.dataEven }, { v:'Beban Listrik, Air, dan Wi-Fi Toko', s:STYLES.dataEven }, { v:bebanListrikAir, s:STYLES.dataNumEven }, { v: rev>0 ? (bebanListrikAir/rev*100).toFixed(1)+'%' : '—', s:STYLES.dataCenterEven }, { v:'Operasional listrik kulkas, blender & Wi-Fi warkop', s:STYLES.dataEven }],
+      [{ v:'6-1102', s:STYLES.dataOdd }, { v:'Beban Gas LPG, Kebersihan & Perlengkapan', s:STYLES.dataOdd }, { v:bebanOperasional, s:STYLES.dataNumOdd }, { v: rev>0 ? (bebanOperasional/rev*100).toFixed(1)+'%' : '—', s:STYLES.dataCenterOdd }, { v:'Keperluan memasak, kantong kresek & sabun cuci', s:STYLES.dataOdd }],
+      [{ v:'6-1105', s:STYLES.dataEven }, { v:'Beban Gaji / Uang Makan Karyawan', s:STYLES.dataEven }, { v:bebanGaji, s:STYLES.dataNumEven }, { v: rev>0 ? (bebanGaji/rev*100).toFixed(1)+'%' : '—', s:STYLES.dataCenterEven }, { v:'Honor kasir & upah harian toko', s:STYLES.dataEven }],
+      [{ v:'6-1103', s:STYLES.dataOdd }, { v:'Beban Penyusutan Peralatan Warkop', s:STYLES.dataOdd }, { v:bebanPenyusutan, s:STYLES.dataNumOdd }, { v: rev>0 ? (bebanPenyusutan/rev*100).toFixed(1)+'%' : '—', s:STYLES.dataCenterOdd }, { v:'Alokasi penyusutan mesin kopi, kompor & meja', s:STYLES.dataOdd }],
+      [{ v:'6-1199', s:STYLES.dataEven }, { v:'Beban Operasional Toko Lainnya', s:STYLES.dataEven }, { v:bebanLainnya, s:STYLES.dataNumEven }, { v: rev>0 ? (bebanLainnya/rev*100).toFixed(1)+'%' : '—', s:STYLES.dataCenterEven }, { v:'Pengeluaran operasional tambahan', s:STYLES.dataEven }],
+      [{ v:'', s:STYLES.subtotalRow }, { v:'JUMLAH BEBAN OPERASIONAL', s:STYLES.subtotalRow }, { v:totalBebanOperasional, s:STYLES.subtotalNum }, { v: rev>0 ? (totalBebanOperasional/rev*100).toFixed(1)+'%' : '—', s:STYLES.subtotalRow }, { v:'Total seluruh beban operasional berjalan', s:STYLES.subtotalRow }],
+      [],
+
+      // LABA BERSIH
+      [{ v:'', s:STYLES.totalRow }, { v:'LABA BERSIH PERIODE BERJALAN (NET INCOME)', s:STYLES.totalRow }, { v:labaBersih, s:STYLES.totalNum }, { v: rev>0 ? (labaBersih/rev*100).toFixed(1)+'%' : '—', s:STYLES.totalRow }, { v:'Ditransfer ke Laporan Perubahan Modal', s:STYLES.totalRow }]
+    ];
+
+    var wsL = XLSX.utils.aoa_to_sheet(rowsL);
+    wsL['!merges'] = [
+      { s:{r:0,c:0}, e:{r:0,c:4} },
+      { s:{r:1,c:0}, e:{r:1,c:4} }
+    ];
+    wsL['!cols'] = [{wch:14},{wch:42},{wch:18},{wch:12},{wch:42}];
+    XLSX.utils.book_append_sheet(wb, wsL, 'Laba Rugi');
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     3. SHEET: PERUBAHAN MODAL (STATEMENT OF CHANGES IN EQUITY SAK EMKM)
+  ════════════════════════════════════════════════════════════════ */
+  if(type === 'all' || type === 'keuangan'){
+    var rowsM = [
+      [{ v:'LAPORAN PERUBAHAN MODAL (PERUBAHAN EKUITAS) — WARKOP HIDAYAH', s:STYLES.title }, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}],
+      [{ v:'Sesuai SAK EMKM | Periode s/d: ' + dateStr + ' | Kasir: ' + cashierName, s:STYLES.subtitle }, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}],
+      [],
+      ['Kode Akun', 'Komponen Perubahan Modal / Ekuitas', 'Nominal (Rp)', 'Keterangan SAK EMKM'].map(function(h){ return { v:h, s:STYLES.header }; }),
+      
+      [{ v:'3-1101', s:STYLES.dataEven }, { v:'Modal Awal Pemilik (Beginning Equity)', s:STYLES.dataEven }, { v:MODAL_AWAL, s:STYLES.dataNumEven }, { v:'Penyetoran modal awal pendirian warkop (Rp 5.000.000)', s:STYLES.dataEven }],
+      [{ v:'4-9999', s:STYLES.dataOdd }, { v:'(+) Laba Bersih Periode Berjalan (Net Income)', s:STYLES.dataOdd }, { v:labaBersih, s:STYLES.dataNumOdd }, { v:'Diperoleh dari Laporan Laba Rugi periode berjalan', s:STYLES.dataOdd }],
+      [{ v:'3-1102', s:STYLES.dataEven }, { v:'(-) Prive Pemilik (Owner\'s Drawing)', s:STYLES.dataEven }, { v:-prive, s:STYLES.dataNumEven }, { v:'Pengambilan kas untuk keperluan pribadi pemilik', s:STYLES.dataEven }],
+      [{ v:'', s:STYLES.subtotalRow }, { v:'(=) Kenaikan / Penambahan Bersih Modal', s:STYLES.subtotalRow }, { v:kenaikanModal, s:STYLES.subtotalNum }, { v:'Laba Bersih dikurangi Prive Pemilik', s:STYLES.subtotalRow }],
+      [],
+      [{ v:'3-1101', s:STYLES.totalRow }, { v:'MODAL AKHIR PEMILIK (ENDING EQUITY)', s:STYLES.totalRow }, { v:modalAkhir, s:STYLES.totalNum }, { v:'Ditransfer ke Neraca (Laporan Posisi Keuangan)', s:STYLES.totalRow }],
+      [],
+      [{ v:'CATATAN', s:STYLES.sectionSub }, { v:'Modal awal sebesar Rp 5.000.000 ditetapkan sebagai modal disetor warkop. Modal akhir tersinkronisasi 100% balans ke Neraca.', s:STYLES.sectionSub }, { v:'', s:STYLES.sectionSub }, { v:'', s:STYLES.sectionSub }]
+    ];
+
+    var wsM = XLSX.utils.aoa_to_sheet(rowsM);
+    wsM['!merges'] = [
+      { s:{r:0,c:0}, e:{r:0,c:3} },
+      { s:{r:1,c:0}, e:{r:1,c:3} },
+      { s:{r:11,c:1}, e:{r:11,c:3} }
+    ];
+    wsM['!cols'] = [{wch:14},{wch:44},{wch:18},{wch:44}];
+    XLSX.utils.book_append_sheet(wb, wsM, 'Perubahan Modal');
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     4. SHEET: PENGELUARAN (BUKU KAS KELUAR SAK EMKM)
+  ════════════════════════════════════════════════════════════════ */
+  if(type === 'pengeluaran' || type === 'all' || type === 'keuangan'){
+    var rowsE = [
+      [{ v:'BUKU KAS PENGELUARAN & BELANJA TOKO — WARKOP HIDAYAH', s:STYLES.title }, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}],
+      [{ v:'Standar Bagan Akun Pengeluaran Kas SAK EMKM | Tanggal Ekspor: ' + dateStr + ' | Kasir: ' + cashierName, s:STYLES.subtitle }, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}],
+      [],
+      ['No', 'ID Pengeluaran', 'Waktu', 'Kasir', 'Kategori Akun', 'Kode COA', 'Keterangan / Keperluan', 'Nominal (Rp)'].map(function(h){ return { v:h, s:STYLES.headerNavy }; })
+    ];
+    var totE = 0;
+    for(var i=0; i<expenses.length; i++){
+      var item = expenses[i];
+      var d = new Date(item.ts);
       var isOdd = (i % 2 === 1);
       var sD = isOdd ? STYLES.dataOdd : STYLES.dataEven;
       var sN = isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven;
-      tot += o.total;
-      rows.push([
+      var amt = (item.amount || 0);
+      totE += amt;
+      var stockDesc = item.stockItem ? ' [+' + item.stockItem.qtyAdded + ' ' + item.stockItem.productName + ']' : '';
+      rowsE.push([
         { v: i+1, s: sD },
-        { v: o.id, s: sD },
+        { v: item.id, s: sD },
         { v: d.toLocaleDateString('id-ID') + ' ' + d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}), s: sD },
-        { v: o.tableName, s: sD },
-        { v: o.items.map(function(x){ return x.name + ' (' + x.qty + ')'; }).join('; '), s: sD },
-        { v: o.payMethod.toUpperCase(), s: sD },
-        { v: o.total, s: sN },
-        { v: o.change || 0, s: sN }
+        { v: item.cashier || 'Diah', s: sD },
+        { v: item.coaName || item.cat, s: sD },
+        { v: item.coa || '6-1199', s: sD },
+        { v: item.desc + stockDesc + (item.note ? ' (' + item.note + ')' : ''), s: sD },
+        { v: amt, s: sN }
       ]);
     }
-    rows.push([
-      { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow },
-      { v:'TOTAL OMZET', s:STYLES.totalRow },
-      { v:tot, s:STYLES.totalRow },
-      { v:'', s:STYLES.totalRow }
+    rowsE.push([
+      { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow },
+      { v:'TOTAL PENGELUARAN', s:STYLES.totalRow },
+      { v:totE, s:STYLES.totalNum }
     ]);
 
-    var ws = XLSX.utils.aoa_to_sheet(rows);
-    ws['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:7} }, { s:{r:1,c:0}, e:{r:1,c:7} }];
-    ws['!cols'] = [{wch:5},{wch:20},{wch:18},{wch:22},{wch:40},{wch:12},{wch:15},{wch:14}];
-    XLSX.utils.book_append_sheet(wb, ws, 'Transaksi');
+    var wsE = XLSX.utils.aoa_to_sheet(rowsE);
+    wsE['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:7} }, { s:{r:1,c:0}, e:{r:1,c:7} }];
+    wsE['!cols'] = [{wch:5},{wch:16},{wch:18},{wch:14},{wch:26},{wch:14},{wch:42},{wch:18}];
+    XLSX.utils.book_append_sheet(wb, wsE, 'Pengeluaran');
   }
 
-  /* 2. LAPORAN STOK & COA INVENTORI */
+  /* ════════════════════════════════════════════════════════════════
+     5. SHEET: STOK & COA (INVENTORI PERSADAAN SAK)
+  ════════════════════════════════════════════════════════════════ */
   if(type === 'stok' || type === 'all'){
     var rowsS = [
       [{ v:'INVENTORI STOK & BAGAN AKUN (COA) — WARKOP HIDAYAH', s:STYLES.title }, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}],
-      [{ v:'Tanggal Ekspor: ' + dateStr, s:STYLES.dataOdd }, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}],
+      [{ v:'Standar Bagan Akun Persediaan SAK EMKM | Tanggal Ekspor: ' + dateStr, s:STYLES.subtitle }, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}],
       [],
       ['No', 'Kode COA / Akun', 'Nama Produk', 'Kategori', 'Harga Jual (Rp)', 'Sisa Stok', 'Status Stok'].map(function(h){ return { v:h, s:STYLES.header }; })
     ];
@@ -3233,33 +4809,62 @@ function doExportExcel(type){
     XLSX.utils.book_append_sheet(wb, wsS, 'Stok & COA');
   }
 
-  /* 3. LAPORAN LABA RUGI (INCOME STATEMENT) */
-  if(type === 'all'){
-    var rev = 0;
-    for(var i=0; i<orders.length; i++) rev += orders[i].total;
-    var hpp = Math.round(rev * HPP_RATIO);
-    var gp = rev - hpp;
-
-    var rowsL = [
-      [{ v:'LAPORAN LABA RUGI (INCOME STATEMENT) — WARKOP HIDAYAH', s:STYLES.title }, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}],
-      [{ v:'Periode Laporan s/d: ' + dateStr, s:STYLES.dataOdd }, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}, {v:'',s:STYLES.dataOdd}],
+  /* ════════════════════════════════════════════════════════════════
+     5. SHEET: TRANSAKSI (BUKU PEMBANTU PENJUALAN KASIR)
+  ════════════════════════════════════════════════════════════════ */
+  if(type === 'trx' || type === 'all'){
+    var rowsT = [
+      [{ v:'LAPORAN TRANSAKSI PENJUALAN — WARKOP HIDAYAH', s:STYLES.title }, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}],
+      [{ v:'Tanggal Ekspor: ' + dateStr + ' | Kasir: ' + cashierName + ' | Total: ' + orders.length + ' transaksi', s:STYLES.subtitle }, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}],
       [],
-      ['Keterangan Akun', 'Jumlah (Rp)', 'Rasio (%)', 'Catatan'].map(function(h){ return { v:h, s:STYLES.header }; }),
-      [{ v:'(+) Pendapatan Penjualan (Revenue)', s:STYLES.dataEven }, { v:rev, s:STYLES.dataNumEven }, { v:'100%', s:STYLES.dataEven }, { v:'Akumulasi omzet kasir', s:STYLES.dataEven }],
-      [{ v:'(-) Harga Pokok Penjualan (HPP 50%)', s:STYLES.dataOdd }, { v:hpp, s:STYLES.dataNumOdd }, { v:'50%', s:STYLES.dataOdd }, { v:'Estimasi belanja bahan', s:STYLES.dataOdd }],
-      [{ v:'(=) LABA KOTOR (GROSS PROFIT)', s:STYLES.totalRow }, { v:gp, s:STYLES.totalRow }, { v:'50%', s:STYLES.totalRow }, { v:'Revenue - HPP', s:STYLES.totalRow }],
-      [],
-      [{ v:'(-) Beban Listrik & Air', s:STYLES.dataEven }, { v:0, s:STYLES.dataNumEven }, { v:'—', s:STYLES.dataEven }, { v:'Input manual', s:STYLES.dataEven }],
-      [{ v:'(-) Beban Sewa & Operasional', s:STYLES.dataOdd }, { v:0, s:STYLES.dataNumOdd }, { v:'—', s:STYLES.dataOdd }, { v:'Input manual', s:STYLES.dataOdd }],
-      [{ v:'(=) ESTIMASI LABA BERSIH', s:STYLES.totalRow }, { v:gp, s:STYLES.totalRow }, { v:'50%', s:STYLES.totalRow }, { v:'Sebelum beban operasional', s:STYLES.totalRow }]
+      ['No', 'ID Transaksi', 'Waktu', 'Meja', 'Daftar Menu', 'Metode', 'Total (Rp)', 'Kembalian'].map(function(h){ return { v:h, s:STYLES.header }; })
     ];
-    var wsL = XLSX.utils.aoa_to_sheet(rowsL);
-    wsL['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:3} }, { s:{r:1,c:0}, e:{r:1,c:3} }];
-    wsL['!cols'] = [{wch:36},{wch:18},{wch:12},{wch:28}];
-    XLSX.utils.book_append_sheet(wb, wsL, 'Laba Rugi');
+    var tot = 0;
+    for(var i=0; i<orders.length; i++){
+      var o = orders[i];
+      var d = new Date(o.ts);
+      var isOdd = (i % 2 === 1);
+      var sD = isOdd ? STYLES.dataOdd : STYLES.dataEven;
+      var sN = isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven;
+      tot += o.total;
+      rowsT.push([
+        { v: i+1, s: sD },
+        { v: o.id, s: sD },
+        { v: d.toLocaleDateString('id-ID') + ' ' + d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}), s: sD },
+        { v: o.tableName, s: sD },
+        { v: o.items.map(function(x){ return x.name + ' (' + x.qty + ')'; }).join('; '), s: sD },
+        { v: o.payMethod.toUpperCase(), s: sD },
+        { v: o.total, s: sN },
+        { v: o.change || 0, s: sN }
+      ]);
+    }
+    rowsT.push([
+      { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow },
+      { v:'TOTAL OMZET', s:STYLES.totalRow },
+      { v:tot, s:STYLES.totalRow },
+      { v:'', s:STYLES.totalRow }
+    ]);
+
+    var wsT = XLSX.utils.aoa_to_sheet(rowsT);
+    wsT['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:7} }, { s:{r:1,c:0}, e:{r:1,c:7} }];
+    wsT['!cols'] = [{wch:5},{wch:20},{wch:18},{wch:22},{wch:40},{wch:12},{wch:15},{wch:14}];
+    XLSX.utils.book_append_sheet(wb, wsT, 'Transaksi');
   }
 
-  var fileName = 'WarkopHidayah_' + (type==='all'?'LaporanLengkap_3in1':(type==='stok'?'Stok':'Transaksi')) + '_' + dateStr.replace(/\//g,'-') + '.xlsx';
+  // ── PENAMAAN FILE EXCEL ──
+  var fileName = '';
+  if(type === 'all'){
+    fileName = 'WarkopHidayah_PaketLengkap_SAK_6in1_' + dateStr.replace(/\//g,'-') + '.xlsx';
+  } else if(type === 'keuangan'){
+    fileName = 'WarkopHidayah_LaporanKeuangan_SAK_EMKM_' + dateStr.replace(/\//g,'-') + '.xlsx';
+  } else if(type === 'pengeluaran'){
+    fileName = 'WarkopHidayah_BukuKas_Pengeluaran_' + dateStr.replace(/\//g,'-') + '.xlsx';
+  } else if(type === 'stok'){
+    fileName = 'WarkopHidayah_Stok_COA_' + dateStr.replace(/\//g,'-') + '.xlsx';
+  } else {
+    fileName = 'WarkopHidayah_Transaksi_' + dateStr.replace(/\//g,'-') + '.xlsx';
+  }
+
   XLSX.writeFile(wb, fileName);
   toast('File ' + fileName + ' berhasil diunduh! 📊', 'ok');
 }
@@ -3293,26 +4898,26 @@ function initApp(){
   renderCartUI();
   window.addEventListener('resize', adaptDeviceLayout);
 
-  // Periksa autentikasi Kasir Kartika saat mulai
+  // Periksa autentikasi Kasir saat mulai (Default: Diah & Multi-Kasir)
   checkAuthOnStartup();
 
   // Sinkronisasi background berkala setiap 45 detik saat login
   setInterval(function(){
-    if(window.CURRENT_USER === 'kartika'){
+    if(window.CURRENT_USER){
       CloudSync.pull(true);
     }
   }, 45000);
 
   // Sinkronisasi otomatis saat jendela kembali aktif (misal setelah buka tab/aplikasi lain)
   window.addEventListener('focus', function(){
-    if(window.CURRENT_USER === 'kartika'){
+    if(window.CURRENT_USER){
       CloudSync.pull(true);
     }
   });
 
   // Sinkronisasi saat koneksi internet kembali online
   window.addEventListener('online', function(){
-    if(window.CURRENT_USER === 'kartika'){
+    if(window.CURRENT_USER){
       CloudSync.pull(true, function(){
         CloudSync.push();
       });

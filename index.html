@@ -5081,6 +5081,29 @@ window.CUR_LEDGER_MODE = 'gl';
 window.CUR_LEDGER_ACCOUNT = 'all';
 window.CUR_FIN_TAB = 'lr';
 
+function formatAccDate(d){
+  if(!d) return '';
+  if(typeof d === 'number') d = new Date(d);
+  if(typeof d === 'string'){
+    if(d.includes('T')) d = new Date(d);
+    else if(d.includes('-')){
+      var parts = d.split('-');
+      if(parts.length === 3 && parts[0].length === 4){
+        return parts[2] + '/' + parts[1] + '/' + parts[0];
+      }
+    } else {
+      return d;
+    }
+  }
+  if(d instanceof Date && !isNaN(d.getTime())){
+    var dd = String(d.getDate()).padStart(2, '0');
+    var mm = String(d.getMonth() + 1).padStart(2, '0');
+    var yyyy = d.getFullYear();
+    return dd + '/' + mm + '/' + yyyy;
+  }
+  return String(d);
+}
+
 function getAccountingEngineData(){
   var orders = DB.getOrders();
   var expenses = DB.getExpenses();
@@ -5103,9 +5126,10 @@ function getAccountingEngineData(){
     };
   }
 
-  // 1. General Journal Entries
+  // 1. General Journal Entries (Memorial, Penyesuaian, Modal, dll.)
   for(var j=0; j<generalJournals.length; j++){
     var gj = generalJournals[j];
+    var formattedGjDate = formatAccDate(gj.date);
     for(var l=0; l<gj.lines.length; l++){
       var line = gj.lines[l];
       if(coaMap[line.coa]){
@@ -5114,8 +5138,9 @@ function getAccountingEngineData(){
         coaMap[line.coa].debit += d;
         coaMap[line.coa].credit += k;
         coaMap[line.coa].entries.push({
-          date: gj.date,
-          desc: gj.desc,
+          date: formattedGjDate,
+          rawDate: new Date(gj.date).getTime() || 0,
+          desc: line.name + (gj.desc ? ' (' + gj.desc + ')' : ''),
           ref: gj.ref || gj.id,
           debit: d,
           credit: k
@@ -5124,43 +5149,49 @@ function getAccountingEngineData(){
     }
   }
 
-  // 2. Sales Orders
+  // 2. Sales Orders (Penjualan Kasir POS -> Debit Kas/Bank, Kredit Pendapatan & HPP/Persediaan)
   var rev = 0;
   for(var o=0; o<orders.length; o++){
     var ord = orders[o];
-    var ordDate = new Date(ord.ts).toISOString().slice(0,10);
+    var ordDateStr = formatAccDate(ord.ts);
     var targetKasCoa = (ord.payMethod === 'qris') ? '1-1102' : '1-1101';
     rev += ord.total;
 
+    // Mutasi Kas / Bank (Debit)
     if(coaMap[targetKasCoa]){
       coaMap[targetKasCoa].debit += ord.total;
       coaMap[targetKasCoa].entries.push({
-        date: ordDate,
-        desc: 'Penjualan ' + ord.tableName + ' (' + ord.id + ')',
-        ref: 'JKM-' + ord.id.slice(-4),
+        date: ordDateStr,
+        rawDate: new Date(ord.ts).getTime(),
+        desc: 'Penerimaan Penjualan ' + ord.tableName + ' (' + (ord.payMethod === 'qris' ? 'QRIS' : 'TUNAI') + ')',
+        ref: ord.id,
         debit: ord.total,
         credit: 0
       });
     }
 
+    // Pendapatan Penjualan (Kredit)
     if(coaMap['4-1101']){
       coaMap['4-1101'].credit += ord.total;
       coaMap['4-1101'].entries.push({
-        date: ordDate,
-        desc: 'Pendapatan ' + ord.tableName + ' (' + ord.id + ')',
-        ref: 'JKP-' + ord.id.slice(-4),
+        date: ordDateStr,
+        rawDate: new Date(ord.ts).getTime(),
+        desc: 'Pendapatan Penjualan ' + ord.tableName + ' (' + ord.id + ')',
+        ref: ord.id,
         debit: 0,
         credit: ord.total
       });
     }
 
+    // Beban Pokok Penjualan (HPP Perpetual) & Pengurangan Persediaan
     var orderHpp = Math.round(ord.total * HPP_RATIO);
     if(coaMap['5-1101']){
       coaMap['5-1101'].debit += orderHpp;
       coaMap['5-1101'].entries.push({
-        date: ordDate,
-        desc: 'HPP Penjualan ' + ord.id,
-        ref: 'MEM-HPP',
+        date: ordDateStr,
+        rawDate: new Date(ord.ts).getTime(),
+        desc: 'Beban Pokok Penjualan (HPP) ' + ord.id,
+        ref: 'HPP-' + ord.id.slice(-4),
         debit: orderHpp,
         credit: 0
       });
@@ -5168,56 +5199,61 @@ function getAccountingEngineData(){
     if(coaMap['1-1300']){
       coaMap['1-1300'].credit += orderHpp;
       coaMap['1-1300'].entries.push({
-        date: ordDate,
+        date: ordDateStr,
+        rawDate: new Date(ord.ts).getTime(),
         desc: 'Persediaan Terjual ' + ord.id,
-        ref: 'MEM-HPP',
+        ref: 'HPP-' + ord.id.slice(-4),
         debit: 0,
         credit: orderHpp
       });
     }
   }
 
-  // 3. Expenses
-  var realStockExp = 0;
-  var realListrikExp = 0;
-  var realGasExp = 0;
-  var realGajiExp = 0;
-  var realPriveExp = 0;
-  var realLainExp = 0;
+  // 3. Expenses (Pengeluaran Kas Operasional & Belanja Persediaan)
   var totalExpenseAmount = 0;
-
   for(var e=0; e<expenses.length; e++){
     var exp = expenses[e];
-    var expDate = new Date(exp.ts).toISOString().slice(0,10);
+    var expDateStr = formatAccDate(exp.ts);
     var amt = Number(exp.amount || 0);
     totalExpenseAmount += amt;
 
     var debitCoa = exp.coa || '6-1199';
-    if(exp.cat === 'stok') { debitCoa = '1-1300'; realStockExp += amt; }
-    else if(exp.cat === 'listrik') { debitCoa = '6-1101'; realListrikExp += amt; }
-    else if(exp.cat === 'gas') { debitCoa = '6-1102'; realGasExp += amt; }
-    else if(exp.cat === 'kebersihan') { debitCoa = '6-1103'; realGasExp += amt; }
-    else if(exp.cat === 'peralatan') { debitCoa = '6-1104'; realLainExp += amt; }
-    else if(exp.cat === 'gaji') { debitCoa = '6-1105'; realGajiExp += amt; }
-    else if(exp.cat === 'prive') { debitCoa = '3-1102'; realPriveExp += amt; }
-    else { realLainExp += amt; }
+    if(exp.cat === 'stok') debitCoa = '1-1300';
+    else if(exp.cat === 'listrik') debitCoa = '6-1101';
+    else if(exp.cat === 'gas') debitCoa = '6-1102';
+    else if(exp.cat === 'kebersihan') debitCoa = '6-1103';
+    else if(exp.cat === 'peralatan') debitCoa = '1-2101';
+    else if(exp.cat === 'gaji') debitCoa = '6-1105';
+    else if(exp.cat === 'prive') debitCoa = '3-1102';
 
+    if(!coaMap[debitCoa]){
+      if(debitCoa.startsWith('1-13')) debitCoa = '1-1300';
+      else debitCoa = '6-1199';
+    }
+
+    var stockDesc = exp.stockItem ? ' [+' + exp.stockItem.qtyAdded + ' ' + exp.stockItem.productName + ']' : '';
+    var fullDesc = exp.desc + stockDesc + (exp.note ? ' (' + exp.note + ')' : '');
+
+    // Mutasi Akun Yang Didebit
     if(coaMap[debitCoa]){
       coaMap[debitCoa].debit += amt;
       coaMap[debitCoa].entries.push({
-        date: expDate,
-        desc: exp.desc + (exp.stockItem ? ' [+' + exp.stockItem.qtyAdded + ' ' + exp.stockItem.productName + ']' : ''),
+        date: expDateStr,
+        rawDate: new Date(exp.ts).getTime(),
+        desc: fullDesc,
         ref: exp.id,
         debit: amt,
         credit: 0
       });
     }
 
+    // Mutasi Kas (Kredit)
     if(coaMap['1-1101']){
       coaMap['1-1101'].credit += amt;
       coaMap['1-1101'].entries.push({
-        date: expDate,
-        desc: 'Bayar ' + exp.desc,
+        date: expDateStr,
+        rawDate: new Date(exp.ts).getTime(),
+        desc: 'Bayar ' + fullDesc,
         ref: exp.id,
         debit: 0,
         credit: amt
@@ -5225,7 +5261,7 @@ function getAccountingEngineData(){
     }
   }
 
-  // Trial Balance & Accounts List
+  // 4. Hitung Saldo Tiap Akun Buku Besar (General Ledger)
   var accountsList = [];
   var totalTrialDebit = 0;
   var totalTrialCredit = 0;
@@ -5234,6 +5270,12 @@ function getAccountingEngineData(){
 
   for(var k=0; k<MASTER_COA.length; k++){
     var acc = coaMap[MASTER_COA[k].code];
+
+    // Urutkan mutasi buku besar secara kronologis
+    acc.entries.sort(function(a, b){
+      return (a.rawDate || 0) - (b.rawDate || 0);
+    });
+
     totalMutasiDebit += acc.debit;
     totalMutasiCredit += acc.credit;
 
@@ -5252,44 +5294,228 @@ function getAccountingEngineData(){
     accountsList.push(acc);
   }
 
-  var hpp = (coaMap['5-1101'] && coaMap['5-1101'].debit > 0 ? coaMap['5-1101'].debit : (realStockExp > 0 ? realStockExp : Math.round(rev * HPP_RATIO)));
-  var labaKotor = rev - hpp;
-  var bebanListrikAir = coaMap['6-1101'] ? coaMap['6-1101'].debit : realListrikExp;
-  var bebanGas = coaMap['6-1102'] ? coaMap['6-1102'].debit : realGasExp;
-  var bebanKebersihan = coaMap['6-1103'] ? coaMap['6-1103'].debit : 0;
-  var bebanServis = coaMap['6-1104'] ? coaMap['6-1104'].debit : 0;
-  var bebanGaji = coaMap['6-1105'] ? coaMap['6-1105'].debit : realGajiExp;
-  var bebanPenyusutan = coaMap['6-1106'] ? coaMap['6-1106'].debit : (rev > 0 ? 50000 : 0);
-  var bebanLainnya = coaMap['6-1199'] ? coaMap['6-1199'].debit : realLainExp;
-  var totalBebanOperasional = bebanListrikAir + bebanGas + bebanKebersihan + bebanServis + bebanGaji + bebanPenyusutan + bebanLainnya;
-  var labaBersih = labaKotor - totalBebanOperasional;
+  // 5. Ekstraksi JURNAL KHUSUS (Special Journals) dari Mutasi Terverifikasi
+  var sjPenjualan = [];
+  for(var po=0; po<orders.length; po++){
+    var oItem = orders[po];
+    var isQris = (oItem.payMethod === 'qris');
+    sjPenjualan.push({
+      date: formatAccDate(oItem.ts),
+      rawDate: new Date(oItem.ts).getTime(),
+      id: oItem.id,
+      customer: oItem.tableName,
+      itemsCount: oItem.items ? oItem.items.length : 0,
+      cashier: oItem.cashier || 'Diah',
+      method: (oItem.payMethod || 'cash').toUpperCase(),
+      debitCoa: isQris ? '1-1102' : '1-1101',
+      debitCoaName: isQris ? 'Kas di Bank / QRIS' : 'Kas di Laci POS',
+      creditCoa: '4-1101',
+      creditCoaName: 'Pendapatan Penjualan',
+      amount: oItem.total
+    });
+  }
 
-  var prive = coaMap['3-1102'] ? coaMap['3-1102'].debit : (realPriveExp > 0 ? realPriveExp : (labaBersih >= 300000 ? 200000 : 0));
-  var kenaikanModal = labaBersih - prive;
-  var modalAkhir = MODAL_AWAL + kenaikanModal;
-
-  var nilaiPersediaan = 0;
-  for(var p=0; p<products.length; p++){
-    if(!products[p].isCustomSeblak){
-      nilaiPersediaan += Math.round((products[p].stock || 0) * (products[p].price || 0) * HPP_RATIO);
+  var sjPembelian = [];
+  for(var pe=0; pe<expenses.length; pe++){
+    var expItem = expenses[pe];
+    if(expItem.cat === 'stok'){
+      var sDesc = expItem.stockItem ? ' [+' + expItem.stockItem.qtyAdded + ' ' + expItem.stockItem.productName + ']' : '';
+      sjPembelian.push({
+        date: formatAccDate(expItem.ts),
+        rawDate: new Date(expItem.ts).getTime(),
+        id: expItem.id,
+        desc: expItem.desc + sDesc + (expItem.note ? ' (' + expItem.note + ')' : ''),
+        cashier: expItem.cashier || 'Diah',
+        debitCoa: '1-1300',
+        debitCoaName: 'Persediaan Barang Dagang',
+        creditCoa: '1-1101',
+        creditCoaName: 'Kas di Laci POS',
+        amount: Number(expItem.amount || 0)
+      });
+    }
+  }
+  for(var pj=0; pj<generalJournals.length; pj++){
+    var gjItem = generalJournals[pj];
+    for(var pjl=0; pjl<gjItem.lines.length; pjl++){
+      if(gjItem.lines[pjl].coa === '1-1300' && gjItem.lines[pjl].debit > 0){
+        var cLine = gjItem.lines.find(function(x){ return x.credit > 0; }) || { coa:'1-1101', name:'Kas di Laci' };
+        sjPembelian.push({
+          date: formatAccDate(gjItem.date),
+          rawDate: new Date(gjItem.date).getTime() || 0,
+          id: gjItem.ref || gjItem.id,
+          desc: gjItem.desc || 'Pembelian Persediaan (Memorial)',
+          cashier: 'Diah',
+          debitCoa: '1-1300',
+          debitCoaName: 'Persediaan Barang Dagang',
+          creditCoa: cLine.coa,
+          creditCoaName: cLine.name,
+          amount: gjItem.lines[pjl].debit
+        });
+      }
     }
   }
 
-  var asetTetapPerolehan = 2500000;
-  var akumPenyusutan = bebanPenyusutan > 0 ? bebanPenyusutan : 50000;
-  var nilaiBukuAsetTetap = asetTetapPerolehan - akumPenyusutan;
-
-  var kasDanSetaraKas = modalAkhir - nilaiBukuAsetTetap - nilaiPersediaan;
-  if(kasDanSetaraKas < 0){
-    kasDanSetaraKas = Math.max(500000, Math.round(rev * 0.45));
-    modalAkhir = kasDanSetaraKas + nilaiPersediaan + nilaiBukuAsetTetap;
+  var sjKasMasuk = [];
+  // Dari General Journal (Modal Awal, dll)
+  for(var mj=0; mj<generalJournals.length; mj++){
+    var mGj = generalJournals[mj];
+    for(var mjl=0; mjl<mGj.lines.length; mjl++){
+      var mLine = mGj.lines[mjl];
+      if((mLine.coa === '1-1101' || mLine.coa === '1-1102') && mLine.debit > 0){
+        var oppCredit = mGj.lines.find(function(x){ return x.credit > 0; }) || { coa:'3-1101', name:'Modal Pemilik' };
+        sjKasMasuk.push({
+          date: formatAccDate(mGj.date),
+          rawDate: new Date(mGj.date).getTime() || 0,
+          ref: mGj.ref || mGj.id,
+          desc: mGj.desc || ('Penerimaan Kas - ' + oppCredit.name),
+          cashier: 'Diah',
+          debitCoa: mLine.coa,
+          debitCoaName: mLine.coa === '1-1102' ? 'Kas di Bank / QRIS' : 'Kas di Laci POS',
+          creditCoa: oppCredit.coa,
+          creditCoaName: oppCredit.name,
+          debit: mLine.debit,
+          credit: mLine.debit
+        });
+      }
+    }
+  }
+  // Dari Orders Penjualan Kasir POS (Tunai & QRIS)
+  for(var mo=0; mo<orders.length; mo++){
+    var mOrd = orders[mo];
+    var mIsQris = (mOrd.payMethod === 'qris');
+    sjKasMasuk.push({
+      date: formatAccDate(mOrd.ts),
+      rawDate: new Date(mOrd.ts).getTime(),
+      ref: mOrd.id,
+      desc: 'Penerimaan Penjualan ' + mOrd.tableName + ' (' + (mIsQris ? 'QRIS' : 'TUNAI') + ')',
+      cashier: mOrd.cashier || 'Diah',
+      debitCoa: mIsQris ? '1-1102' : '1-1101',
+      debitCoaName: mIsQris ? 'Kas di Bank / QRIS' : 'Kas di Laci POS',
+      creditCoa: '4-1101',
+      creditCoaName: 'Pendapatan Penjualan',
+      debit: mOrd.total,
+      credit: mOrd.total
+    });
   }
 
-  var totalAsetLancar = kasDanSetaraKas + nilaiPersediaan;
+  var sjKasKeluar = [];
+  // Dari General Journal yang mengkredit Kas/Bank (seperti JU-002 BKK-01 Pengadaan Peralatan)
+  for(var kj=0; kj<generalJournals.length; kj++){
+    var kGj = generalJournals[kj];
+    for(var kjl=0; kjl<kGj.lines.length; kjl++){
+      var kLine = kGj.lines[kjl];
+      if((kLine.coa === '1-1101' || kLine.coa === '1-1102') && kLine.credit > 0){
+        var oppDebit = kGj.lines.find(function(x){ return x.debit > 0; }) || { coa:'1-2101', name:'Peralatan Warkop' };
+        sjKasKeluar.push({
+          date: formatAccDate(kGj.date),
+          rawDate: new Date(kGj.date).getTime() || 0,
+          ref: kGj.ref || kGj.id,
+          desc: kGj.desc || ('Pengeluaran Kas - ' + oppDebit.name),
+          cashier: 'Diah',
+          debitCoa: oppDebit.coa,
+          debitCoaName: oppDebit.name,
+          creditCoa: kLine.coa,
+          creditCoaName: kLine.coa === '1-1102' ? 'Kas di Bank / QRIS' : 'Kas di Laci POS',
+          debit: kLine.credit,
+          credit: kLine.credit,
+          amount: kLine.credit
+        });
+      }
+    }
+  }
+  // Dari Expenses (Belanja Persediaan & Operasional Kasir)
+  for(var ke=0; ke<expenses.length; ke++){
+    var kExp = expenses[ke];
+    var kDebCoa = kExp.coa || '6-1199';
+    if(kExp.cat === 'stok') kDebCoa = '1-1300';
+    else if(kExp.cat === 'listrik') kDebCoa = '6-1101';
+    else if(kExp.cat === 'gas') kDebCoa = '6-1102';
+    else if(kExp.cat === 'kebersihan') kDebCoa = '6-1103';
+    else if(kExp.cat === 'peralatan') kDebCoa = '1-2101';
+    else if(kExp.cat === 'gaji') kDebCoa = '6-1105';
+    else if(kExp.cat === 'prive') kDebCoa = '3-1102';
+
+    var debObj = MASTER_COA.find(function(x){ return x.code === kDebCoa; });
+    var debName = debObj ? debObj.name : (kExp.coaName || kExp.cat);
+    var kAmt = Number(kExp.amount || 0);
+    var kDesc = kExp.desc + (kExp.stockItem ? ' [+' + kExp.stockItem.qtyAdded + ' ' + kExp.stockItem.productName + ']' : '') + (kExp.note ? ' (' + kExp.note + ')' : '');
+
+    sjKasKeluar.push({
+      date: formatAccDate(kExp.ts),
+      rawDate: new Date(kExp.ts).getTime(),
+      ref: kExp.id,
+      desc: kDesc,
+      cashier: kExp.cashier || 'Diah',
+      debitCoa: kDebCoa,
+      debitCoaName: debName,
+      creditCoa: '1-1101',
+      creditCoaName: 'Kas di Laci POS',
+      debit: kAmt,
+      credit: kAmt,
+      amount: kAmt
+    });
+  }
+
+  // Urutkan seluruh jurnal khusus berdasarkan tanggal
+  sjPenjualan.sort(function(a,b){ return (a.rawDate || 0) - (b.rawDate || 0); });
+  sjPembelian.sort(function(a,b){ return (a.rawDate || 0) - (b.rawDate || 0); });
+  sjKasMasuk.sort(function(a,b){ return (a.rawDate || 0) - (b.rawDate || 0); });
+  sjKasKeluar.sort(function(a,b){ return (a.rawDate || 0) - (b.rawDate || 0); });
+
+  var totalSjPenjualan = sjPenjualan.reduce(function(sum, x){ return sum + x.amount; }, 0);
+  var totalSjPembelian = sjPembelian.reduce(function(sum, x){ return sum + x.amount; }, 0);
+  var totalSjKasMasuk = sjKasMasuk.reduce(function(sum, x){ return sum + x.debit; }, 0);
+  var totalSjKasKeluar = sjKasKeluar.reduce(function(sum, x){ return sum + x.credit; }, 0);
+
+  // 6. Komponen Laporan Keuangan SAK EMKM Murni dari Buku Besar (General Ledger)
+  var hpp = coaMap['5-1101'] ? coaMap['5-1101'].balanceDebit : 0;
+  var labaKotor = rev - hpp;
+  var bebanListrikAir = coaMap['6-1101'] ? coaMap['6-1101'].balanceDebit : 0;
+  var bebanGas = coaMap['6-1102'] ? coaMap['6-1102'].balanceDebit : 0;
+  var bebanKebersihan = coaMap['6-1103'] ? coaMap['6-1103'].balanceDebit : 0;
+  var bebanServis = coaMap['6-1104'] ? coaMap['6-1104'].balanceDebit : 0;
+  var bebanGaji = coaMap['6-1105'] ? coaMap['6-1105'].balanceDebit : 0;
+  var bebanPenyusutan = coaMap['6-1106'] ? coaMap['6-1106'].balanceDebit : 0;
+  var bebanLainnya = coaMap['6-1199'] ? coaMap['6-1199'].balanceDebit : 0;
+  var totalBebanOperasional = bebanListrikAir + bebanGas + bebanKebersihan + bebanServis + bebanGaji + bebanPenyusutan + bebanLainnya;
+  var labaBersih = labaKotor - totalBebanOperasional;
+
+  var prive = coaMap['3-1102'] ? coaMap['3-1102'].balanceDebit : 0;
+  var modalAwal = coaMap['3-1101'] ? coaMap['3-1101'].balanceCredit : MODAL_AWAL;
+  var kenaikanModal = labaBersih - prive;
+  var modalAkhir = modalAwal + kenaikanModal;
+
+  var kasLaci = coaMap['1-1101'] ? coaMap['1-1101'].balanceDebit : 0;
+  var kasBank = coaMap['1-1102'] ? coaMap['1-1102'].balanceDebit : 0;
+  var kasDanSetaraKas = kasLaci + kasBank;
+  var piutangUsaha = coaMap['1-1201'] ? coaMap['1-1201'].balanceDebit : 0;
+  var nilaiPersediaan = coaMap['1-1300'] ? coaMap['1-1300'].balanceDebit : 0;
+  var perlengkapan = coaMap['1-1401'] ? coaMap['1-1401'].balanceDebit : 0;
+  var totalAsetLancar = kasDanSetaraKas + piutangUsaha + nilaiPersediaan + perlengkapan;
+
+  var asetTetapPerolehan = coaMap['1-2101'] ? coaMap['1-2101'].balanceDebit : 0;
+  var akumPenyusutan = coaMap['1-2102'] ? coaMap['1-2102'].balanceCredit : 0;
+  var nilaiBukuAsetTetap = asetTetapPerolehan - akumPenyusutan;
   var totalAset = totalAsetLancar + nilaiBukuAsetTetap;
-  var totalLiabilitas = 0;
+
+  var utangUsaha = coaMap['2-1101'] ? coaMap['2-1101'].balanceCredit : 0;
+  var bebanTerutang = coaMap['2-1102'] ? coaMap['2-1102'].balanceCredit : 0;
+  var totalLiabilitas = utangUsaha + bebanTerutang;
   var totalEkuitas = modalAkhir;
   var totalPasiva = totalLiabilitas + totalEkuitas;
+
+  // Laporan Arus Kas (Metode Langsung SAK EMKM)
+  var cashPenjualanMasuk = sjKasMasuk.filter(function(x){ return x.creditCoa === '4-1101'; }).reduce(function(s,x){ return s + x.debit; }, 0);
+  var cashStockKeluar = sjKasKeluar.filter(function(x){ return x.debitCoa === '1-1300'; }).reduce(function(s,x){ return s + x.credit; }, 0);
+  var cashBebanKeluar = sjKasKeluar.filter(function(x){ return x.debitCoa.startsWith('6-'); }).reduce(function(s,x){ return s + x.credit; }, 0);
+  var arusKasOperasi = cashPenjualanMasuk - cashStockKeluar - cashBebanKeluar;
+
+  var cashAsetTetapKeluar = sjKasKeluar.filter(function(x){ return x.debitCoa === '1-2101'; }).reduce(function(s,x){ return s + x.credit; }, 0);
+  var arusKasInvestasi = -cashAsetTetapKeluar;
+
+  var cashModalMasuk = sjKasMasuk.filter(function(x){ return x.creditCoa === '3-1101'; }).reduce(function(s,x){ return s + x.debit; }, 0);
+  var cashPriveKeluar = sjKasKeluar.filter(function(x){ return x.debitCoa === '3-1102'; }).reduce(function(s,x){ return s + x.credit; }, 0);
+  var arusKasPendanaan = cashModalMasuk - cashPriveKeluar;
 
   return {
     coaMap: coaMap,
@@ -5313,22 +5539,41 @@ function getAccountingEngineData(){
     labaBersih: labaBersih,
     prive: prive,
     kenaikanModal: kenaikanModal,
-    modalAwal: MODAL_AWAL,
+    modalAwal: modalAwal,
     modalAkhir: modalAkhir,
+    kasLaci: kasLaci,
+    kasBank: kasBank,
     kasDanSetaraKas: kasDanSetaraKas,
+    piutangUsaha: piutangUsaha,
     nilaiPersediaan: nilaiPersediaan,
+    perlengkapan: perlengkapan,
     asetTetapPerolehan: asetTetapPerolehan,
     akumPenyusutan: akumPenyusutan,
     nilaiBukuAsetTetap: nilaiBukuAsetTetap,
     totalAsetLancar: totalAsetLancar,
     totalAset: totalAset,
+    utangUsaha: utangUsaha,
+    bebanTerutang: bebanTerutang,
     totalLiabilitas: totalLiabilitas,
     totalEkuitas: totalEkuitas,
     totalPasiva: totalPasiva,
+    arusKasOperasi: arusKasOperasi,
+    arusKasInvestasi: arusKasInvestasi,
+    arusKasPendanaan: arusKasPendanaan,
     orders: orders,
     expenses: expenses,
     products: products,
-    generalJournals: generalJournals
+    generalJournals: generalJournals,
+    specialJournals: {
+      penjualan: sjPenjualan,
+      pembelian: sjPembelian,
+      kas_masuk: sjKasMasuk,
+      kas_keluar: sjKasKeluar,
+      totalPenjualan: totalSjPenjualan,
+      totalPembelian: totalSjPembelian,
+      totalKasMasuk: totalSjKasMasuk,
+      totalKasKeluar: totalSjKasKeluar
+    }
   };
 }
 
@@ -5479,7 +5724,7 @@ function renderAccountingSpecialJournals(type){
   if(type === 'penjualan'){
     if(badgeIcon) badgeIcon.textContent = 'point_of_sale';
     if(titleEl) titleEl.textContent = 'Jurnal Penjualan (Sales Journal)';
-    if(descEl) descEl.textContent = 'Mencatat seluruh transaksi penjualan menu makanan & minuman warkop secara berpasangan: Kas/Piutang (D) vs Pendapatan Penjualan (K).';
+    if(descEl) descEl.textContent = 'Mencatat seluruh transaksi penjualan menu makanan & minuman warkop secara berpasangan: Kas/Bank (D) vs Pendapatan Penjualan (K).';
     
     thHead = '<tr>' +
       '<th style="width:105px">Tanggal</th>' +
@@ -5491,19 +5736,19 @@ function renderAccountingSpecialJournals(type){
       '<th style="width:130px;text-align:right">Penjualan (K)</th>' +
     '</tr>';
 
-    for(var i=0; i<eng.orders.length; i++){
-      var o = eng.orders[i];
-      var d = new Date(o.ts);
-      totalAmt += o.total;
+    var listPJ = eng.specialJournals.penjualan;
+    for(var i=0; i<listPJ.length; i++){
+      var o = listPJ[i];
+      totalAmt += o.amount;
       count++;
       thBody += '<tr>' +
-        '<td style="font-size:10px">' + d.toLocaleDateString('id-ID') + ' ' + d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) + '</td>' +
+        '<td style="font-size:10px">' + o.date + '</td>' +
         '<td style="font-family:monospace;font-weight:700;font-size:10px;color:var(--navy)">' + o.id + '</td>' +
-        '<td style="font-weight:700">' + o.tableName + ' <span style="font-size:9.5px;color:var(--text-sub);font-weight:500">(' + o.items.length + ' item)</span></td>' +
+        '<td style="font-weight:700">' + o.customer + (o.itemsCount ? ' <span style="font-size:9.5px;color:var(--text-sub);font-weight:500">(' + o.itemsCount + ' item)</span>' : '') + '</td>' +
         '<td><span style="background:var(--pink-light);color:var(--pink);font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:99px">' + (o.cashier || 'Diah') + '</span></td>' +
-        '<td style="text-align:center"><span style="background:#F1F5F9;color:var(--text-sub);font-size:9px;font-weight:800;padding:2px 6px;border-radius:6px">' + o.payMethod.toUpperCase() + '</span></td>' +
-        '<td style="text-align:right;font-weight:800;color:#059669;font-size:11.5px">' + fmtRp(o.total) + '</td>' +
-        '<td style="text-align:right;font-weight:800;color:var(--navy);font-size:11.5px">' + fmtRp(o.total) + '</td>' +
+        '<td style="text-align:center"><span style="background:#F1F5F9;color:var(--text-sub);font-size:9px;font-weight:800;padding:2px 6px;border-radius:6px">' + o.method + '</span></td>' +
+        '<td style="text-align:right;font-weight:800;color:#059669;font-size:11.5px">' + fmtRp(o.amount) + '</td>' +
+        '<td style="text-align:right;font-weight:800;color:var(--navy);font-size:11.5px">' + fmtRp(o.amount) + '</td>' +
       '</tr>';
     }
 
@@ -5525,24 +5770,22 @@ function renderAccountingSpecialJournals(type){
       '<th style="width:115px">No. Bukti / ID</th>' +
       '<th>Nama Barang / Toko Supplier</th>' +
       '<th style="width:100px">Kasir</th>' +
-      '<th style="width:110px;text-align:center">Kode COA</th>' +
+      '<th style="width:120px;text-align:center">Akun Lawan</th>' +
       '<th style="width:130px;text-align:right">Persediaan (D)</th>' +
       '<th style="width:130px;text-align:right">Kas/Utang (K)</th>' +
     '</tr>';
 
-    for(var e=0; e<eng.expenses.length; e++){
-      var exp = eng.expenses[e];
-      if(exp.cat !== 'stok') continue;
-      var d2 = new Date(exp.ts);
+    var listPB = eng.specialJournals.pembelian;
+    for(var e=0; e<listPB.length; e++){
+      var exp = listPB[e];
       totalAmt += exp.amount;
       count++;
-      var stockTxt = exp.stockItem ? ' [+' + exp.stockItem.qtyAdded + ' ' + exp.stockItem.productName + ']' : '';
       thBody += '<tr>' +
-        '<td style="font-size:10px">' + d2.toLocaleDateString('id-ID') + ' ' + d2.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) + '</td>' +
+        '<td style="font-size:10px">' + exp.date + '</td>' +
         '<td style="font-family:monospace;font-weight:700;font-size:10px;color:var(--navy)">' + exp.id + '</td>' +
-        '<td style="font-weight:700">' + exp.desc + stockTxt + (exp.note ? ' <span style="font-size:9.5px;color:var(--text-sub);font-weight:500">(' + exp.note + ')</span>' : '') + '</td>' +
+        '<td style="font-weight:700">' + exp.desc + '</td>' +
         '<td><span style="background:var(--pink-light);color:var(--pink);font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:99px">' + (exp.cashier || 'Diah') + '</span></td>' +
-        '<td style="text-align:center"><span style="background:#F1F5F9;color:var(--text-sub);font-size:9px;font-weight:800;padding:2px 6px;border-radius:6px">' + (exp.coa || '1-1300') + '</span></td>' +
+        '<td style="text-align:center"><span style="background:#F1F5F9;color:var(--text-sub);font-size:9px;font-weight:800;padding:2px 6px;border-radius:6px">' + (exp.creditCoaName || exp.creditCoa) + '</span></td>' +
         '<td style="text-align:right;font-weight:800;color:#2563EB;font-size:11.5px">' + fmtRp(exp.amount) + '</td>' +
         '<td style="text-align:right;font-weight:800;color:var(--navy);font-size:11.5px">' + fmtRp(exp.amount) + '</td>' +
       '</tr>';
@@ -5559,49 +5802,36 @@ function renderAccountingSpecialJournals(type){
   } else if(type === 'kas_masuk'){
     if(badgeIcon) badgeIcon.textContent = 'arrow_downward';
     if(titleEl) titleEl.textContent = 'Jurnal Penerimaan Kas (Cash Receipts Journal)';
-    if(descEl) descEl.textContent = 'Mencatat seluruh transaksi yang menambah uang kas warkop (Omzet kasir, penerimaan modal awal & setoran).';
+    if(descEl) descEl.textContent = 'Mencatat seluruh transaksi penerimaan kas & bank warkop (Penyetoran modal awal, omzet kasir POS tunai & QRIS).';
 
     thHead = '<tr>' +
       '<th style="width:105px">Tanggal</th>' +
       '<th style="width:115px">No. Bukti / Ref</th>' +
       '<th>Keterangan / Sumber Penerimaan</th>' +
       '<th style="width:100px">Kasir</th>' +
+      '<th style="width:130px;text-align:center">Akun Lawan (Kredit)</th>' +
       '<th style="width:130px;text-align:right">Kas Masuk (Debit)</th>' +
-      '<th style="width:140px;text-align:right">Penjualan / Akun (Kredit)</th>' +
     '</tr>';
 
-    // Modal Injection
-    thBody += '<tr>' +
-      '<td style="font-size:10px">01/10/2026</td>' +
-      '<td style="font-family:monospace;font-weight:700;font-size:10px;color:var(--navy)">BKM-01</td>' +
-      '<td style="font-weight:800;color:#047857">Penyetoran Modal Awal Warkop (Diah)</td>' +
-      '<td><span style="background:#ECFDF5;color:#047857;font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:99px">Diah</span></td>' +
-      '<td style="text-align:right;font-weight:800;color:#059669;font-size:11.5px">' + fmtRp(5000000) + '</td>' +
-      '<td style="text-align:right;font-weight:800;color:var(--navy);font-size:11.5px">' + fmtRp(5000000) + ' (Modal)</td>' +
-    '</tr>';
-    totalAmt += 5000000;
-    count++;
-
-    for(var o2=0; o2<eng.orders.length; o2++){
-      var ord2 = eng.orders[o2];
-      var d3 = new Date(ord2.ts);
-      totalAmt += ord2.total;
+    var listKM = eng.specialJournals.kas_masuk;
+    for(var k=0; k<listKM.length; k++){
+      var itemKM = listKM[k];
+      totalAmt += itemKM.debit;
       count++;
       thBody += '<tr>' +
-        '<td style="font-size:10px">' + d3.toLocaleDateString('id-ID') + ' ' + d3.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) + '</td>' +
-        '<td style="font-family:monospace;font-weight:700;font-size:10px;color:var(--navy)">' + ord2.id + '</td>' +
-        '<td style="font-weight:700">Penerimaan Kas ' + ord2.tableName + ' (' + ord2.payMethod.toUpperCase() + ')</td>' +
-        '<td><span style="background:var(--pink-light);color:var(--pink);font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:99px">' + (ord2.cashier || 'Diah') + '</span></td>' +
-        '<td style="text-align:right;font-weight:800;color:#059669;font-size:11.5px">' + fmtRp(ord2.total) + '</td>' +
-        '<td style="text-align:right;font-weight:800;color:var(--navy);font-size:11.5px">' + fmtRp(ord2.total) + ' (Penjualan)</td>' +
+        '<td style="font-size:10px">' + itemKM.date + '</td>' +
+        '<td style="font-family:monospace;font-weight:700;font-size:10px;color:var(--navy)">' + itemKM.ref + '</td>' +
+        '<td style="font-weight:700">' + itemKM.desc + '</td>' +
+        '<td><span style="background:var(--pink-light);color:var(--pink);font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:99px">' + (itemKM.cashier || 'Diah') + '</span></td>' +
+        '<td style="text-align:center"><span style="background:#F1F5F9;color:var(--text-sub);font-size:9px;font-weight:800;padding:2px 6px;border-radius:6px">' + (itemKM.creditCoaName || itemKM.creditCoa) + '</span></td>' +
+        '<td style="text-align:right;font-weight:800;color:#059669;font-size:11.5px">' + fmtRp(itemKM.debit) + '</td>' +
       '</tr>';
     }
 
     if(count > 0){
       thBody += '<tr style="background:#FAFBFD;border-top:2px solid var(--border-soft);border-bottom:3px double var(--navy);font-weight:900">' +
-        '<td colspan="4" style="text-align:right;font-size:11px;color:var(--navy)">TOTAL KAS MASUK:</td>' +
+        '<td colspan="5" style="text-align:right;font-size:11px;color:var(--navy)">TOTAL PENERIMAAN KAS:</td>' +
         '<td style="text-align:right;color:#059669;font-size:12px">' + fmtRp(totalAmt) + '</td>' +
-        '<td style="text-align:right;color:var(--navy);font-size:12px">' + fmtRp(totalAmt) + '</td>' +
       '</tr>';
     }
 
@@ -5609,7 +5839,7 @@ function renderAccountingSpecialJournals(type){
     // kas_keluar
     if(badgeIcon) badgeIcon.textContent = 'arrow_upward';
     if(titleEl) titleEl.textContent = 'Jurnal Pengeluaran Kas (Cash Disbursements Journal)';
-    if(descEl) descEl.textContent = 'Mencatat seluruh pengeluaran kas: Belanja persediaan stok, pembayaran listrik, gas, gaji kasir & prive pemilik.';
+    if(descEl) descEl.textContent = 'Mencatat seluruh pengeluaran kas & bank: Belanja persediaan stok, perolehan peralatan warkop, beban operasional & prive pemilik.';
 
     thHead = '<tr>' +
       '<th style="width:105px">Tanggal</th>' +
@@ -5620,18 +5850,18 @@ function renderAccountingSpecialJournals(type){
       '<th style="width:130px;text-align:right">Kas Keluar (Kredit)</th>' +
     '</tr>';
 
-    for(var e2=0; e2<eng.expenses.length; e2++){
-      var exp2 = eng.expenses[e2];
-      var d4 = new Date(exp2.ts);
-      totalAmt += exp2.amount;
+    var listKK = eng.specialJournals.kas_keluar;
+    for(var x=0; x<listKK.length; x++){
+      var itemKK = listKK[x];
+      totalAmt += itemKK.credit;
       count++;
       thBody += '<tr>' +
-        '<td style="font-size:10px">' + d4.toLocaleDateString('id-ID') + ' ' + d4.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) + '</td>' +
-        '<td style="font-family:monospace;font-weight:700;font-size:10px;color:var(--navy)">' + exp2.id + '</td>' +
-        '<td style="font-weight:700">' + exp2.desc + (exp2.note ? ' <span style="font-size:9.5px;color:var(--text-sub);font-weight:500">(' + exp2.note + ')</span>' : '') + '</td>' +
-        '<td><span style="background:var(--pink-light);color:var(--pink);font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:99px">' + (exp2.cashier || 'Diah') + '</span></td>' +
-        '<td><span style="background:#F1F5F9;color:var(--navy);font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px">' + (exp2.coaName || exp2.cat) + '</span></td>' +
-        '<td style="text-align:right;font-weight:800;color:#DC2626;font-size:11.5px">' + fmtRp(exp2.amount) + '</td>' +
+        '<td style="font-size:10px">' + itemKK.date + '</td>' +
+        '<td style="font-family:monospace;font-weight:700;font-size:10px;color:var(--navy)">' + itemKK.ref + '</td>' +
+        '<td style="font-weight:700">' + itemKK.desc + '</td>' +
+        '<td><span style="background:var(--pink-light);color:var(--pink);font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:99px">' + (itemKK.cashier || 'Diah') + '</span></td>' +
+        '<td><span style="background:#F1F5F9;color:var(--navy);font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px">' + (itemKK.debitCoaName || itemKK.debitCoa) + '</span></td>' +
+        '<td style="text-align:right;font-weight:800;color:#DC2626;font-size:11.5px">' + fmtRp(itemKK.credit) + '</td>' +
       '</tr>';
     }
 
@@ -5820,6 +6050,13 @@ function renderAccountingLedger(accountCode){
             '<td style="text-align:right;font-weight:900;color:var(--navy);font-size:11.5px">' + fmtRp(runningBal) + '</td>' +
           '</tr>';
         }
+        var curBal = (a.normal === 'Debit' ? a.balanceDebit : a.balanceCredit);
+        h += '<tr style="background:#FAFBFD;border-top:2px solid var(--border-soft);border-bottom:2px solid var(--navy);font-weight:900">' +
+          '<td colspan="3" style="text-align:right;font-size:11px;color:var(--navy)">TOTAL MUTASI &amp; SALDO AKHIR ' + a.code + ':</td>' +
+          '<td style="text-align:right;color:#047857;font-size:11.5px">' + fmtRp(a.debit) + '</td>' +
+          '<td style="text-align:right;color:#BE123C;font-size:11.5px">' + fmtRp(a.credit) + '</td>' +
+          '<td style="text-align:right;color:var(--navy);font-size:12px">' + fmtRp(curBal) + '</td>' +
+        '</tr>';
       }
 
       h += '</tbody></table></div></div>';
@@ -6039,12 +6276,15 @@ function renderAccountingFinancialStatements(tab){
           '<div style="font-size:13px;font-weight:900;color:var(--navy);border-bottom:1.5px solid var(--border-soft);padding-bottom:6px;margin-bottom:10px">ASET (AKTIVA)</div>' +
           '<table style="width:100%;font-size:11.5px">' +
             '<tr style="font-weight:800;color:var(--text-sub)"><td colspan="2" style="padding:4px 0">1. ASET LANCAR</td></tr>' +
-            '<tr><td style="padding:4px 10px">Kas dan Setara Kas (Laci &amp; QRIS)</td><td style="text-align:right;font-weight:700">' + fmtRp(eng.kasDanSetaraKas) + '</td></tr>' +
-            '<tr><td style="padding:4px 10px">Persediaan Barang Dagang (Stok Bahan)</td><td style="text-align:right;font-weight:700">' + fmtRp(eng.nilaiPersediaan) + '</td></tr>' +
+            '<tr><td style="padding:4px 10px">Kas di Laci POS (1-1101)</td><td style="text-align:right;font-weight:700">' + fmtRp(eng.kasLaci) + '</td></tr>' +
+            '<tr><td style="padding:4px 10px">Kas di Bank / QRIS (1-1102)</td><td style="text-align:right;font-weight:700">' + fmtRp(eng.kasBank) + '</td></tr>' +
+            (eng.piutangUsaha > 0 ? '<tr><td style="padding:4px 10px">Piutang Usaha (1-1201)</td><td style="text-align:right;font-weight:700">' + fmtRp(eng.piutangUsaha) + '</td></tr>' : '') +
+            '<tr><td style="padding:4px 10px">Persediaan Barang Dagang (1-1300)</td><td style="text-align:right;font-weight:700">' + fmtRp(eng.nilaiPersediaan) + '</td></tr>' +
+            (eng.perlengkapan > 0 ? '<tr><td style="padding:4px 10px">Perlengkapan Warkop (1-1401)</td><td style="text-align:right;font-weight:700">' + fmtRp(eng.perlengkapan) + '</td></tr>' : '') +
             '<tr style="font-weight:800;border-top:1px dashed var(--border-soft)"><td style="padding:5px 0">Jumlah Aset Lancar</td><td style="text-align:right;color:#2563EB">' + fmtRp(eng.totalAsetLancar) + '</td></tr>' +
             '<tr style="font-weight:800;color:var(--text-sub)"><td colspan="2" style="padding:8px 0 4px">2. ASET TETAP</td></tr>' +
-            '<tr><td style="padding:4px 10px">Peralatan Warkop &amp; Mesin Kopi</td><td style="text-align:right;font-weight:700">' + fmtRp(eng.asetTetapPerolehan) + '</td></tr>' +
-            '<tr><td style="padding:4px 10px">Akumulasi Penyusutan</td><td style="text-align:right;font-weight:700;color:#DC2626">(' + fmtRp(eng.akumPenyusutan) + ')</td></tr>' +
+            '<tr><td style="padding:4px 10px">Peralatan Warkop &amp; Mesin Kopi (1-2101)</td><td style="text-align:right;font-weight:700">' + fmtRp(eng.asetTetapPerolehan) + '</td></tr>' +
+            '<tr><td style="padding:4px 10px">Akumulasi Penyusutan (1-2102)</td><td style="text-align:right;font-weight:700;color:#DC2626">(' + fmtRp(eng.akumPenyusutan) + ')</td></tr>' +
             '<tr style="font-weight:800;border-top:1px dashed var(--border-soft)"><td style="padding:5px 0">Jumlah Aset Tetap Bersih</td><td style="text-align:right;color:#2563EB">' + fmtRp(eng.nilaiBukuAsetTetap) + '</td></tr>' +
             '<tr style="background:#EFF6FF;font-weight:900;border-top:2px solid #BFDBFE;border-bottom:3px double #2563EB">' +
               '<td style="padding:10px 6px;color:#1E40AF">TOTAL ASET (AKTIVA)</td>' +
@@ -6056,12 +6296,12 @@ function renderAccountingFinancialStatements(tab){
           '<div style="font-size:13px;font-weight:900;color:var(--navy);border-bottom:1.5px solid var(--border-soft);padding-bottom:6px;margin-bottom:10px">LIABILITAS DAN EKUITAS (PASIVA)</div>' +
           '<table style="width:100%;font-size:11.5px">' +
             '<tr style="font-weight:800;color:var(--text-sub)"><td colspan="2" style="padding:4px 0">1. LIABILITAS JANGKA PENDEK</td></tr>' +
-            '<tr><td style="padding:4px 10px">Utang Usaha (Supplier Bahan)</td><td style="text-align:right;font-weight:700">Rp 0</td></tr>' +
-            '<tr><td style="padding:4px 10px">Beban Terutang</td><td style="text-align:right;font-weight:700">Rp 0</td></tr>' +
-            '<tr style="font-weight:800;border-top:1px dashed var(--border-soft)"><td style="padding:5px 0">Jumlah Liabilitas</td><td style="text-align:right;color:var(--text-sub)">Rp 0</td></tr>' +
+            '<tr><td style="padding:4px 10px">Utang Usaha (Supplier Bahan)</td><td style="text-align:right;font-weight:700">' + fmtRp(eng.utangUsaha) + '</td></tr>' +
+            (eng.bebanTerutang > 0 ? '<tr><td style="padding:4px 10px">Beban Terutang</td><td style="text-align:right;font-weight:700">' + fmtRp(eng.bebanTerutang) + '</td></tr>' : '') +
+            '<tr style="font-weight:800;border-top:1px dashed var(--border-soft)"><td style="padding:5px 0">Jumlah Liabilitas</td><td style="text-align:right;color:var(--text-sub)">' + fmtRp(eng.totalLiabilitas) + '</td></tr>' +
             '<tr style="font-weight:800;color:var(--text-sub)"><td colspan="2" style="padding:8px 0 4px">2. EKUITAS PEMILIK</td></tr>' +
-            '<tr><td style="padding:4px 10px">Modal Awal Pemilik</td><td style="text-align:right;font-weight:700">' + fmtRp(eng.modalAwal) + '</td></tr>' +
-            '<tr><td style="padding:4px 10px">Kenaikan Modal Bersih (Laba - Prive)</td><td style="text-align:right;font-weight:700;color:#047857">' + fmtRp(eng.kenaikanModal) + '</td></tr>' +
+            '<tr><td style="padding:4px 10px">Modal Awal Pemilik (3-1101)</td><td style="text-align:right;font-weight:700">' + fmtRp(eng.modalAwal) + '</td></tr>' +
+            '<tr><td style="padding:4px 10px">Kenaikan Modal Bersih (Laba - Prive)</td><td style="text-align:right;font-weight:700;color:' + (eng.kenaikanModal >= 0 ? '#047857' : '#DC2626') + '">' + (eng.kenaikanModal >= 0 ? '' : '-') + fmtRp(Math.abs(eng.kenaikanModal)) + '</td></tr>' +
             '<tr style="font-weight:800;border-top:1px dashed var(--border-soft)"><td style="padding:5px 0">Jumlah Ekuitas (Modal Akhir)</td><td style="text-align:right;color:#047857">' + fmtRp(eng.modalAkhir) + '</td></tr>' +
             '<tr style="background:#ECFDF5;font-weight:900;border-top:2px solid #A7F3D0;border-bottom:3px double #047857">' +
               '<td style="padding:10px 6px;color:#065F46">TOTAL PASIVA (LIABILITAS + EKUITAS)</td>' +
@@ -6306,357 +6546,432 @@ function doExportExcel(type){
   var orders = DB.getOrders();
   var products = DB.getProducts();
   var expenses = DB.getExpenses();
-  var generalJournals = DB.getGeneralJournals();
   var dateStr = new Date().toLocaleDateString('id-ID');
   var cashierName = (window.CURRENT_USER_NAME || window.CURRENT_USER || 'Diah').toUpperCase();
   var eng = getAccountingEngineData();
 
   function borderAll(color){
-    var b = { style:'thin', color:{ rgb: color || 'DDE3EA' } };
+    var b = { style:'thin', color:{ rgb: color || 'E2E8F0' } };
     return { top:b, bottom:b, left:b, right:b };
   }
   function borderDoubleBottom(color){
-    var b = { style:'thin', color:{ rgb: color || 'DDE3EA' } };
-    var db = { style:'double', color:{ rgb: color || '1B202B' } };
+    var b = { style:'thin', color:{ rgb: 'CBD5E1' } };
+    var db = { style:'double', color:{ rgb: color || '0F172A' } };
     return { top:b, bottom:db, left:b, right:b };
   }
 
   var STYLES = {
-    title: { font:{ bold:true, sz:12, color:{rgb:'FFFFFF'}, name:'Arial' }, fill:{ fgColor:{rgb:'1B202B'} }, alignment:{ horizontal:'center', vertical:'center' }, border:borderAll('1B202B') },
-    subtitle: { font:{ sz:9, italic:true, color:{rgb:'475569'}, name:'Arial' }, fill:{ fgColor:{rgb:'F1F5F9'} }, alignment:{ horizontal:'center', vertical:'center' }, border:borderAll('CBD5E1') },
-    header: { font:{ bold:true, sz:10, color:{rgb:'FFFFFF'}, name:'Arial' }, fill:{ fgColor:{rgb:'FF5B7A'} }, alignment:{ horizontal:'center', vertical:'center' }, border:borderAll('EE4B6A') },
-    headerNavy: { font:{ bold:true, sz:10, color:{rgb:'FFFFFF'}, name:'Arial' }, fill:{ fgColor:{rgb:'1B202B'} }, alignment:{ horizontal:'center', vertical:'center' }, border:borderAll('1B202B') },
-    headerGreen: { font:{ bold:true, sz:10, color:{rgb:'FFFFFF'}, name:'Arial' }, fill:{ fgColor:{rgb:'047857'} }, alignment:{ horizontal:'center', vertical:'center' }, border:borderAll('065F46') },
-    headerGold: { font:{ bold:true, sz:10, color:{rgb:'FFFFFF'}, name:'Arial' }, fill:{ fgColor:{rgb:'D97706'} }, alignment:{ horizontal:'center', vertical:'center' }, border:borderAll('B45309') },
-    section: { font:{ bold:true, sz:10, color:{rgb:'FFFFFF'}, name:'Arial' }, fill:{ fgColor:{rgb:'334155'} }, alignment:{ vertical:'center' }, border:borderAll('1E293B') },
-    sectionSub: { font:{ bold:true, sz:9.5, color:{rgb:'1E293B'}, name:'Arial' }, fill:{ fgColor:{rgb:'E2E8F0'} }, alignment:{ vertical:'center' }, border:borderAll('CBD5E1') },
-    dataEven: { font:{ sz:9.5, name:'Arial' }, fill:{ fgColor:{rgb:'FFFFFF'} }, alignment:{ vertical:'center' }, border:borderAll('EBF0F5') },
-    dataOdd: { font:{ sz:9.5, name:'Arial' }, fill:{ fgColor:{rgb:'F8FAFC'} }, alignment:{ vertical:'center' }, border:borderAll('EBF0F5') },
-    dataCenterEven: { font:{ sz:9.5, name:'Arial' }, fill:{ fgColor:{rgb:'FFFFFF'} }, alignment:{ horizontal:'center', vertical:'center' }, border:borderAll('EBF0F5') },
-    dataCenterOdd: { font:{ sz:9.5, name:'Arial' }, fill:{ fgColor:{rgb:'F8FAFC'} }, alignment:{ horizontal:'center', vertical:'center' }, border:borderAll('EBF0F5') },
-    dataNumEven: { font:{ sz:9.5, name:'Arial' }, fill:{ fgColor:{rgb:'FFFFFF'} }, alignment:{ horizontal:'right', vertical:'center' }, border:borderAll('EBF0F5'), numFmt:'#,##0' },
-    dataNumOdd: { font:{ sz:9.5, name:'Arial' }, fill:{ fgColor:{rgb:'F8FAFC'} }, alignment:{ horizontal:'right', vertical:'center' }, border:borderAll('EBF0F5'), numFmt:'#,##0' },
-    subtotalRow: { font:{ bold:true, sz:10, color:{rgb:'1E293B'}, name:'Arial' }, fill:{ fgColor:{rgb:'F1F5F9'} }, alignment:{ vertical:'center' }, border:borderAll('CBD5E1') },
-    subtotalNum: { font:{ bold:true, sz:10, color:{rgb:'1E293B'}, name:'Arial' }, fill:{ fgColor:{rgb:'F1F5F9'} }, alignment:{ horizontal:'right', vertical:'center' }, border:borderAll('CBD5E1'), numFmt:'#,##0' },
-    totalRow: { font:{ bold:true, sz:11, color:{rgb:'1B202B'}, name:'Arial' }, fill:{ fgColor:{rgb:'FFF0F3'} }, alignment:{ vertical:'center' }, border:borderDoubleBottom('FF5B7A'), numFmt:'#,##0' },
-    totalNum: { font:{ bold:true, sz:11, color:{rgb:'FF5B7A'}, name:'Arial' }, fill:{ fgColor:{rgb:'FFF0F3'} }, alignment:{ horizontal:'right', vertical:'center' }, border:borderDoubleBottom('FF5B7A'), numFmt:'#,##0' },
-    balanceBanner: { font:{ bold:true, sz:10, color:{rgb:'FFFFFF'}, name:'Arial' }, fill:{ fgColor:{rgb:'059669'} }, alignment:{ horizontal:'center', vertical:'center' }, border:borderAll('047857') }
+    title: { font:{ bold:true, sz:12.5, color:{rgb:'FFFFFF'}, name:'Calibri' }, fill:{ fgColor:{rgb:'0F172A'} }, alignment:{ horizontal:'center', vertical:'center' }, border:borderAll('0F172A') },
+    subtitle: { font:{ sz:9.5, italic:true, color:{rgb:'475569'}, name:'Calibri' }, fill:{ fgColor:{rgb:'F8FAFC'} }, alignment:{ horizontal:'center', vertical:'center' }, border:borderAll('CBD5E1') },
+    headerNavy: { font:{ bold:true, sz:10, color:{rgb:'FFFFFF'}, name:'Calibri' }, fill:{ fgColor:{rgb:'1E293B'} }, alignment:{ horizontal:'center', vertical:'center' }, border:borderAll('1E293B') },
+    headerPink: { font:{ bold:true, sz:10, color:{rgb:'FFFFFF'}, name:'Calibri' }, fill:{ fgColor:{rgb:'E11D48'} }, alignment:{ horizontal:'center', vertical:'center' }, border:borderAll('BE123C') },
+    headerGreen: { font:{ bold:true, sz:10, color:{rgb:'FFFFFF'}, name:'Calibri' }, fill:{ fgColor:{rgb:'065F46'} }, alignment:{ horizontal:'center', vertical:'center' }, border:borderAll('047857') },
+    headerGold: { font:{ bold:true, sz:10, color:{rgb:'FFFFFF'}, name:'Calibri' }, fill:{ fgColor:{rgb:'B45309'} }, alignment:{ horizontal:'center', vertical:'center' }, border:borderAll('92400E') },
+    section: { font:{ bold:true, sz:10, color:{rgb:'FFFFFF'}, name:'Calibri' }, fill:{ fgColor:{rgb:'334155'} }, alignment:{ vertical:'center' }, border:borderAll('1E293B') },
+    sectionNum: { font:{ bold:true, sz:10, color:{rgb:'FFFFFF'}, name:'Calibri' }, fill:{ fgColor:{rgb:'334155'} }, alignment:{ horizontal:'right', vertical:'center' }, border:borderAll('1E293B'), numFmt:'#,##0' },
+    sectionSub: { font:{ bold:true, sz:9.5, color:{rgb:'1E293B'}, name:'Calibri' }, fill:{ fgColor:{rgb:'E2E8F0'} }, alignment:{ vertical:'center' }, border:borderAll('CBD5E1') },
+    dataEven: { font:{ sz:9.5, color:{rgb:'0F172A'}, name:'Calibri' }, fill:{ fgColor:{rgb:'FFFFFF'} }, alignment:{ vertical:'center' }, border:borderAll('E2E8F0') },
+    dataOdd: { font:{ sz:9.5, color:{rgb:'0F172A'}, name:'Calibri' }, fill:{ fgColor:{rgb:'F8FAFC'} }, alignment:{ vertical:'center' }, border:borderAll('E2E8F0') },
+    dataCenterEven: { font:{ sz:9.5, color:{rgb:'0F172A'}, name:'Calibri' }, fill:{ fgColor:{rgb:'FFFFFF'} }, alignment:{ horizontal:'center', vertical:'center' }, border:borderAll('E2E8F0') },
+    dataCenterOdd: { font:{ sz:9.5, color:{rgb:'0F172A'}, name:'Calibri' }, fill:{ fgColor:{rgb:'F8FAFC'} }, alignment:{ horizontal:'center', vertical:'center' }, border:borderAll('E2E8F0') },
+    dataNumEven: { font:{ sz:9.5, color:{rgb:'0F172A'}, name:'Calibri' }, fill:{ fgColor:{rgb:'FFFFFF'} }, alignment:{ horizontal:'right', vertical:'center' }, border:borderAll('E2E8F0'), numFmt:'#,##0' },
+    dataNumOdd: { font:{ sz:9.5, color:{rgb:'0F172A'}, name:'Calibri' }, fill:{ fgColor:{rgb:'F8FAFC'} }, alignment:{ horizontal:'right', vertical:'center' }, border:borderAll('E2E8F0'), numFmt:'#,##0' },
+    subtotalRow: { font:{ bold:true, sz:10, color:{rgb:'1E293B'}, name:'Calibri' }, fill:{ fgColor:{rgb:'F1F5F9'} }, alignment:{ vertical:'center' }, border:borderAll('CBD5E1') },
+    subtotalNum: { font:{ bold:true, sz:10, color:{rgb:'1E293B'}, name:'Calibri' }, fill:{ fgColor:{rgb:'F1F5F9'} }, alignment:{ horizontal:'right', vertical:'center' }, border:borderAll('CBD5E1'), numFmt:'#,##0' },
+    totalRow: { font:{ bold:true, sz:10.5, color:{rgb:'0F172A'}, name:'Calibri' }, fill:{ fgColor:{rgb:'FFF1F2'} }, alignment:{ vertical:'center' }, border:borderDoubleBottom('E11D48') },
+    totalNum: { font:{ bold:true, sz:10.5, color:{rgb:'BE123C'}, name:'Calibri' }, fill:{ fgColor:{rgb:'FFF1F2'} }, alignment:{ horizontal:'right', vertical:'center' }, border:borderDoubleBottom('E11D48'), numFmt:'#,##0' },
+    balanceBanner: { font:{ bold:true, sz:10, color:{rgb:'FFFFFF'}, name:'Calibri' }, fill:{ fgColor:{rgb:'059669'} }, alignment:{ horizontal:'center', vertical:'center' }, border:borderAll('047857') }
   };
+
+  function numCell(num, style){
+    return { v: Number(num || 0), t: 'n', s: style, z: '#,##0' };
+  }
+  function txtCell(txt, style){
+    return { v: txt == null ? '' : String(txt), t: 's', s: style };
+  }
 
   /* ════════════ SHEET 1: RINGKASAN & PROFIL SAK ════════════ */
   if(type === 'siklus_akuntansi' || type === 'all'){
     var rowsProfile = [
-      [{ v:'SIKLUS PEMBUKUAN & LAPORAN KEUANGAN SAK EMKM — WARKOP HIDAYAH', s:STYLES.title }, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}],
-      [{ v:'Disusun Berdasarkan Standar Akuntansi Keuangan Entitas Mikro, Kecil, dan Menengah | Tanggal: ' + dateStr + ' | Kasir: ' + cashierName, s:STYLES.subtitle }, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}],
+      [txtCell('SIKLUS PEMBUKUAN & LAPORAN KEUANGAN SAK EMKM — WARKOP HIDAYAH', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title)],
+      [txtCell('Disusun Berdasarkan Standar Akuntansi Keuangan Entitas Mikro, Kecil, dan Menengah | Tanggal: ' + dateStr + ' | Kasir: ' + cashierName, STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle)],
       [],
-      ['Parameter Akuntansi SAK EMKM', 'Nilai / Posisi', 'Keterangan SAK', 'Status Kepatuhan'].map(function(h){ return { v:h, s:STYLES.headerNavy }; }),
-      [{ v:'Nama Entitas Usaha', s:STYLES.dataEven }, { v:'Warkop Hidayah', s:STYLES.dataEven }, { v:'Usaha Mikro Kuliner F&B', s:STYLES.dataEven }, { v:'RESMI', s:STYLES.dataCenterEven }],
-      [{ v:'Pemilik & Pengelola', s:STYLES.dataOdd }, { v:'Diah', s:STYLES.dataOdd }, { v:'Penanggung jawab pembukuan & kasir', s:STYLES.dataOdd }, { v:'AKTIF', s:STYLES.dataCenterOdd }],
-      [{ v:'Modal Awal Disetor', s:STYLES.dataEven }, { v:eng.modalAwal, s:STYLES.dataNumEven }, { v:'Modal awal pendirian warkop', s:STYLES.dataEven }, { v:'LENGKAP', s:STYLES.dataCenterEven }],
-      [{ v:'Total Pendapatan Usaha (Omzet)', s:STYLES.dataOdd }, { v:eng.rev, s:STYLES.dataNumOdd }, { v:'Akumulasi transaksi kasir POS', s:STYLES.dataOdd }, { v:'TERCATAT', s:STYLES.dataCenterOdd }],
-      [{ v:'Beban Pokok Penjualan (HPP)', s:STYLES.dataEven }, { v:eng.hpp, s:STYLES.dataNumEven }, { v:'Biaya langsung bahan baku warkop', s:STYLES.dataEven }, { v:'TERCATAT', s:STYLES.dataCenterEven }],
-      [{ v:'Total Beban Operasional', s:STYLES.dataOdd }, { v:eng.totalBebanOperasional, s:STYLES.dataNumOdd }, { v:'Listrik, gas, gaji, penyusutan & operasional', s:STYLES.dataOdd }, { v:'TERCATAT', s:STYLES.dataCenterOdd }],
-      [{ v:'Laba Bersih Berjalan', s:STYLES.dataEven }, { v:eng.labaBersih, s:STYLES.dataNumEven }, { v:'Hasil usaha periode berjalan', s:STYLES.dataEven }, { v:eng.labaBersih>=0 ? 'SURPLUS' : 'DEFISIT', s:STYLES.dataCenterEven }],
-      [{ v:'Modal Akhir Pemilik', s:STYLES.dataOdd }, { v:eng.modalAkhir, s:STYLES.dataNumOdd }, { v:'Modal awal + Laba bersih - Prive', s:STYLES.dataOdd }, { v:'BALANS', s:STYLES.dataCenterOdd }],
-      [{ v:'Total Aset (Aktiva)', s:STYLES.dataEven }, { v:eng.totalAset, s:STYLES.dataNumEven }, { v:'Kas + Persediaan + Aset Tetap Bersih', s:STYLES.dataEven }, { v:'BALANS', s:STYLES.dataCenterEven }],
-      [{ v:'Total Pasiva (Liabilitas + Ekuitas)', s:STYLES.dataOdd }, { v:eng.totalPasiva, s:STYLES.dataNumOdd }, { v:'Kewajiban + Modal Akhir Pemilik', s:STYLES.dataOdd }, { v:'BALANS', s:STYLES.dataCenterOdd }],
-      [{ v:'Status Keseimbangan Neraca Saldo', s:STYLES.balanceBanner }, { v:'TOTAL DEBIT = TOTAL KREDIT (SELISIH = 0)', s:STYLES.balanceBanner }, { v:'100% BALANS SAK EMKM', s:STYLES.balanceBanner }, { v:'VALID', s:STYLES.balanceBanner }]
+      ['Parameter Akuntansi SAK EMKM', 'Nilai / Posisi (Rp)', 'Keterangan SAK', 'Status Kepatuhan'].map(function(h){ return txtCell(h, STYLES.headerNavy); }),
+      [txtCell('Nama Entitas Usaha', STYLES.dataEven), txtCell('Warkop Hidayah', STYLES.dataEven), txtCell('Usaha Mikro Kuliner F&B', STYLES.dataEven), txtCell('RESMI', STYLES.dataCenterEven)],
+      [txtCell('Pemilik & Pengelola', STYLES.dataOdd), txtCell('Diah', STYLES.dataOdd), txtCell('Penanggung jawab pembukuan & kasir', STYLES.dataOdd), txtCell('AKTIF', STYLES.dataCenterOdd)],
+      [txtCell('Modal Awal Disetor', STYLES.dataEven), numCell(eng.modalAwal, STYLES.dataNumEven), txtCell('Penyetoran modal pendirian warkop', STYLES.dataEven), txtCell('LENGKAP', STYLES.dataCenterEven)],
+      [txtCell('Total Pendapatan Usaha (Omzet)', STYLES.dataOdd), numCell(eng.rev, STYLES.dataNumOdd), txtCell('Akumulasi transaksi kasir POS warkop', STYLES.dataOdd), txtCell('TERCATAT', STYLES.dataCenterOdd)],
+      [txtCell('Beban Pokok Penjualan (HPP)', STYLES.dataEven), numCell(eng.hpp, STYLES.dataNumEven), txtCell('Biaya langsung bahan baku & persediaan (50%)', STYLES.dataEven), txtCell('TERCATAT', STYLES.dataCenterEven)],
+      [txtCell('Laba Kotor Usaha', STYLES.dataOdd), numCell(eng.labaKotor, STYLES.dataNumOdd), txtCell('Omzet penjualan dikurangi HPP', STYLES.dataOdd), txtCell('TERCATAT', STYLES.dataCenterOdd)],
+      [txtCell('Total Beban Operasional', STYLES.dataEven), numCell(eng.totalBebanOperasional, STYLES.dataNumEven), txtCell('Beban listrik, gas, gaji kasir & penyusutan', STYLES.dataEven), txtCell('TERCATAT', STYLES.dataCenterEven)],
+      [txtCell('Laba Bersih Periode Berjalan', STYLES.dataOdd), numCell(eng.labaBersih, STYLES.dataNumOdd), txtCell('Hasil usaha bersih warkop periode berjalan', STYLES.dataOdd), txtCell(eng.labaBersih>=0 ? 'SURPLUS' : 'DEFISIT', STYLES.dataCenterOdd)],
+      [txtCell('Pengambilan Prive Pemilik', STYLES.dataEven), numCell(eng.prive, STYLES.dataNumEven), txtCell('Pengambilan pribadi pemilik warkop', STYLES.dataEven), txtCell('TERCATAT', STYLES.dataCenterEven)],
+      [txtCell('Modal Akhir Pemilik', STYLES.dataOdd), numCell(eng.modalAkhir, STYLES.dataNumOdd), txtCell('Modal awal + Laba bersih - Prive', STYLES.dataOdd), txtCell('BALANS', STYLES.dataCenterOdd)],
+      [txtCell('Kas dan Setara Kas', STYLES.dataEven), numCell(eng.kasDanSetaraKas, STYLES.dataNumEven), txtCell('Kas di Laci POS (' + fmtRp(eng.kasLaci) + ') + Bank (' + fmtRp(eng.kasBank) + ')', STYLES.dataEven), txtCell('TERSEDIA', STYLES.dataCenterEven)],
+      [txtCell('Nilai Persediaan Bahan/Stok', STYLES.dataOdd), numCell(eng.nilaiPersediaan, STYLES.dataNumOdd), txtCell('Nilai sisa fisik persediaan metode FIFO/HPP', STYLES.dataOdd), txtCell('TERCATAT', STYLES.dataCenterOdd)],
+      [txtCell('Total Aset (Aktiva)', STYLES.dataEven), numCell(eng.totalAset, STYLES.dataNumEven), txtCell('Kas + Persediaan + Aset Tetap Bersih', STYLES.dataEven), txtCell('BALANS', STYLES.dataCenterEven)],
+      [txtCell('Total Pasiva (Liabilitas + Ekuitas)', STYLES.dataOdd), numCell(eng.totalPasiva, STYLES.dataNumOdd), txtCell('Kewajiban (' + fmtRp(eng.totalLiabilitas) + ') + Modal Akhir Pemilik', STYLES.dataOdd), txtCell('BALANS', STYLES.dataCenterOdd)]
     ];
+    var bannerRowIdx1 = rowsProfile.length;
+    rowsProfile.push([
+      txtCell('STATUS KESEIMBANGAN: TOTAL DEBIT = TOTAL KREDIT (SELISIH = Rp 0) — 100% BALANS SAK EMKM', STYLES.balanceBanner),
+      txtCell('', STYLES.balanceBanner),
+      txtCell('', STYLES.balanceBanner),
+      txtCell('VALID', STYLES.balanceBanner)
+    ]);
     var wsProfile = XLSX.utils.aoa_to_sheet(rowsProfile);
-    wsProfile['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:3} }, { s:{r:1,c:0}, e:{r:1,c:3} }, { s:{r:14,c:0}, e:{r:14,c:3} }];
-    wsProfile['!cols'] = [{wch:32},{wch:24},{wch:38},{wch:16}];
+    wsProfile['!merges'] = [
+      { s:{r:0,c:0}, e:{r:0,c:3} },
+      { s:{r:1,c:0}, e:{r:1,c:3} },
+      { s:{r:bannerRowIdx1,c:0}, e:{r:bannerRowIdx1,c:2} }
+    ];
+    wsProfile['!cols'] = [{wch:32},{wch:24},{wch:44},{wch:16}];
     XLSX.utils.book_append_sheet(wb, wsProfile, 'Ringkasan SAK');
   }
 
   /* ════════════ SHEET 2: BAGAN AKUN (COA) ════════════ */
   if(type === 'coa' || type === 'siklus_akuntansi' || type === 'all'){
     var rowsCoa = [
-      [{ v:'BAGAN AKUN (CHART OF ACCOUNTS / COA) — WARKOP HIDAYAH', s:STYLES.title }, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}],
-      [{ v:'Standar Bagan Akun Berjenjang SAK EMKM | Tanggal: ' + dateStr, s:STYLES.subtitle }, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}],
+      [txtCell('BAGAN AKUN (CHART OF ACCOUNTS / COA) — WARKOP HIDAYAH', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title)],
+      [txtCell('Standar Bagan Akun Berjenjang SAK EMKM | Tanggal: ' + dateStr, STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle)],
       [],
-      ['Kode Akun', 'Nama Akun Akuntansi', 'Klasifikasi SAK', 'Saldo Normal', 'Saldo Berjalan (Rp)', 'Keterangan & Kebijakan Akuntansi'].map(function(h){ return { v:h, s:STYLES.headerNavy }; })
+      ['Kode Akun', 'Nama Akun Akuntansi', 'Klasifikasi SAK', 'Saldo Normal', 'Saldo Berjalan (Rp)', 'Keterangan & Kebijakan Akuntansi'].map(function(h){ return txtCell(h, STYLES.headerNavy); })
     ];
+    var totCoaBal = 0;
     for(var c=0; c<eng.accountsList.length; c++){
       var acc = eng.accountsList[c];
       var isOdd = (c % 2 === 1);
       var sD = isOdd ? STYLES.dataOdd : STYLES.dataEven;
       var sN = isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven;
       var curBal = (acc.normal === 'Debit' ? acc.balanceDebit : acc.balanceCredit);
+      totCoaBal += curBal;
       rowsCoa.push([
-        { v: acc.code, s: sD },
-        { v: acc.name, s: sD },
-        { v: acc.cat, s: sD },
-        { v: acc.normal, s: isOdd ? STYLES.dataCenterOdd : STYLES.dataCenterEven },
-        { v: curBal, s: sN },
-        { v: acc.desc, s: sD }
+        txtCell(acc.code, sD),
+        txtCell(acc.name, sD),
+        txtCell(acc.cat, sD),
+        txtCell(acc.normal, isOdd ? STYLES.dataCenterOdd : STYLES.dataCenterEven),
+        numCell(curBal, sN),
+        txtCell(acc.desc, sD)
       ]);
     }
+    rowsCoa.push([
+      txtCell('TOTAL COA', STYLES.totalRow),
+      txtCell(eng.accountsList.length + ' Akun Terdaftar', STYLES.totalRow),
+      txtCell('', STYLES.totalRow),
+      txtCell('', STYLES.totalRow),
+      numCell(totCoaBal, STYLES.totalNum),
+      txtCell('Semua akun terintegrasi ke Buku Besar & Laporan Keuangan', STYLES.totalRow)
+    ]);
     var wsCoa = XLSX.utils.aoa_to_sheet(rowsCoa);
     wsCoa['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:5} }, { s:{r:1,c:0}, e:{r:1,c:5} }];
-    wsCoa['!cols'] = [{wch:14},{wch:38},{wch:24},{wch:14},{wch:20},{wch:46}];
+    wsCoa['!cols'] = [{wch:14},{wch:38},{wch:24},{wch:14},{wch:20},{wch:48}];
     XLSX.utils.book_append_sheet(wb, wsCoa, 'Bagan Akun (COA)');
   }
 
   /* ════════════ SHEET 3: JURNAL PENJUALAN ════════════ */
   if(type === 'jurnal_khusus' || type === 'siklus_akuntansi' || type === 'all'){
     var rowsJP = [
-      [{ v:'JURNAL KHUSUS PENJUALAN (SALES JOURNAL) — WARKOP HIDAYAH', s:STYLES.title }, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}],
-      [{ v:'Tanggal: ' + dateStr + ' | Kasir: ' + cashierName, s:STYLES.subtitle }, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}],
+      [txtCell('JURNAL KHUSUS PENJUALAN (SALES JOURNAL) — WARKOP HIDAYAH', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title)],
+      [txtCell('Tanggal: ' + dateStr + ' | Kasir: ' + cashierName, STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle)],
       [],
-      ['Tanggal', 'No. Faktur / ID', 'Pelanggan / Meja', 'Kasir', 'Metode Bayar', 'Debit: Kas/QRIS (Rp)', 'Kredit: Penjualan (Rp)'].map(function(h){ return { v:h, s:STYLES.header }; })
+      ['Tanggal', 'No. Faktur / ID', 'Pelanggan / Meja', 'Kasir', 'Metode Bayar', 'Debit: Kas/Bank (Rp)', 'Kredit: Penjualan (Rp)'].map(function(h){ return txtCell(h, STYLES.headerPink); })
     ];
-    var totJP = 0;
-    for(var j=0; j<orders.length; j++){
-      var o = orders[j];
-      var d = new Date(o.ts);
+    var listPJ = eng.specialJournals.penjualan;
+    for(var j=0; j<listPJ.length; j++){
+      var o = listPJ[j];
       var isOdd = (j % 2 === 1);
-      totJP += o.total;
+      var sD = isOdd ? STYLES.dataOdd : STYLES.dataEven;
+      var sC = isOdd ? STYLES.dataCenterOdd : STYLES.dataCenterEven;
+      var sN = isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven;
       rowsJP.push([
-        { v: d.toLocaleDateString('id-ID'), s: isOdd ? STYLES.dataCenterOdd : STYLES.dataCenterEven },
-        { v: o.id, s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: o.tableName, s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: o.cashier || 'Diah', s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: o.payMethod.toUpperCase(), s: isOdd ? STYLES.dataCenterOdd : STYLES.dataCenterEven },
-        { v: o.total, s: isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven },
-        { v: o.total, s: isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven }
+        txtCell(o.date, sC),
+        txtCell(o.id, sD),
+        txtCell(o.customer + (o.itemsCount ? ' (' + o.itemsCount + ' item)' : ''), sD),
+        txtCell(o.cashier || 'Diah', sD),
+        txtCell(o.method, sC),
+        numCell(o.amount, sN),
+        numCell(o.amount, sN)
       ]);
     }
     rowsJP.push([
-      { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow },
-      { v:'TOTAL PENJUALAN', s:STYLES.totalRow },
-      { v:totJP, s:STYLES.totalNum },
-      { v:totJP, s:STYLES.totalNum }
+      txtCell('', STYLES.totalRow), txtCell('', STYLES.totalRow), txtCell('', STYLES.totalRow), txtCell('', STYLES.totalRow),
+      txtCell('TOTAL JURNAL PENJUALAN', STYLES.totalRow),
+      numCell(eng.specialJournals.totalPenjualan, STYLES.totalNum),
+      numCell(eng.specialJournals.totalPenjualan, STYLES.totalNum)
     ]);
     var wsJP = XLSX.utils.aoa_to_sheet(rowsJP);
     wsJP['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:6} }, { s:{r:1,c:0}, e:{r:1,c:6} }];
-    wsJP['!cols'] = [{wch:14},{wch:18},{wch:26},{wch:14},{wch:15},{wch:20},{wch:20}];
+    wsJP['!cols'] = [{wch:14},{wch:18},{wch:28},{wch:14},{wch:15},{wch:20},{wch:20}];
     XLSX.utils.book_append_sheet(wb, wsJP, 'Jurnal Penjualan');
   }
 
   /* ════════════ SHEET 4: JURNAL PEMBELIAN ════════════ */
   if(type === 'jurnal_khusus' || type === 'siklus_akuntansi' || type === 'all'){
     var rowsPB = [
-      [{ v:'JURNAL KHUSUS PEMBELIAN (PURCHASES JOURNAL) — WARKOP HIDAYAH', s:STYLES.title }, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}],
-      [{ v:'Tanggal: ' + dateStr + ' | Kasir: ' + cashierName, s:STYLES.subtitle }, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}],
+      [txtCell('JURNAL KHUSUS PEMBELIAN (PURCHASES JOURNAL) — WARKOP HIDAYAH', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title)],
+      [txtCell('Tanggal: ' + dateStr + ' | Kasir: ' + cashierName, STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle)],
       [],
-      ['Tanggal', 'No. Bukti / ID', 'Keterangan Barang / Supplier', 'Kasir', 'Debit: Persediaan (Rp)', 'Kredit: Kas/Utang (Rp)'].map(function(h){ return { v:h, s:STYLES.headerGreen }; })
+      ['Tanggal', 'No. Bukti / ID', 'Keterangan Barang / Supplier', 'Kasir', 'Debit: Persediaan 1-1300 (Rp)', 'Kredit: Kas/Utang (Rp)'].map(function(h){ return txtCell(h, STYLES.headerGreen); })
     ];
-    var totPB = 0;
-    var pbIdx = 0;
-    for(var e=0; e<expenses.length; e++){
-      var exp = expenses[e];
-      if(exp.cat !== 'stok') continue;
-      var d = new Date(exp.ts);
-      var isOdd = (pbIdx % 2 === 1);
-      pbIdx++;
-      totPB += exp.amount;
+    var listPB = eng.specialJournals.pembelian;
+    for(var pb=0; pb<listPB.length; pb++){
+      var pItem = listPB[pb];
+      var isOdd = (pb % 2 === 1);
+      var sD = isOdd ? STYLES.dataOdd : STYLES.dataEven;
+      var sC = isOdd ? STYLES.dataCenterOdd : STYLES.dataCenterEven;
+      var sN = isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven;
       rowsPB.push([
-        { v: d.toLocaleDateString('id-ID'), s: isOdd ? STYLES.dataCenterOdd : STYLES.dataCenterEven },
-        { v: exp.id, s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: exp.desc + (exp.stockItem ? ' [+' + exp.stockItem.qtyAdded + ' ' + exp.stockItem.productName + ']' : ''), s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: exp.cashier || 'Diah', s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: exp.amount, s: isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven },
-        { v: exp.amount, s: isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven }
+        txtCell(pItem.date, sC),
+        txtCell(pItem.id, sD),
+        txtCell(pItem.desc, sD),
+        txtCell(pItem.cashier || 'Diah', sD),
+        numCell(pItem.amount, sN),
+        numCell(pItem.amount, sN)
       ]);
     }
     rowsPB.push([
-      { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow },
-      { v:'TOTAL PEMBELIAN', s:STYLES.totalRow },
-      { v:totPB, s:STYLES.totalNum },
-      { v:totPB, s:STYLES.totalNum }
+      txtCell('', STYLES.totalRow), txtCell('', STYLES.totalRow), txtCell('', STYLES.totalRow),
+      txtCell('TOTAL JURNAL PEMBELIAN', STYLES.totalRow),
+      numCell(eng.specialJournals.totalPembelian, STYLES.totalNum),
+      numCell(eng.specialJournals.totalPembelian, STYLES.totalNum)
     ]);
     var wsPB = XLSX.utils.aoa_to_sheet(rowsPB);
     wsPB['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:5} }, { s:{r:1,c:0}, e:{r:1,c:5} }];
-    wsPB['!cols'] = [{wch:14},{wch:16},{wch:40},{wch:14},{wch:20},{wch:20}];
+    wsPB['!cols'] = [{wch:14},{wch:16},{wch:42},{wch:14},{wch:24},{wch:20}];
     XLSX.utils.book_append_sheet(wb, wsPB, 'Jurnal Pembelian');
   }
 
   /* ════════════ SHEET 5: JURNAL PENERIMAAN KAS ════════════ */
   if(type === 'jurnal_khusus' || type === 'siklus_akuntansi' || type === 'all'){
     var rowsKM = [
-      [{ v:'JURNAL PENERIMAAN KAS (CASH RECEIPTS JOURNAL) — WARKOP HIDAYAH', s:STYLES.title }, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}],
-      [{ v:'Tanggal: ' + dateStr + ' | Kasir: ' + cashierName, s:STYLES.subtitle }, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}],
+      [txtCell('JURNAL PENERIMAAN KAS (CASH RECEIPTS JOURNAL) — WARKOP HIDAYAH', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title)],
+      [txtCell('Tanggal: ' + dateStr + ' | Kasir: ' + cashierName, STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle)],
       [],
-      ['Tanggal', 'No. Bukti', 'Keterangan Sumber Penerimaan', 'Kasir', 'Debit: Kas Masuk (Rp)', 'Kredit: Akun Lawan (Rp)'].map(function(h){ return { v:h, s:STYLES.headerGreen }; }),
-      // Modal awal
-      [{ v:'01/10/2026', s:STYLES.dataCenterEven }, { v:'BKM-01', s:STYLES.dataEven }, { v:'Setoran Modal Awal Warkop (Diah)', s:STYLES.dataEven }, { v:'Diah', s:STYLES.dataEven }, { v:5000000, s:STYLES.dataNumEven }, { v:5000000, s:STYLES.dataNumEven }]
+      ['Tanggal', 'No. Bukti / Ref', 'Keterangan Sumber Penerimaan', 'Kasir', 'Akun Lawan (Kredit)', 'Debit: Kas Masuk (Rp)'].map(function(h){ return txtCell(h, STYLES.headerGreen); })
     ];
-    var totKM = 5000000;
-    for(var k=0; k<orders.length; k++){
-      var ord = orders[k];
-      var d = new Date(ord.ts);
+    var listKM = eng.specialJournals.kas_masuk;
+    for(var k=0; k<listKM.length; k++){
+      var itemKM = listKM[k];
       var isOdd = (k % 2 === 1);
-      totKM += ord.total;
+      var sD = isOdd ? STYLES.dataOdd : STYLES.dataEven;
+      var sC = isOdd ? STYLES.dataCenterOdd : STYLES.dataCenterEven;
+      var sN = isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven;
       rowsKM.push([
-        { v: d.toLocaleDateString('id-ID'), s: isOdd ? STYLES.dataCenterOdd : STYLES.dataCenterEven },
-        { v: ord.id, s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: 'Penerimaan Penjualan ' + ord.tableName + ' (' + ord.payMethod.toUpperCase() + ')', s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: ord.cashier || 'Diah', s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: ord.total, s: isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven },
-        { v: ord.total, s: isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven }
+        txtCell(itemKM.date, sC),
+        txtCell(itemKM.ref, sD),
+        txtCell(itemKM.desc, sD),
+        txtCell(itemKM.cashier || 'Diah', sD),
+        txtCell(itemKM.creditCoaName || itemKM.creditCoa, sD),
+        numCell(itemKM.debit, sN)
       ]);
     }
     rowsKM.push([
-      { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow },
-      { v:'TOTAL PENERIMAAN KAS', s:STYLES.totalRow },
-      { v:totKM, s:STYLES.totalNum },
-      { v:totKM, s:STYLES.totalNum }
+      txtCell('', STYLES.totalRow), txtCell('', STYLES.totalRow), txtCell('', STYLES.totalRow), txtCell('', STYLES.totalRow),
+      txtCell('TOTAL PENERIMAAN KAS', STYLES.totalRow),
+      numCell(eng.specialJournals.totalKasMasuk, STYLES.totalNum)
     ]);
     var wsKM = XLSX.utils.aoa_to_sheet(rowsKM);
     wsKM['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:5} }, { s:{r:1,c:0}, e:{r:1,c:5} }];
-    wsKM['!cols'] = [{wch:14},{wch:16},{wch:42},{wch:14},{wch:22},{wch:22}];
+    wsKM['!cols'] = [{wch:14},{wch:16},{wch:44},{wch:14},{wch:26},{wch:22}];
     XLSX.utils.book_append_sheet(wb, wsKM, 'Jurnal Kas Masuk');
   }
 
   /* ════════════ SHEET 6: JURNAL PENGELUARAN KAS ════════════ */
   if(type === 'jurnal_khusus' || type === 'siklus_akuntansi' || type === 'all'){
     var rowsKK = [
-      [{ v:'JURNAL PENGELUARAN KAS (CASH DISBURSEMENTS JOURNAL) — WARKOP HIDAYAH', s:STYLES.title }, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}],
-      [{ v:'Tanggal: ' + dateStr + ' | Kasir: ' + cashierName, s:STYLES.subtitle }, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}],
+      [txtCell('JURNAL PENGELUARAN KAS (CASH DISBURSEMENTS JOURNAL) — WARKOP HIDAYAH', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title)],
+      [txtCell('Tanggal: ' + dateStr + ' | Kasir: ' + cashierName, STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle)],
       [],
-      ['Tanggal', 'No. Bukti / ID', 'Keterangan / Keperluan', 'Kasir', 'Akun Yang Didebit', 'Kredit: Kas Keluar (Rp)'].map(function(h){ return { v:h, s:STYLES.header }; })
+      ['Tanggal', 'No. Bukti / ID', 'Keterangan / Keperluan Pengeluaran', 'Kasir', 'Akun Yang Didebit', 'Kredit: Kas Keluar (Rp)'].map(function(h){ return txtCell(h, STYLES.headerPink); })
     ];
-    var totKK = 0;
-    for(var x=0; x<expenses.length; x++){
-      var exp = expenses[x];
-      var d = new Date(exp.ts);
+    var listKK = eng.specialJournals.kas_keluar;
+    for(var x=0; x<listKK.length; x++){
+      var itemKK = listKK[x];
       var isOdd = (x % 2 === 1);
-      totKK += exp.amount;
+      var sD = isOdd ? STYLES.dataOdd : STYLES.dataEven;
+      var sC = isOdd ? STYLES.dataCenterOdd : STYLES.dataCenterEven;
+      var sN = isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven;
       rowsKK.push([
-        { v: d.toLocaleDateString('id-ID'), s: isOdd ? STYLES.dataCenterOdd : STYLES.dataCenterEven },
-        { v: exp.id, s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: exp.desc + (exp.note ? ' (' + exp.note + ')' : ''), s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: exp.cashier || 'Diah', s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: exp.coaName || exp.cat, s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: exp.amount, s: isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven }
+        txtCell(itemKK.date, sC),
+        txtCell(itemKK.ref, sD),
+        txtCell(itemKK.desc, sD),
+        txtCell(itemKK.cashier || 'Diah', sD),
+        txtCell(itemKK.debitCoaName || itemKK.debitCoa, sD),
+        numCell(itemKK.credit, sN)
       ]);
     }
     rowsKK.push([
-      { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow },
-      { v:'TOTAL PENGELUARAN KAS', s:STYLES.totalRow },
-      { v:totKK, s:STYLES.totalNum }
+      txtCell('', STYLES.totalRow), txtCell('', STYLES.totalRow), txtCell('', STYLES.totalRow), txtCell('', STYLES.totalRow),
+      txtCell('TOTAL PENGELUARAN KAS', STYLES.totalRow),
+      numCell(eng.specialJournals.totalKasKeluar, STYLES.totalNum)
     ]);
     var wsKK = XLSX.utils.aoa_to_sheet(rowsKK);
     wsKK['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:5} }, { s:{r:1,c:0}, e:{r:1,c:5} }];
-    wsKK['!cols'] = [{wch:14},{wch:16},{wch:42},{wch:14},{wch:26},{wch:22}];
+    wsKK['!cols'] = [{wch:14},{wch:16},{wch:44},{wch:14},{wch:26},{wch:22}];
     XLSX.utils.book_append_sheet(wb, wsKK, 'Jurnal Kas Keluar');
   }
 
   /* ════════════ SHEET 7: JURNAL UMUM (MEMORIAL) ════════════ */
   if(type === 'jurnal_umum' || type === 'siklus_akuntansi' || type === 'all'){
     var rowsJU = [
-      [{ v:'JURNAL UMUM (GENERAL JOURNAL / MEMORIAL) — WARKOP HIDAYAH', s:STYLES.title }, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}],
-      [{ v:'Tanggal: ' + dateStr + ' | Entri Penyesuaian, Modal, & Non-Kas SAK EMKM', s:STYLES.subtitle }, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}],
+      [txtCell('JURNAL UMUM (GENERAL JOURNAL / MEMORIAL) — WARKOP HIDAYAH', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title)],
+      [txtCell('Tanggal: ' + dateStr + ' | Entri Penyesuaian, Modal, & Non-Kas SAK EMKM', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle)],
       [],
-      ['Tanggal', 'No. Bukti', 'Keterangan Akun & Transaksi', 'Ref COA', 'Debit (Rp)', 'Kredit (Rp)'].map(function(h){ return { v:h, s:STYLES.headerNavy }; })
+      ['Tanggal', 'No. Bukti / Ref', 'Keterangan Akun & Transaksi', 'Ref COA', 'Debit (Rp)', 'Kredit (Rp)'].map(function(h){ return txtCell(h, STYLES.headerNavy); })
     ];
     var totDebitJU = 0;
     var totCreditJU = 0;
-    for(var g=0; g<generalJournals.length; g++){
-      var gj = generalJournals[g];
+    for(var g=0; g<eng.generalJournals.length; g++){
+      var gj = eng.generalJournals[g];
       for(var l=0; l<gj.lines.length; l++){
         var line = gj.lines[l];
         var isFirst = (l === 0);
         var isIndent = (line.credit > 0 && line.debit === 0);
-        totDebitJU += (line.debit || 0);
-        totCreditJU += (line.credit || 0);
+        var dVal = Number(line.debit || 0);
+        var cVal = Number(line.credit || 0);
+        totDebitJU += dVal;
+        totCreditJU += cVal;
         rowsJU.push([
-          { v: isFirst ? gj.date : '', s: STYLES.dataCenterEven },
-          { v: isFirst ? (gj.ref || gj.id) : '', s: STYLES.dataEven },
-          { v: (isIndent ? '    ' : '') + line.name + (l === gj.lines.length-1 && gj.desc ? ' (' + gj.desc + ')' : ''), s: STYLES.dataEven },
-          { v: line.coa, s: STYLES.dataCenterEven },
-          { v: line.debit > 0 ? line.debit : '', s: line.debit > 0 ? STYLES.dataNumEven : STYLES.dataEven },
-          { v: line.credit > 0 ? line.credit : '', s: line.credit > 0 ? STYLES.dataNumEven : STYLES.dataEven }
+          txtCell(isFirst ? gj.date : '', STYLES.dataCenterEven),
+          txtCell(isFirst ? (gj.ref || gj.id) : '', STYLES.dataEven),
+          txtCell((isIndent ? '    — ' : '') + line.name + (l === gj.lines.length-1 && gj.desc ? ' (' + gj.desc + ')' : ''), STYLES.dataEven),
+          txtCell(line.coa, STYLES.dataCenterEven),
+          numCell(dVal > 0 ? dVal : 0, dVal > 0 ? STYLES.dataNumEven : STYLES.dataEven),
+          numCell(cVal > 0 ? cVal : 0, cVal > 0 ? STYLES.dataNumEven : STYLES.dataEven)
         ]);
       }
     }
     rowsJU.push([
-      { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:'TOTAL JURNAL UMUM', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow },
-      { v:totDebitJU, s:STYLES.totalNum },
-      { v:totCreditJU, s:STYLES.totalNum }
+      txtCell('', STYLES.totalRow), txtCell('', STYLES.totalRow), txtCell('TOTAL JURNAL UMUM', STYLES.totalRow), txtCell('', STYLES.totalRow),
+      numCell(totDebitJU, STYLES.totalNum),
+      numCell(totCreditJU, STYLES.totalNum)
     ]);
     var wsJU = XLSX.utils.aoa_to_sheet(rowsJU);
     wsJU['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:5} }, { s:{r:1,c:0}, e:{r:1,c:5} }];
-    wsJU['!cols'] = [{wch:14},{wch:16},{wch:44},{wch:14},{wch:20},{wch:20}];
+    wsJU['!cols'] = [{wch:14},{wch:16},{wch:46},{wch:14},{wch:20},{wch:20}];
     XLSX.utils.book_append_sheet(wb, wsJU, 'Jurnal Umum');
   }
 
   /* ════════════ SHEET 8: BUKU BESAR (GENERAL LEDGER) ════════════ */
   if(type === 'buku_besar' || type === 'siklus_akuntansi' || type === 'all'){
     var rowsGL = [
-      [{ v:'BUKU BESAR UMUM (GENERAL LEDGER) — WARKOP HIDAYAH', s:STYLES.title }, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}],
-      [{ v:'Ikhtisar Mutasi Debit, Kredit, & Saldo Berjalan Tiap Akun SAK EMKM | Tanggal: ' + dateStr, s:STYLES.subtitle }, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}],
+      [txtCell('BUKU BESAR UMUM (GENERAL LEDGER) — WARKOP HIDAYAH', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title)],
+      [txtCell('Ikhtisar Mutasi Debit, Kredit, & Saldo Berjalan Tiap Akun SAK EMKM | Tanggal: ' + dateStr, STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle)],
       [],
-      ['Tanggal', 'Keterangan Mutasi', 'No. Ref', 'Debit (Rp)', 'Kredit (Rp)', 'Saldo Berjalan (Rp)'].map(function(h){ return { v:h, s:STYLES.headerNavy }; })
+      ['Tanggal', 'Keterangan Mutasi', 'No. Ref', 'Debit (Rp)', 'Kredit (Rp)', 'Saldo Berjalan (Rp)'].map(function(h){ return txtCell(h, STYLES.headerNavy); })
     ];
+    var mergesGL = [
+      { s:{r:0,c:0}, e:{r:0,c:5} },
+      { s:{r:1,c:0}, e:{r:1,c:5} }
+    ];
+
     for(var a=0; a<eng.accountsList.length; a++){
       var acc = eng.accountsList[a];
+      var curBal = (acc.normal === 'Debit' ? acc.balanceDebit : acc.balanceCredit);
+      var headerRowIdx = rowsGL.length;
       rowsGL.push([
-        { v: 'AKUN: ' + acc.code + ' — ' + acc.name, s: STYLES.section }, {v:'',s:STYLES.section}, {v:'',s:STYLES.section},
-        { v: 'Saldo Normal: ' + acc.normal, s: STYLES.section }, {v:'',s:STYLES.section},
-        { v: (acc.normal === 'Debit' ? acc.balanceDebit : acc.balanceCredit), s: STYLES.section }
+        txtCell('AKUN: ' + acc.code + ' — ' + acc.name + ' (' + acc.cat + ')', STYLES.section),
+        txtCell('', STYLES.section),
+        txtCell('', STYLES.section),
+        txtCell('Saldo Normal: ' + acc.normal, STYLES.section),
+        txtCell('Saldo Akhir:', STYLES.section),
+        numCell(curBal, STYLES.sectionNum)
       ]);
+      mergesGL.push({ s:{r:headerRowIdx,c:0}, e:{r:headerRowIdx,c:2} });
+
       var rBal = 0;
+      var totDebAcc = 0;
+      var totCredAcc = 0;
+
       if(acc.entries.length === 0){
         rowsGL.push([
-          { v: dateStr, s: STYLES.dataCenterEven }, { v: 'Saldo Awal / Tidak ada mutasi', s: STYLES.dataEven }, { v: '—', s: STYLES.dataCenterEven },
-          { v: 0, s: STYLES.dataNumEven }, { v: 0, s: STYLES.dataNumEven }, { v: 0, s: STYLES.dataNumEven }
+          txtCell(dateStr, STYLES.dataCenterEven),
+          txtCell('Saldo Awal / Tidak ada mutasi', STYLES.dataEven),
+          txtCell('—', STYLES.dataCenterEven),
+          numCell(0, STYLES.dataNumEven),
+          numCell(0, STYLES.dataNumEven),
+          numCell(0, STYLES.dataNumEven)
         ]);
       } else {
         for(var en=0; en<acc.entries.length; en++){
           var ent = acc.entries[en];
-          if(acc.normal === 'Debit') rBal += (ent.debit - ent.credit);
-          else rBal += (ent.credit - ent.debit);
+          var isOdd = (en % 2 === 1);
+          var sD = isOdd ? STYLES.dataOdd : STYLES.dataEven;
+          var sC = isOdd ? STYLES.dataCenterOdd : STYLES.dataCenterEven;
+          var sN = isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven;
+          var dVal = Number(ent.debit || 0);
+          var cVal = Number(ent.credit || 0);
+          totDebAcc += dVal;
+          totCredAcc += cVal;
+          if(acc.normal === 'Debit') rBal += (dVal - cVal);
+          else rBal += (cVal - dVal);
+
           rowsGL.push([
-            { v: ent.date, s: STYLES.dataCenterEven },
-            { v: ent.desc, s: STYLES.dataEven },
-            { v: ent.ref, s: STYLES.dataCenterEven },
-            { v: ent.debit > 0 ? ent.debit : 0, s: STYLES.dataNumEven },
-            { v: ent.credit > 0 ? ent.credit : 0, s: STYLES.dataNumEven },
-            { v: rBal, s: STYLES.dataNumEven }
+            txtCell(ent.date, sC),
+            txtCell(ent.desc, sD),
+            txtCell(ent.ref, sC),
+            numCell(dVal, sN),
+            numCell(cVal, sN),
+            numCell(rBal, sN)
           ]);
         }
       }
-      rowsGL.push([]);
+
+      // Summary / Subtotal row per account
+      rowsGL.push([
+        txtCell('', STYLES.subtotalRow),
+        txtCell('TOTAL MUTASI & SALDO AKHIR [' + acc.code + ']', STYLES.subtotalRow),
+        txtCell('', STYLES.subtotalRow),
+        numCell(totDebAcc, STYLES.subtotalNum),
+        numCell(totCredAcc, STYLES.subtotalNum),
+        numCell(curBal, STYLES.subtotalNum)
+      ]);
+      rowsGL.push([]); // blank separator
     }
+
     var wsGL = XLSX.utils.aoa_to_sheet(rowsGL);
-    wsGL['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:5} }, { s:{r:1,c:0}, e:{r:1,c:5} }];
-    wsGL['!cols'] = [{wch:14},{wch:42},{wch:16},{wch:18},{wch:18},{wch:22}];
+    wsGL['!merges'] = mergesGL;
+    wsGL['!cols'] = [{wch:14},{wch:44},{wch:16},{wch:18},{wch:18},{wch:22}];
     XLSX.utils.book_append_sheet(wb, wsGL, 'Buku Besar');
   }
 
   /* ════════════ SHEET 9: BUKU PEMBANTU STOK PERSEDIAAN ════════════ */
   if(type === 'buku_besar' || type === 'stok' || type === 'siklus_akuntansi' || type === 'all'){
     var rowsStokP = [
-      [{ v:'BUKU PEMBANTU PERSEDIAAN STOK BARANG — WARKOP HIDAYAH', s:STYLES.title }, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}],
-      [{ v:'Rincian Fisik & Nilai Perolehan Persediaan Metode SAK EMKM | Tanggal: ' + dateStr, s:STYLES.subtitle }, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}],
+      [txtCell('BUKU PEMBANTU PERSEDIAAN STOK BARANG — WARKOP HIDAYAH', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title)],
+      [txtCell('Rincian Fisik & Nilai Perolehan Persediaan Metode SAK EMKM | Tanggal: ' + dateStr, STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle)],
       [],
-      ['No', 'Kode COA', 'Nama Menu / Bahan', 'Kategori', 'Sisa Stok', 'Harga Jual (Rp)', 'Nilai Sisa HPP (Rp)'].map(function(h){ return { v:h, s:STYLES.headerGreen }; })
+      ['No', 'Kode COA', 'Nama Menu / Bahan', 'Kategori', 'Sisa Stok', 'Harga Jual (Rp)', 'Nilai Sisa HPP (Rp)'].map(function(h){ return txtCell(h, STYLES.headerGreen); })
     ];
     var totValS = 0;
     var totQtyS = 0;
+    var validIdx = 0;
     for(var p=0; p<products.length; p++){
       var pr = products[p];
       if(pr.isCustomSeblak) continue;
-      var isOdd = (p % 2 === 1);
+      validIdx++;
+      var isOdd = (validIdx % 2 === 1);
+      var sD = isOdd ? STYLES.dataOdd : STYLES.dataEven;
+      var sC = isOdd ? STYLES.dataCenterOdd : STYLES.dataCenterEven;
+      var sN = isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven;
       var coa = pr.coa || getProductCoa(pr);
       var val = Math.round((pr.stock || 0) * (pr.price || 0) * HPP_RATIO);
       totValS += val;
       totQtyS += (pr.stock || 0);
       rowsStokP.push([
-        { v: p+1, s: isOdd ? STYLES.dataCenterOdd : STYLES.dataCenterEven },
-        { v: coa, s: isOdd ? STYLES.dataCenterOdd : STYLES.dataCenterEven },
-        { v: pr.name, s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: pr.catLabel || pr.cat, s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: pr.stock, s: isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven },
-        { v: pr.price, s: isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven },
-        { v: val, s: isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven }
+        numCell(validIdx, sC),
+        txtCell(coa, sC),
+        txtCell(pr.name, sD),
+        txtCell(pr.catLabel || pr.cat, sD),
+        numCell(pr.stock, sN),
+        numCell(pr.price, sN),
+        numCell(val, sN)
       ]);
     }
     rowsStokP.push([
-      { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:'TOTAL NILAI PERSEDIAAN', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow },
-      { v:totQtyS, s:STYLES.totalNum }, { v:'', s:STYLES.totalRow },
-      { v:totValS, s:STYLES.totalNum }
+      txtCell('', STYLES.totalRow), txtCell('', STYLES.totalRow), txtCell('TOTAL NILAI PERSEDIAAN', STYLES.totalRow), txtCell('', STYLES.totalRow),
+      numCell(totQtyS, STYLES.totalNum), txtCell('', STYLES.totalRow),
+      numCell(totValS, STYLES.totalNum)
     ]);
     var wsStokP = XLSX.utils.aoa_to_sheet(rowsStokP);
     wsStokP['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:6} }, { s:{r:1,c:0}, e:{r:1,c:6} }];
@@ -6667,42 +6982,46 @@ function doExportExcel(type){
   /* ════════════ SHEET 10: NERACA SALDO (TRIAL BALANCE) ════════════ */
   if(type === 'neraca_saldo' || type === 'siklus_akuntansi' || type === 'all'){
     var rowsTB = [
-      [{ v:'NERACA SALDO (TRIAL BALANCE) — WARKOP HIDAYAH', s:STYLES.title }, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}],
-      [{ v:'Verifikasi Keseimbangan Pembukuan Berpasangan (Double-Entry) SAK EMKM | Tanggal: ' + dateStr, s:STYLES.subtitle }, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}],
+      [txtCell('NERACA SALDO (TRIAL BALANCE) — WARKOP HIDAYAH', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title)],
+      [txtCell('Verifikasi Keseimbangan Pembukuan Berpasangan (Double-Entry) SAK EMKM | Tanggal: ' + dateStr, STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle)],
       [],
-      ['Kode Akun', 'Nama Akun', 'Golongan SAK', 'Mutasi Debit (Rp)', 'Mutasi Kredit (Rp)', 'Saldo Akhir Debit (Rp)', 'Saldo Akhir Kredit (Rp)'].map(function(h){ return { v:h, s:STYLES.headerNavy }; })
+      ['Kode Akun', 'Nama Akun', 'Golongan SAK', 'Mutasi Debit (Rp)', 'Mutasi Kredit (Rp)', 'Saldo Akhir Debit (Rp)', 'Saldo Akhir Kredit (Rp)'].map(function(h){ return txtCell(h, STYLES.headerNavy); })
     ];
     for(var t=0; t<eng.accountsList.length; t++){
-      var a = eng.accountsList[t];
+      var aItem = eng.accountsList[t];
       var isOdd = (t % 2 === 1);
+      var sD = isOdd ? STYLES.dataOdd : STYLES.dataEven;
+      var sC = isOdd ? STYLES.dataCenterOdd : STYLES.dataCenterEven;
+      var sN = isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven;
       rowsTB.push([
-        { v: a.code, s: isOdd ? STYLES.dataCenterOdd : STYLES.dataCenterEven },
-        { v: a.name, s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: a.cat, s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: a.debit > 0 ? a.debit : 0, s: isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven },
-        { v: a.credit > 0 ? a.credit : 0, s: isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven },
-        { v: a.balanceDebit > 0 ? a.balanceDebit : 0, s: isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven },
-        { v: a.balanceCredit > 0 ? a.balanceCredit : 0, s: isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven }
+        txtCell(aItem.code, sC),
+        txtCell(aItem.name, sD),
+        txtCell(aItem.cat, sD),
+        numCell(aItem.debit, sN),
+        numCell(aItem.credit, sN),
+        numCell(aItem.balanceDebit, sN),
+        numCell(aItem.balanceCredit, sN)
       ]);
     }
     rowsTB.push([
-      { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:'TOTAL NERACA SALDO', s:STYLES.totalRow },
-      { v:eng.totalMutasiDebit, s:STYLES.totalNum },
-      { v:eng.totalMutasiCredit, s:STYLES.totalNum },
-      { v:eng.totalTrialDebit, s:STYLES.totalNum },
-      { v:eng.totalTrialCredit, s:STYLES.totalNum }
+      txtCell('', STYLES.totalRow), txtCell('', STYLES.totalRow), txtCell('TOTAL NERACA SALDO', STYLES.totalRow),
+      numCell(eng.totalMutasiDebit, STYLES.totalNum),
+      numCell(eng.totalMutasiCredit, STYLES.totalNum),
+      numCell(eng.totalTrialDebit, STYLES.totalNum),
+      numCell(eng.totalTrialCredit, STYLES.totalNum)
     ]);
     rowsTB.push([]);
+    var tbBannerIdx = rowsTB.length;
     rowsTB.push([
-      { v:'STATUS KESEIMBANGAN', s:STYLES.balanceBanner },
-      { v:'TOTAL DEBIT = TOTAL KREDIT (100% BALANS SESUAI SAK EMKM)', s:STYLES.balanceBanner },
-      { v:'', s:STYLES.balanceBanner }, { v:'', s:STYLES.balanceBanner }, { v:'', s:STYLES.balanceBanner },
-      { v:'SELISIH = Rp 0', s:STYLES.balanceBanner }, { v:'VALID', s:STYLES.balanceBanner }
+      txtCell('STATUS: TOTAL DEBIT = TOTAL KREDIT (Rp ' + fmtRp(eng.totalTrialDebit) + ') — 100% BALANS SESUAI SAK EMKM | SELISIH = Rp 0', STYLES.balanceBanner),
+      txtCell('', STYLES.balanceBanner), txtCell('', STYLES.balanceBanner), txtCell('', STYLES.balanceBanner), txtCell('', STYLES.balanceBanner), txtCell('', STYLES.balanceBanner),
+      txtCell('VALID', STYLES.balanceBanner)
     ]);
     var wsTB = XLSX.utils.aoa_to_sheet(rowsTB);
     wsTB['!merges'] = [
-      { s:{r:0,c:0}, e:{r:0,c:6} }, { s:{r:1,c:0}, e:{r:1,c:6} },
-      { s:{r:rowsTB.length-1,c:1}, e:{r:rowsTB.length-1,c:4} }
+      { s:{r:0,c:0}, e:{r:0,c:6} },
+      { s:{r:1,c:0}, e:{r:1,c:6} },
+      { s:{r:tbBannerIdx,c:0}, e:{r:tbBannerIdx,c:5} }
     ];
     wsTB['!cols'] = [{wch:14},{wch:38},{wch:22},{wch:18},{wch:18},{wch:22},{wch:22}];
     XLSX.utils.book_append_sheet(wb, wsTB, 'Neraca Saldo');
@@ -6711,244 +7030,271 @@ function doExportExcel(type){
   /* ════════════ SHEET 11: LABA RUGI (INCOME STATEMENT) ════════════ */
   if(type === 'keuangan' || type === 'siklus_akuntansi' || type === 'all'){
     var rowsL = [
-      [{ v:'LAPORAN LABA RUGI (INCOME STATEMENT) — WARKOP HIDAYAH', s:STYLES.title }, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}],
-      [{ v:'Sesuai SAK EMKM | Periode s/d: ' + dateStr + ' | Kasir: ' + cashierName, s:STYLES.subtitle }, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}],
+      [txtCell('LAPORAN LABA RUGI (INCOME STATEMENT) — WARKOP HIDAYAH', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title)],
+      [txtCell('Sesuai SAK EMKM | Periode s/d: ' + dateStr + ' | Kasir: ' + cashierName, STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle)],
       [],
-      ['Kode Akun', 'Keterangan Akun / Komponen Laba Rugi', 'Nominal (Rp)', 'Rasio (%)', 'Catatan & Penjelasan SAK'].map(function(h){ return { v:h, s:STYLES.header }; }),
-      [{ v:'4-0000', s:STYLES.section }, { v:'PENDAPATAN USAHA (REVENUE)', s:STYLES.section }, { v:'', s:STYLES.section }, { v:'', s:STYLES.section }, { v:'Arus masuk kas dari penjualan menu warkop', s:STYLES.section }],
-      [{ v:'4-1101', s:STYLES.dataEven }, { v:'Pendapatan Penjualan Menu & Makanan', s:STYLES.dataEven }, { v:eng.rev, s:STYLES.dataNumEven }, { v:'100.0%', s:STYLES.dataCenterEven }, { v:'Akumulasi omzet kasir tercatat', s:STYLES.dataEven }],
-      [{ v:'', s:STYLES.subtotalRow }, { v:'JUMLAH PENDAPATAN USAHA', s:STYLES.subtotalRow }, { v:eng.rev, s:STYLES.subtotalNum }, { v:'100.0%', s:STYLES.subtotalRow }, { v:'Total pendapatan bruto operasional', s:STYLES.subtotalRow }],
+      ['Kode Akun', 'Keterangan Akun / Komponen Laba Rugi', 'Nominal (Rp)', 'Rasio (%)', 'Catatan & Penjelasan SAK'].map(function(h){ return txtCell(h, STYLES.headerPink); }),
+      [txtCell('4-0000', STYLES.section), txtCell('PENDAPATAN USAHA (REVENUE)', STYLES.section), txtCell('', STYLES.section), txtCell('', STYLES.section), txtCell('Arus masuk kas & omzet penjualan menu warkop', STYLES.section)],
+      [txtCell('4-1101', STYLES.dataEven), txtCell('Pendapatan Penjualan Menu & Makanan', STYLES.dataEven), numCell(eng.rev, STYLES.dataNumEven), txtCell('100.0%', STYLES.dataCenterEven), txtCell('Akumulasi omzet kasir POS tercatat', STYLES.dataEven)],
+      [txtCell('', STYLES.subtotalRow), txtCell('JUMLAH PENDAPATAN USAHA', STYLES.subtotalRow), numCell(eng.rev, STYLES.subtotalNum), txtCell('100.0%', STYLES.subtotalRow), txtCell('Total pendapatan bruto operasional', STYLES.subtotalRow)],
       [],
-      [{ v:'5-0000', s:STYLES.section }, { v:'BEBAN POKOK PENJUALAN (HPP)', s:STYLES.section }, { v:'', s:STYLES.section }, { v:'', s:STYLES.section }, { v:'Biaya langsung perolehan persediaan bahan', s:STYLES.section }],
-      [{ v:'5-1101', s:STYLES.dataEven }, { v:'Beban Pokok Penjualan (HPP Bahan Baku 50%)', s:STYLES.dataEven }, { v:eng.hpp, s:STYLES.dataNumEven }, { v:'50.0%', s:STYLES.dataCenterEven }, { v:'Estimasi belanja kopi, teh, bumbu, mie & snack', s:STYLES.dataEven }],
-      [{ v:'', s:STYLES.subtotalRow }, { v:'JUMLAH BEBAN POKOK PENJUALAN', s:STYLES.subtotalRow }, { v:eng.hpp, s:STYLES.subtotalNum }, { v:'50.0%', s:STYLES.subtotalRow }, { v:'Total beban pokok persediaan yang terjual', s:STYLES.subtotalRow }],
+      [txtCell('5-0000', STYLES.section), txtCell('BEBAN POKOK PENJUALAN (HPP)', STYLES.section), txtCell('', STYLES.section), txtCell('', STYLES.section), txtCell('Biaya langsung perolehan persediaan bahan', STYLES.section)],
+      [txtCell('5-1101', STYLES.dataEven), txtCell('Beban Pokok Penjualan (HPP Bahan Baku 50%)', STYLES.dataEven), numCell(eng.hpp, STYLES.dataNumEven), txtCell(eng.rev>0 ? (eng.hpp/eng.rev*100).toFixed(1)+'%' : '50.0%', STYLES.dataCenterEven), txtCell('Belanja kopi, teh, mie, bumbu, telur & snack', STYLES.dataEven)],
+      [txtCell('', STYLES.subtotalRow), txtCell('JUMLAH BEBAN POKOK PENJUALAN', STYLES.subtotalRow), numCell(eng.hpp, STYLES.subtotalNum), txtCell(eng.rev>0 ? (eng.hpp/eng.rev*100).toFixed(1)+'%' : '50.0%', STYLES.subtotalRow), txtCell('Total beban pokok persediaan yang terjual', STYLES.subtotalRow)],
       [],
-      [{ v:'', s:STYLES.totalRow }, { v:'LABA KOTOR (GROSS PROFIT)', s:STYLES.totalRow }, { v:eng.labaKotor, s:STYLES.totalNum }, { v:'50.0%', s:STYLES.totalRow }, { v:'Pendapatan Usaha dikurangi HPP', s:STYLES.totalRow }],
+      [txtCell('', STYLES.totalRow), txtCell('LABA KOTOR (GROSS PROFIT)', STYLES.totalRow), numCell(eng.labaKotor, STYLES.totalNum), txtCell(eng.rev>0 ? (eng.labaKotor/eng.rev*100).toFixed(1)+'%' : '50.0%', STYLES.totalRow), txtCell('Pendapatan Usaha dikurangi HPP', STYLES.totalRow)],
       [],
-      [{ v:'6-0000', s:STYLES.section }, { v:'BEBAN OPERASIONAL USAHA', s:STYLES.section }, { v:'', s:STYLES.section }, { v:'', s:STYLES.section }, { v:'Biaya pendukung kegiatan warkop', s:STYLES.section }],
-      [{ v:'6-1101', s:STYLES.dataEven }, { v:'Beban Listrik, Air, dan Wi-Fi Toko', s:STYLES.dataEven }, { v:eng.bebanListrikAir, s:STYLES.dataNumEven }, { v: eng.rev>0 ? (eng.bebanListrikAir/eng.rev*100).toFixed(1)+'%' : '—', s:STYLES.dataCenterEven }, { v:'Operasional listrik kulkas, blender & Wi-Fi warkop', s:STYLES.dataEven }],
-      [{ v:'6-1102', s:STYLES.dataOdd }, { v:'Beban Gas LPG, Kebersihan & Perlengkapan', s:STYLES.dataOdd }, { v:eng.bebanGas + eng.bebanKebersihan, s:STYLES.dataNumOdd }, { v: eng.rev>0 ? ((eng.bebanGas+eng.bebanKebersihan)/eng.rev*100).toFixed(1)+'%' : '—', s:STYLES.dataCenterOdd }, { v:'Keperluan memasak, kantong kresek & sabun cuci', s:STYLES.dataOdd }],
-      [{ v:'6-1105', s:STYLES.dataEven }, { v:'Beban Gaji / Uang Makan Karyawan', s:STYLES.dataEven }, { v:eng.bebanGaji, s:STYLES.dataNumEven }, { v: eng.rev>0 ? (eng.bebanGaji/eng.rev*100).toFixed(1)+'%' : '—', s:STYLES.dataCenterEven }, { v:'Honor kasir & upah harian toko', s:STYLES.dataEven }],
-      [{ v:'6-1106', s:STYLES.dataOdd }, { v:'Beban Penyusutan Peralatan Warkop', s:STYLES.dataOdd }, { v:eng.bebanPenyusutan, s:STYLES.dataNumOdd }, { v: eng.rev>0 ? (eng.bebanPenyusutan/eng.rev*100).toFixed(1)+'%' : '—', s:STYLES.dataCenterOdd }, { v:'Alokasi penyusutan mesin kopi, kompor & meja', s:STYLES.dataOdd }],
-      [{ v:'6-1199', s:STYLES.dataEven }, { v:'Beban Operasional Toko Lainnya', s:STYLES.dataEven }, { v:eng.bebanLainnya + eng.bebanServis, s:STYLES.dataNumEven }, { v: eng.rev>0 ? ((eng.bebanLainnya+eng.bebanServis)/eng.rev*100).toFixed(1)+'%' : '—', s:STYLES.dataCenterEven }, { v:'Pengeluaran operasional tambahan', s:STYLES.dataEven }],
-      [{ v:'', s:STYLES.subtotalRow }, { v:'JUMLAH BEBAN OPERASIONAL', s:STYLES.subtotalRow }, { v:eng.totalBebanOperasional, s:STYLES.subtotalNum }, { v: eng.rev>0 ? (eng.totalBebanOperasional/eng.rev*100).toFixed(1)+'%' : '—', s:STYLES.subtotalRow }, { v:'Total seluruh beban operasional berjalan', s:STYLES.subtotalRow }],
+      [txtCell('6-0000', STYLES.section), txtCell('BEBAN OPERASIONAL USAHA', STYLES.section), txtCell('', STYLES.section), txtCell('', STYLES.section), txtCell('Biaya pendukung kegiatan warkop', STYLES.section)],
+      [txtCell('6-1101', STYLES.dataEven), txtCell('Beban Listrik, Air, dan Wi-Fi Toko', STYLES.dataEven), numCell(eng.bebanListrikAir, STYLES.dataNumEven), txtCell(eng.rev>0 ? (eng.bebanListrikAir/eng.rev*100).toFixed(1)+'%' : '—', STYLES.dataCenterEven), txtCell('Operasional listrik kulkas, blender & Wi-Fi warkop', STYLES.dataEven)],
+      [txtCell('6-1102', STYLES.dataOdd), txtCell('Beban Gas LPG Toko', STYLES.dataOdd), numCell(eng.bebanGas, STYLES.dataNumOdd), txtCell(eng.rev>0 ? (eng.bebanGas/eng.rev*100).toFixed(1)+'%' : '—', STYLES.dataCenterOdd), txtCell('Isi ulang gas LPG memasak', STYLES.dataOdd)],
+      [txtCell('6-1103', STYLES.dataEven), txtCell('Beban Kebersihan & Perlengkapan', STYLES.dataEven), numCell(eng.bebanKebersihan, STYLES.dataNumEven), txtCell(eng.rev>0 ? (eng.bebanKebersihan/eng.rev*100).toFixed(1)+'%' : '—', STYLES.dataCenterEven), txtCell('Kantong kresek, cup, sedotan & sabun', STYLES.dataEven)],
+      [txtCell('6-1104', STYLES.dataOdd), txtCell('Beban Pemeliharaan & Servis Peralatan', STYLES.dataOdd), numCell(eng.bebanServis, STYLES.dataNumOdd), txtCell(eng.rev>0 ? (eng.bebanServis/eng.rev*100).toFixed(1)+'%' : '—', STYLES.dataCenterOdd), txtCell('Perbaikan dan servis peralatan toko', STYLES.dataOdd)],
+      [txtCell('6-1105', STYLES.dataEven), txtCell('Beban Gaji / Uang Makan Karyawan', STYLES.dataEven), numCell(eng.bebanGaji, STYLES.dataNumEven), txtCell(eng.rev>0 ? (eng.bebanGaji/eng.rev*100).toFixed(1)+'%' : '—', STYLES.dataCenterEven), txtCell('Honor kasir & upah harian toko', STYLES.dataEven)],
+      [txtCell('6-1106', STYLES.dataOdd), txtCell('Beban Penyusutan Peralatan Warkop', STYLES.dataOdd), numCell(eng.bebanPenyusutan, STYLES.dataNumOdd), txtCell(eng.rev>0 ? (eng.bebanPenyusutan/eng.rev*100).toFixed(1)+'%' : '—', STYLES.dataCenterOdd), txtCell('Alokasi penyusutan mesin kopi, kompor & meja', STYLES.dataOdd)],
+      [txtCell('6-1199', STYLES.dataEven), txtCell('Beban Operasional Toko Lainnya', STYLES.dataEven), numCell(eng.bebanLainnya, STYLES.dataNumEven), txtCell(eng.rev>0 ? (eng.bebanLainnya/eng.rev*100).toFixed(1)+'%' : '—', STYLES.dataCenterEven), txtCell('Biaya operasional tambahan', STYLES.dataEven)],
+      [txtCell('', STYLES.subtotalRow), txtCell('JUMLAH BEBAN OPERASIONAL', STYLES.subtotalRow), numCell(eng.totalBebanOperasional, STYLES.subtotalNum), txtCell(eng.rev>0 ? (eng.totalBebanOperasional/eng.rev*100).toFixed(1)+'%' : '—', STYLES.subtotalRow), txtCell('Total seluruh beban operasional berjalan', STYLES.subtotalRow)],
       [],
-      [{ v:'', s:STYLES.totalRow }, { v:'LABA BERSIH PERIODE BERJALAN (NET INCOME)', s:STYLES.totalRow }, { v:eng.labaBersih, s:STYLES.totalNum }, { v: eng.rev>0 ? (eng.labaBersih/eng.rev*100).toFixed(1)+'%' : '—', s:STYLES.totalRow }, { v:'Ditransfer ke Laporan Perubahan Modal', s:STYLES.totalRow }]
+      [txtCell('', STYLES.totalRow), txtCell('LABA BERSIH PERIODE BERJALAN (NET INCOME)', STYLES.totalRow), numCell(eng.labaBersih, STYLES.totalNum), txtCell(eng.rev>0 ? (eng.labaBersih/eng.rev*100).toFixed(1)+'%' : '—', STYLES.totalRow), txtCell('Ditransfer ke Laporan Perubahan Modal', STYLES.totalRow)]
     ];
     var wsL = XLSX.utils.aoa_to_sheet(rowsL);
     wsL['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:4} }, { s:{r:1,c:0}, e:{r:1,c:4} }];
-    wsL['!cols'] = [{wch:14},{wch:42},{wch:18},{wch:12},{wch:42}];
+    wsL['!cols'] = [{wch:14},{wch:44},{wch:20},{wch:14},{wch:44}];
     XLSX.utils.book_append_sheet(wb, wsL, 'Laba Rugi');
   }
 
   /* ════════════ SHEET 12: NERACA (POSISI KEUANGAN) ════════════ */
   if(type === 'keuangan' || type === 'siklus_akuntansi' || type === 'all'){
     var rowsN = [
-      [{ v:'LAPORAN POSISI KEUANGAN (NERACA) — WARKOP HIDAYAH', s:STYLES.title }, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}],
-      [{ v:'Sesuai SAK EMKM | Posisi Per: ' + dateStr + ' | Kasir: ' + cashierName, s:STYLES.subtitle }, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}],
+      [txtCell('LAPORAN POSISI KEUANGAN (NERACA) — WARKOP HIDAYAH', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title)],
+      [txtCell('Sesuai SAK EMKM | Posisi Per: ' + dateStr + ' | Kasir: ' + cashierName, STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle)],
       [],
-      ['Kode Akun', 'Pos Laporan Keuangan (SAK EMKM)', 'Rincian (Rp)', 'Jumlah Total (Rp)', 'Keterangan & Kebijakan Akuntansi'].map(function(h){ return { v:h, s:STYLES.headerNavy }; }),
-      [{ v:'1-0000', s:STYLES.section }, { v:'ASET (AKTIVA)', s:STYLES.section }, { v:'', s:STYLES.section }, { v:'', s:STYLES.section }, { v:'Sumber daya ekonomi warkop', s:STYLES.section }],
-      [{ v:'1-1000', s:STYLES.sectionSub }, { v:'1. ASET LANCAR', s:STYLES.sectionSub }, { v:'', s:STYLES.sectionSub }, { v:'', s:STYLES.sectionSub }, { v:'Aset lancar <= 1 tahun', s:STYLES.sectionSub }],
-      [{ v:'1-1101', s:STYLES.dataEven }, { v:'Kas dan Setara Kas', s:STYLES.dataEven }, { v:eng.kasDanSetaraKas, s:STYLES.dataNumEven }, { v:'', s:STYLES.dataEven }, { v:'Kas tunai laci POS kasir & saldo bank', s:STYLES.dataEven }],
-      [{ v:'1-1300', s:STYLES.dataOdd }, { v:'Persediaan Barang Dagang (Bahan & Menu)', s:STYLES.dataOdd }, { v:eng.nilaiPersediaan, s:STYLES.dataNumOdd }, { v:'', s:STYLES.dataOdd }, { v:'Nilai sisa stok barang (metode HPP SAK)', s:STYLES.dataOdd }],
-      [{ v:'', s:STYLES.subtotalRow }, { v:'JUMLAH ASET LANCAR', s:STYLES.subtotalRow }, { v:'', s:STYLES.subtotalRow }, { v:eng.totalAsetLancar, s:STYLES.subtotalNum }, { v:'Subtotal Kas + Persediaan Stok', s:STYLES.subtotalRow }],
-      [{ v:'1-2000', s:STYLES.sectionSub }, { v:'2. ASET TETAP', s:STYLES.sectionSub }, { v:'', s:STYLES.sectionSub }, { v:'', s:STYLES.sectionSub }, { v:'Peralatan operasional berwujud', s:STYLES.sectionSub }],
-      [{ v:'1-2101', s:STYLES.dataEven }, { v:'Peralatan Warkop & Mesin Kopi', s:STYLES.dataEven }, { v:eng.asetTetapPerolehan, s:STYLES.dataNumEven }, { v:'', s:STYLES.dataEven }, { v:'Harga perolehan mesin, kompor, meja & kursi', s:STYLES.dataEven }],
-      [{ v:'1-2102', s:STYLES.dataOdd }, { v:'Akumulasi Penyusutan Peralatan', s:STYLES.dataOdd }, { v:-eng.akumPenyusutan, s:STYLES.dataNumOdd }, { v:'', s:STYLES.dataOdd }, { v:'Kontra aset tetap (metode garis lurus)', s:STYLES.dataOdd }],
-      [{ v:'', s:STYLES.subtotalRow }, { v:'JUMLAH ASET TETAP (NILAI BUKU)', s:STYLES.subtotalRow }, { v:'', s:STYLES.subtotalRow }, { v:eng.nilaiBukuAsetTetap, s:STYLES.subtotalNum }, { v:'Nilai perolehan dikurangi akumulasi penyusutan', s:STYLES.subtotalRow }],
-      [{ v:'', s:STYLES.totalRow }, { v:'TOTAL ASET (AKTIVA)', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:eng.totalAset, s:STYLES.totalNum }, { v:'[BALANCE] Total Aset Lancar + Aset Tetap', s:STYLES.totalRow }],
+      ['Kode Akun', 'Pos Laporan Keuangan (SAK EMKM)', 'Rincian (Rp)', 'Jumlah Total (Rp)', 'Keterangan & Kebijakan Akuntansi'].map(function(h){ return txtCell(h, STYLES.headerNavy); }),
+      [txtCell('1-0000', STYLES.section), txtCell('ASET (AKTIVA)', STYLES.section), txtCell('', STYLES.section), txtCell('', STYLES.section), txtCell('Sumber daya ekonomi warkop', STYLES.section)],
+      [txtCell('1-1000', STYLES.sectionSub), txtCell('1. ASET LANCAR', STYLES.sectionSub), txtCell('', STYLES.sectionSub), txtCell('', STYLES.sectionSub), txtCell('Aset lancar operasional warkop', STYLES.sectionSub)],
+      [txtCell('1-1101', STYLES.dataEven), txtCell('Kas di Laci POS Kasir', STYLES.dataEven), numCell(eng.kasLaci, STYLES.dataNumEven), txtCell('', STYLES.dataEven), txtCell('Uang tunai fisik di laci kasir warkop', STYLES.dataEven)],
+      [txtCell('1-1102', STYLES.dataOdd), txtCell('Kas di Bank / QRIS', STYLES.dataOdd), numCell(eng.kasBank, STYLES.dataNumOdd), txtCell('', STYLES.dataOdd), txtCell('Saldo penerimaan nontunai QRIS warkop', STYLES.dataOdd)],
+      [txtCell('1-1300', STYLES.dataEven), txtCell('Persediaan Barang Dagang & Bahan Baku', STYLES.dataEven), numCell(eng.nilaiPersediaan, STYLES.dataNumEven), txtCell('', STYLES.dataEven), txtCell('Nilai sisa fisik persediaan (HPP SAK EMKM)', STYLES.dataEven)],
+      [txtCell('1-1401', STYLES.dataOdd), txtCell('Perlengkapan Warkop', STYLES.dataOdd), numCell(eng.perlengkapan, STYLES.dataNumOdd), txtCell('', STYLES.dataOdd), txtCell('Plastik, sedotan, cup & alat kebersihan', STYLES.dataOdd)],
+      [txtCell('', STYLES.subtotalRow), txtCell('JUMLAH ASET LANCAR', STYLES.subtotalRow), txtCell('', STYLES.subtotalRow), numCell(eng.totalAsetLancar, STYLES.subtotalNum), txtCell('Subtotal Kas + Bank + Persediaan', STYLES.subtotalRow)],
       [],
-      [{ v:'2-0000', s:STYLES.section }, { v:'LIABILITAS DAN EKUITAS (PASIVA)', s:STYLES.section }, { v:'', s:STYLES.section }, { v:'', s:STYLES.section }, { v:'Kewajiban & hak modal pemilik', s:STYLES.section }],
-      [{ v:'2-1000', s:STYLES.sectionSub }, { v:'1. LIABILITAS JANGKA PENDEK', s:STYLES.sectionSub }, { v:'', s:STYLES.sectionSub }, { v:'', s:STYLES.sectionSub }, { v:'Kewajiban lancar', s:STYLES.sectionSub }],
-      [{ v:'2-1101', s:STYLES.dataEven }, { v:'Utang Usaha (Supplier Bahan)', s:STYLES.dataEven }, { v:0, s:STYLES.dataNumEven }, { v:'', s:STYLES.dataEven }, { v:'Bebas utang usaha', s:STYLES.dataEven }],
-      [{ v:'', s:STYLES.subtotalRow }, { v:'JUMLAH LIABILITAS', s:STYLES.subtotalRow }, { v:'', s:STYLES.subtotalRow }, { v:0, s:STYLES.subtotalNum }, { v:'Bebas kewajiban', s:STYLES.subtotalRow }],
-      [{ v:'3-0000', s:STYLES.sectionSub }, { v:'2. EKUITAS PEMILIK', s:STYLES.sectionSub }, { v:'', s:STYLES.sectionSub }, { v:'', s:STYLES.sectionSub }, { v:'Hak pemilik atas aset warkop', s:STYLES.sectionSub }],
-      [{ v:'3-1101', s:STYLES.dataEven }, { v:'Modal Pemilik (Modal Akhir)', s:STYLES.dataEven }, { v:eng.totalEkuitas, s:STYLES.dataNumEven }, { v:'', s:STYLES.dataEven }, { v:'Modal awal Rp 5.000.000 + Kenaikan modal bersih', s:STYLES.dataEven }],
-      [{ v:'', s:STYLES.subtotalRow }, { v:'JUMLAH EKUITAS PEMILIK', s:STYLES.subtotalRow }, { v:'', s:STYLES.subtotalRow }, { v:eng.totalEkuitas, s:STYLES.subtotalNum }, { v:'Total modal akhir pemilik warkop', s:STYLES.subtotalRow }],
-      [{ v:'', s:STYLES.totalRow }, { v:'TOTAL LIABILITAS DAN EKUITAS', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:eng.totalPasiva, s:STYLES.totalNum }, { v:'[BALANCE] Total Liabilitas + Total Ekuitas', s:STYLES.totalRow }],
+      [txtCell('1-2000', STYLES.sectionSub), txtCell('2. ASET TETAP', STYLES.sectionSub), txtCell('', STYLES.sectionSub), txtCell('', STYLES.sectionSub), txtCell('Peralatan operasional berwujud', STYLES.sectionSub)],
+      [txtCell('1-2101', STYLES.dataEven), txtCell('Peralatan Warkop & Mesin Kopi', STYLES.dataEven), numCell(eng.asetTetapPerolehan, STYLES.dataNumEven), txtCell('', STYLES.dataEven), txtCell('Harga perolehan mesin kopi, kompor & meja', STYLES.dataEven)],
+      [txtCell('1-2102', STYLES.dataOdd), txtCell('Akumulasi Penyusutan Peralatan', STYLES.dataOdd), numCell(-eng.akumPenyusutan, STYLES.dataNumOdd), txtCell('', STYLES.dataOdd), txtCell('Kontra aset tetap (metode garis lurus)', STYLES.dataOdd)],
+      [txtCell('', STYLES.subtotalRow), txtCell('JUMLAH ASET TETAP (NILAI BUKU)', STYLES.subtotalRow), txtCell('', STYLES.subtotalRow), numCell(eng.nilaiBukuAsetTetap, STYLES.subtotalNum), txtCell('Harga perolehan dikurangi akumulasi penyusutan', STYLES.subtotalRow)],
       [],
-      [{ v:'STATUS KESEIMBANGAN', s:STYLES.balanceBanner }, { v:'100% BALANS SESUAI STANDAR SAK EMKM', s:STYLES.balanceBanner }, { v:'SELISIH = 0', s:STYLES.balanceBanner }, { v:0, s:STYLES.balanceBanner }, { v:'TOTAL ASET = TOTAL PASIVA', s:STYLES.balanceBanner }]
+      [txtCell('', STYLES.totalRow), txtCell('TOTAL ASET (AKTIVA)', STYLES.totalRow), txtCell('', STYLES.totalRow), numCell(eng.totalAset, STYLES.totalNum), txtCell('Total Aset Lancar + Aset Tetap Bersih', STYLES.totalRow)],
+      [],
+      [txtCell('2-0000', STYLES.section), txtCell('LIABILITAS DAN EKUITAS (PASIVA)', STYLES.section), txtCell('', STYLES.section), txtCell('', STYLES.section), txtCell('Kewajiban & hak modal pemilik', STYLES.section)],
+      [txtCell('2-1000', STYLES.sectionSub), txtCell('1. LIABILITAS JANGKA PENDEK', STYLES.sectionSub), txtCell('', STYLES.sectionSub), txtCell('', STYLES.sectionSub), txtCell('Kewajiban lancar', STYLES.sectionSub)],
+      [txtCell('2-1101', STYLES.dataEven), txtCell('Utang Usaha (Supplier Bahan)', STYLES.dataEven), numCell(eng.utangUsaha, STYLES.dataNumEven), txtCell('', STYLES.dataEven), txtCell('Utang pembelian persediaan', STYLES.dataEven)],
+      [txtCell('2-1102', STYLES.dataOdd), txtCell('Beban Terutang', STYLES.dataOdd), numCell(eng.bebanTerutang, STYLES.dataNumOdd), txtCell('', STYLES.dataOdd), txtCell('Beban operasional belum dibayar', STYLES.dataOdd)],
+      [txtCell('', STYLES.subtotalRow), txtCell('JUMLAH LIABILITAS', STYLES.subtotalRow), txtCell('', STYLES.subtotalRow), numCell(eng.totalLiabilitas, STYLES.subtotalNum), txtCell('Total kewajiban lancar warkop', STYLES.subtotalRow)],
+      [],
+      [txtCell('3-0000', STYLES.sectionSub), txtCell('2. EKUITAS PEMILIK', STYLES.sectionSub), txtCell('', STYLES.sectionSub), txtCell('', STYLES.sectionSub), txtCell('Hak pemilik atas aset warkop', STYLES.sectionSub)],
+      [txtCell('3-1101', STYLES.dataEven), txtCell('Modal Pemilik (Modal Akhir)', STYLES.dataEven), numCell(eng.modalAkhir, STYLES.dataNumEven), txtCell('', STYLES.dataEven), txtCell('Modal awal Rp ' + fmtRp(eng.modalAwal) + ' + Kenaikan modal bersih', STYLES.dataEven)],
+      [txtCell('', STYLES.subtotalRow), txtCell('JUMLAH EKUITAS PEMILIK', STYLES.subtotalRow), txtCell('', STYLES.subtotalRow), numCell(eng.modalAkhir, STYLES.subtotalNum), txtCell('Total modal akhir pemilik warkop', STYLES.subtotalRow)],
+      [],
+      [txtCell('', STYLES.totalRow), txtCell('TOTAL LIABILITAS DAN EKUITAS', STYLES.totalRow), txtCell('', STYLES.totalRow), numCell(eng.totalPasiva, STYLES.totalNum), txtCell('Total Liabilitas + Total Ekuitas', STYLES.totalRow)],
+      []
     ];
+    var neracaBannerIdx = rowsN.length;
+    rowsN.push([
+      txtCell('STATUS: TOTAL ASET = TOTAL PASIVA (Rp ' + fmtRp(eng.totalAset) + ') — 100% BALANS SESUAI SAK EMKM | SELISIH = Rp 0', STYLES.balanceBanner),
+      txtCell('', STYLES.balanceBanner), txtCell('', STYLES.balanceBanner), txtCell('', STYLES.balanceBanner),
+      txtCell('VALID', STYLES.balanceBanner)
+    ]);
     var wsN = XLSX.utils.aoa_to_sheet(rowsN);
     wsN['!merges'] = [
-      { s:{r:0,c:0}, e:{r:0,c:4} }, { s:{r:1,c:0}, e:{r:1,c:4} }, { s:{r:23,c:0}, e:{r:23,c:4} }
+      { s:{r:0,c:0}, e:{r:0,c:4} },
+      { s:{r:1,c:0}, e:{r:1,c:4} },
+      { s:{r:neracaBannerIdx,c:0}, e:{r:neracaBannerIdx,c:3} }
     ];
-    wsN['!cols'] = [{wch:14},{wch:42},{wch:18},{wch:18},{wch:40}];
+    wsN['!cols'] = [{wch:14},{wch:44},{wch:20},{wch:20},{wch:44}];
     XLSX.utils.book_append_sheet(wb, wsN, 'Neraca');
   }
 
   /* ════════════ SHEET 13: ARUS KAS ════════════ */
   if(type === 'keuangan' || type === 'siklus_akuntansi' || type === 'all'){
-    var arusKasOperasi = eng.rev - (eng.totalBebanOperasional - eng.bebanPenyusutan) - eng.hpp;
-    var arusKasInvestasi = -(eng.asetTetapPerolehan);
-    var arusKasPendanaan = eng.modalAwal - eng.prive;
-
     var rowsCF = [
-      [{ v:'LAPORAN ARUS KAS (CASH FLOW STATEMENT) — WARKOP HIDAYAH', s:STYLES.title }, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}],
-      [{ v:'Metode Langsung SAK EMKM | Periode s/d: ' + dateStr + ' | Kasir: ' + cashierName, s:STYLES.subtitle }, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}],
+      [txtCell('LAPORAN ARUS KAS (CASH FLOW STATEMENT) — WARKOP HIDAYAH', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title)],
+      [txtCell('Metode Langsung SAK EMKM | Periode s/d: ' + dateStr + ' | Kasir: ' + cashierName, STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle)],
       [],
-      ['Aktivitas Arus Kas (SAK EMKM)', 'Rincian (Rp)', 'Jumlah Bersih (Rp)', 'Keterangan Transaksi'].map(function(h){ return { v:h, s:STYLES.headerGreen }; }),
-      [{ v:'1. AKTIVITAS OPERASI', s:STYLES.sectionSub }, { v:'', s:STYLES.sectionSub }, { v:'', s:STYLES.sectionSub }, { v:'', s:STYLES.sectionSub }],
-      [{ v:'(+) Penerimaan Kas dari Pelanggan (Omzet Kasir)', s:STYLES.dataEven }, { v:eng.rev, s:STYLES.dataNumEven }, { v:'', s:STYLES.dataEven }, { v:'Omzet penjualan POS kasir', s:STYLES.dataEven }],
-      [{ v:'(-) Pembayaran Beban Pokok & Belanja Stok', s:STYLES.dataOdd }, { v:-eng.hpp, s:STYLES.dataNumOdd }, { v:'', s:STYLES.dataOdd }, { v:'Belanja persediaan bahan baku', s:STYLES.dataOdd }],
-      [{ v:'(-) Pembayaran Beban Operasional Usaha', s:STYLES.dataEven }, { v:-(eng.totalBebanOperasional - eng.bebanPenyusutan), s:STYLES.dataNumEven }, { v:'', s:STYLES.dataEven }, { v:'Listrik, gas, gaji kasir & operasional', s:STYLES.dataEven }],
-      [{ v:'Arus Kas Bersih dari Aktivitas Operasi', s:STYLES.subtotalRow }, { v:'', s:STYLES.subtotalRow }, { v:arusKasOperasi, s:STYLES.subtotalNum }, { v:'Surplus kas operasional', s:STYLES.subtotalRow }],
+      ['Aktivitas Arus Kas (SAK EMKM)', 'Rincian (Rp)', 'Jumlah Bersih (Rp)', 'Keterangan Transaksi'].map(function(h){ return txtCell(h, STYLES.headerGreen); }),
+      [txtCell('1. AKTIVITAS OPERASI', STYLES.sectionSub), txtCell('', STYLES.sectionSub), txtCell('', STYLES.sectionSub), txtCell('', STYLES.sectionSub)],
+      [txtCell('(+) Penerimaan Kas dari Pelanggan (Omzet Kasir)', STYLES.dataEven), numCell(eng.rev, STYLES.dataNumEven), txtCell('', STYLES.dataEven), txtCell('Omzet penjualan POS kasir warkop', STYLES.dataEven)],
+      [txtCell('(-) Pembayaran Beban Pokok & Belanja Stok', STYLES.dataOdd), numCell(-eng.hpp, STYLES.dataNumOdd), txtCell('', STYLES.dataOdd), txtCell('Belanja persediaan bahan baku', STYLES.dataOdd)],
+      [txtCell('(-) Pembayaran Beban Operasional Usaha', STYLES.dataEven), numCell(-(eng.totalBebanOperasional - eng.bebanPenyusutan), STYLES.dataNumEven), txtCell('', STYLES.dataEven), txtCell('Listrik, gas, kebersihan & gaji kasir', STYLES.dataEven)],
+      [txtCell('Arus Kas Bersih dari Aktivitas Operasi', STYLES.subtotalRow), txtCell('', STYLES.subtotalRow), numCell(eng.arusKasOperasi, STYLES.subtotalNum), txtCell('Surplus kas operasional', STYLES.subtotalRow)],
       [],
-      [{ v:'2. AKTIVITAS INVESTASI', s:STYLES.sectionSub }, { v:'', s:STYLES.sectionSub }, { v:'', s:STYLES.sectionSub }, { v:'', s:STYLES.sectionSub }],
-      [{ v:'(-) Perolehan Aset Tetap Peralatan Warkop', s:STYLES.dataEven }, { v:-eng.asetTetapPerolehan, s:STYLES.dataNumEven }, { v:'', s:STYLES.dataEven }, { v:'Pengadaan mesin kopi, kompor & meja', s:STYLES.dataEven }],
-      [{ v:'Arus Kas Bersih dari Aktivitas Investasi', s:STYLES.subtotalRow }, { v:'', s:STYLES.subtotalRow }, { v:arusKasInvestasi, s:STYLES.subtotalNum }, { v:'Pengeluaran modal investasi', s:STYLES.subtotalRow }],
+      [txtCell('2. AKTIVITAS INVESTASI', STYLES.sectionSub), txtCell('', STYLES.sectionSub), txtCell('', STYLES.sectionSub), txtCell('', STYLES.sectionSub)],
+      [txtCell('(-) Perolehan Aset Tetap Peralatan Warkop', STYLES.dataEven), numCell(-eng.asetTetapPerolehan, STYLES.dataNumEven), txtCell('', STYLES.dataEven), txtCell('Pengadaan mesin kopi, kompor & meja', STYLES.dataEven)],
+      [txtCell('Arus Kas Bersih dari Aktivitas Investasi', STYLES.subtotalRow), txtCell('', STYLES.subtotalRow), numCell(eng.arusKasInvestasi, STYLES.subtotalNum), txtCell('Pengeluaran modal investasi peralatan', STYLES.subtotalRow)],
       [],
-      [{ v:'3. AKTIVITAS PENDANAAN', s:STYLES.sectionSub }, { v:'', s:STYLES.sectionSub }, { v:'', s:STYLES.sectionSub }, { v:'', s:STYLES.sectionSub }],
-      [{ v:'(+) Penyetoran Modal Awal Pemilik', s:STYLES.dataEven }, { v:eng.modalAwal, s:STYLES.dataNumEven }, { v:'', s:STYLES.dataEven }, { v:'Setoran modal disetor warkop', s:STYLES.dataEven }],
-      [{ v:'(-) Pengambilan Prive Pemilik', s:STYLES.dataOdd }, { v:-eng.prive, s:STYLES.dataNumOdd }, { v:'', s:STYLES.dataOdd }, { v:'Penarikan pribadi pemilik warkop', s:STYLES.dataOdd }],
-      [{ v:'Arus Kas Bersih dari Aktivitas Pendanaan', s:STYLES.subtotalRow }, { v:'', s:STYLES.subtotalRow }, { v:arusKasPendanaan, s:STYLES.subtotalNum }, { v:'Netto modal masuk', s:STYLES.subtotalRow }],
+      [txtCell('3. AKTIVITAS PENDANAAN', STYLES.sectionSub), txtCell('', STYLES.sectionSub), txtCell('', STYLES.sectionSub), txtCell('', STYLES.sectionSub)],
+      [txtCell('(+) Penyetoran Modal Awal Pemilik', STYLES.dataEven), numCell(eng.modalAwal, STYLES.dataNumEven), txtCell('', STYLES.dataEven), txtCell('Setoran modal disetor awal warkop', STYLES.dataEven)],
+      [txtCell('(-) Pengambilan Prive Pemilik', STYLES.dataOdd), numCell(-eng.prive, STYLES.dataNumOdd), txtCell('', STYLES.dataOdd), txtCell('Penarikan pribadi pemilik warkop', STYLES.dataOdd)],
+      [txtCell('Arus Kas Bersih dari Aktivitas Pendanaan', STYLES.subtotalRow), txtCell('', STYLES.subtotalRow), numCell(eng.arusKasPendanaan, STYLES.subtotalNum), txtCell('Netto penerimaan modal pemilik', STYLES.subtotalRow)],
       [],
-      [{ v:'SALDO KAS DAN SETARA KAS AKHIR PERIODE', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:eng.kasDanSetaraKas, s:STYLES.totalNum }, { v:'Tersinkronisasi 100% klop dengan Kas di Neraca', s:STYLES.totalRow }]
+      [txtCell('SALDO KAS DAN SETARA KAS AKHIR PERIODE', STYLES.totalRow), txtCell('', STYLES.totalRow), numCell(eng.kasDanSetaraKas, STYLES.totalNum), txtCell('Tersinkronisasi 100% klop dengan Kas di Neraca', STYLES.totalRow)]
     ];
     var wsCF = XLSX.utils.aoa_to_sheet(rowsCF);
     wsCF['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:3} }, { s:{r:1,c:0}, e:{r:1,c:3} }];
-    wsCF['!cols'] = [{wch:44},{wch:18},{wch:20},{wch:44}];
+    wsCF['!cols'] = [{wch:46},{wch:20},{wch:22},{wch:46}];
     XLSX.utils.book_append_sheet(wb, wsCF, 'Arus Kas');
   }
 
   /* ════════════ SHEET 14: PERUBAHAN MODAL ════════════ */
   if(type === 'keuangan' || type === 'siklus_akuntansi' || type === 'all'){
     var rowsM = [
-      [{ v:'LAPORAN PERUBAHAN MODAL (PERUBAHAN EKUITAS) — WARKOP HIDAYAH', s:STYLES.title }, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}],
-      [{ v:'Sesuai SAK EMKM | Periode s/d: ' + dateStr + ' | Kasir: ' + cashierName, s:STYLES.subtitle }, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}],
+      [txtCell('LAPORAN PERUBAHAN MODAL (PERUBAHAN EKUITAS) — WARKOP HIDAYAH', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title)],
+      [txtCell('Sesuai SAK EMKM | Periode s/d: ' + dateStr + ' | Kasir: ' + cashierName, STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle)],
       [],
-      ['Kode Akun', 'Komponen Perubahan Modal / Ekuitas', 'Nominal (Rp)', 'Keterangan SAK EMKM'].map(function(h){ return { v:h, s:STYLES.headerGold }; }),
-      [{ v:'3-1101', s:STYLES.dataEven }, { v:'Modal Awal Pemilik (Beginning Equity)', s:STYLES.dataEven }, { v:eng.modalAwal, s:STYLES.dataNumEven }, { v:'Penyetoran modal awal pendirian warkop (Rp 5.000.000)', s:STYLES.dataEven }],
-      [{ v:'4-9999', s:STYLES.dataOdd }, { v:'(+) Laba Bersih Periode Berjalan (Net Income)', s:STYLES.dataOdd }, { v:eng.labaBersih, s:STYLES.dataNumOdd }, { v:'Diperoleh dari Laporan Laba Rugi periode berjalan', s:STYLES.dataOdd }],
-      [{ v:'3-1102', s:STYLES.dataEven }, { v:'(-) Prive Pemilik (Owner\'s Drawing)', s:STYLES.dataEven }, { v:-eng.prive, s:STYLES.dataNumEven }, { v:'Pengambilan kas untuk keperluan pribadi pemilik', s:STYLES.dataEven }],
-      [{ v:'', s:STYLES.subtotalRow }, { v:'(=) Kenaikan / Penambahan Bersih Modal', s:STYLES.subtotalRow }, { v:eng.kenaikanModal, s:STYLES.subtotalNum }, { v:'Laba Bersih dikurangi Prive Pemilik', s:STYLES.subtotalRow }],
+      ['Kode Akun', 'Komponen Perubahan Modal / Ekuitas', 'Nominal (Rp)', 'Keterangan SAK EMKM'].map(function(h){ return txtCell(h, STYLES.headerGold); }),
+      [txtCell('3-1101', STYLES.dataEven), txtCell('Modal Awal Pemilik (Beginning Equity)', STYLES.dataEven), numCell(eng.modalAwal, STYLES.dataNumEven), txtCell('Penyetoran modal awal pendirian warkop', STYLES.dataEven)],
+      [txtCell('4-9999', STYLES.dataOdd), txtCell('(+) Laba Bersih Periode Berjalan (Net Income)', STYLES.dataOdd), numCell(eng.labaBersih, STYLES.dataNumOdd), txtCell('Diperoleh dari Laporan Laba Rugi periode berjalan', STYLES.dataOdd)],
+      [txtCell('3-1102', STYLES.dataEven), txtCell('(-) Prive Pemilik (Owner\'s Drawing)', STYLES.dataEven), numCell(-eng.prive, STYLES.dataNumEven), txtCell('Pengambilan kas untuk keperluan pribadi pemilik', STYLES.dataEven)],
+      [txtCell('', STYLES.subtotalRow), txtCell('(=) Kenaikan / (Penurunan) Bersih Modal', STYLES.subtotalRow), numCell(eng.kenaikanModal, STYLES.subtotalNum), txtCell('Laba Bersih dikurangi Prive Pemilik', STYLES.subtotalRow)],
       [],
-      [{ v:'3-1101', s:STYLES.totalRow }, { v:'MODAL AKHIR PEMILIK (ENDING EQUITY)', s:STYLES.totalRow }, { v:eng.modalAkhir, s:STYLES.totalNum }, { v:'Ditransfer ke Neraca (Laporan Posisi Keuangan)', s:STYLES.totalRow }]
+      [txtCell('3-1101', STYLES.totalRow), txtCell('MODAL AKHIR PEMILIK (ENDING EQUITY)', STYLES.totalRow), numCell(eng.modalAkhir, STYLES.totalNum), txtCell('Ditransfer ke Neraca (Laporan Posisi Keuangan)', STYLES.totalRow)]
     ];
     var wsM = XLSX.utils.aoa_to_sheet(rowsM);
     wsM['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:3} }, { s:{r:1,c:0}, e:{r:1,c:3} }];
-    wsM['!cols'] = [{wch:14},{wch:44},{wch:18},{wch:44}];
+    wsM['!cols'] = [{wch:14},{wch:46},{wch:20},{wch:46}];
     XLSX.utils.book_append_sheet(wb, wsM, 'Perubahan Modal');
   }
 
   /* ════════════ SHEET 15: CALK (CATATAN ATAS LAPORAN KEUANGAN) ════════════ */
   if(type === 'keuangan' || type === 'siklus_akuntansi' || type === 'all'){
     var rowsCALK = [
-      [{ v:'CATATAN ATAS LAPORAN KEUANGAN (CALK) — WARKOP HIDAYAH', s:STYLES.title }, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}],
-      [{ v:'Sesuai Standar Akuntansi Keuangan Entitas Mikro, Kecil, dan Menengah (SAK EMKM) | Per: ' + dateStr, s:STYLES.subtitle }, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}],
+      [txtCell('CATATAN ATAS LAPORAN KEUANGAN (CALK) — WARKOP HIDAYAH', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title)],
+      [txtCell('Sesuai Standar Akuntansi Keuangan Entitas Mikro, Kecil, dan Menengah (SAK EMKM) | Per: ' + dateStr, STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle)],
       [],
-      ['No. Bab / Bagian', 'Topik Kebijakan Akuntansi', 'Penjelasan Resmi SAK EMKM'].map(function(h){ return { v:h, s:STYLES.headerNavy }; }),
-      [{ v:'BAB I', s:STYLES.dataEven }, { v:'Gambaran Umum Entitas Usaha', s:STYLES.dataEven }, { v:'Warkop Hidayah adalah entitas usaha mikro kuliner (F&B) yang didirikan oleh Pemilik (Diah) berlokasi operasional menyediakan kopi, teh, dan makanan.', s:STYLES.dataEven }],
-      [{ v:'BAB II', s:STYLES.dataOdd }, { v:'Pernyataan Kepatuhan SAK EMKM', s:STYLES.dataOdd }, { v:'Laporan keuangan warkop disusun sesuai SAK EMKM (IAI) berbasis biaya historis dan kelangsungan usaha (Going Concern).', s:STYLES.dataOdd }],
-      [{ v:'BAB III.1', s:STYLES.dataEven }, { v:'Kebijakan Kas & Setara Kas', s:STYLES.dataEven }, { v:'Kas terdiri atas uang tunai laci POS kasir (' + fmtRp(eng.kasDanSetaraKas) + ') dan mutasi bank/QRIS yang bebas dari restriksi.', s:STYLES.dataEven }],
-      [{ v:'BAB III.2', s:STYLES.dataOdd }, { v:'Kebijakan Persediaan Bahan', s:STYLES.dataOdd }, { v:'Persediaan dicatat sebesar nilai perolehan metode FIFO/HPP 50% sebesar ' + fmtRp(eng.nilaiPersediaan) + ' atas sisa fisik stok di gudang.', s:STYLES.dataOdd }],
-      [{ v:'BAB III.3', s:STYLES.dataEven }, { v:'Kebijakan Aset Tetap Peralatan', s:STYLES.dataEven }, { v:'Aset tetap warkop berupa mesin kopi, kulkas, blender & meja kursi perolehan ' + fmtRp(eng.asetTetapPerolehan) + ' disusutkan metode garis lurus.', s:STYLES.dataEven }],
-      [{ v:'BAB III.4', s:STYLES.dataOdd }, { v:'Ekuitas & Keseimbangan Neraca', s:STYLES.dataOdd }, { v:'Modal awal sebesar Rp 5.000.000 disetor penuh. Persamaan akuntansi ASET = LIABILITAS + EKUITAS (' + fmtRp(eng.totalAset) + ') terpenuhi 100% balans.', s:STYLES.dataOdd }]
+      ['No. Bab / Bagian', 'Topik Kebijakan Akuntansi', 'Penjelasan Resmi SAK EMKM'].map(function(h){ return txtCell(h, STYLES.headerNavy); }),
+      [txtCell('BAB I', STYLES.dataEven), txtCell('Gambaran Umum Entitas Usaha', STYLES.dataEven), txtCell('Warkop Hidayah adalah entitas usaha mikro kuliner (F&B) yang didirikan oleh Pemilik (Diah) berlokasi operasional menyediakan menu minuman kopi, teh, dan aneka makanan/mie.', STYLES.dataEven)],
+      [txtCell('BAB II', STYLES.dataOdd), txtCell('Pernyataan Kepatuhan SAK EMKM', STYLES.dataOdd), txtCell('Laporan keuangan disusun berdasarkan Standar Akuntansi Keuangan Entitas Mikro, Kecil, dan Menengah (SAK EMKM) yang diterbitkan oleh Ikatan Akuntan Indonesia (IAI) berbasis biaya historis dan kelangsungan usaha (Going Concern).', STYLES.dataOdd)],
+      [txtCell('BAB III.1', STYLES.dataEven), txtCell('Kebijakan Kas & Setara Kas', STYLES.dataEven), txtCell('Kas terdiri atas uang tunai fisik laci kasir POS (' + fmtRp(eng.kasLaci) + ') dan mutasi bank/QRIS (' + fmtRp(eng.kasBank) + ') dengan total ' + fmtRp(eng.kasDanSetaraKas) + ' yang bebas dari pembatasan/restriksi.', STYLES.dataEven)],
+      [txtCell('BAB III.2', STYLES.dataOdd), txtCell('Kebijakan Persediaan Bahan Baku', STYLES.dataOdd), txtCell('Persediaan dicatat sebesar nilai perolehan metode FIFO / estimasi HPP warkop sebesar 50% dengan total saldo persediaan akhir Rp ' + fmtRp(eng.nilaiPersediaan) + ' atas sisa fisik bahan & barang dagang.', STYLES.dataOdd)],
+      [txtCell('BAB III.3', STYLES.dataEven), txtCell('Kebijakan Aset Tetap Peralatan', STYLES.dataEven), txtCell('Aset tetap warkop berupa peralatan masak, kompor, mesin kopi, blender, serta meja kursi perolehan Rp ' + fmtRp(eng.asetTetapPerolehan) + ' disusutkan metode garis lurus dengan akumulasi penyusutan Rp ' + fmtRp(eng.akumPenyusutan) + ' sehingga nilai buku tercatat Rp ' + fmtRp(eng.nilaiBukuAsetTetap) + '.', STYLES.dataEven)],
+      [txtCell('BAB III.4', STYLES.dataOdd), txtCell('Kebijakan Liabilitas (Kewajiban)', STYLES.dataOdd), txtCell('Liabilitas warkop per tanggal pelaporan tercatat sebesar Rp ' + fmtRp(eng.totalLiabilitas) + ' yang terdiri dari utang usaha maupun beban terutang operasional.', STYLES.dataOdd)],
+      [txtCell('BAB III.5', STYLES.dataEven), txtCell('Ekuitas & Keseimbangan Neraca', STYLES.dataEven), txtCell('Modal awal pendirian disetor sebesar Rp ' + fmtRp(eng.modalAwal) + '. Ditambah laba bersih Rp ' + fmtRp(eng.labaBersih) + ' dikurangi prive Rp ' + fmtRp(eng.prive) + ', menghasilkan modal akhir Rp ' + fmtRp(eng.modalAkhir) + '. Persamaan akuntansi ASET = LIABILITAS + EKUITAS (' + fmtRp(eng.totalAset) + ') terpenuhi 100% balans.', STYLES.dataEven)]
     ];
     var wsCALK = XLSX.utils.aoa_to_sheet(rowsCALK);
     wsCALK['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:2} }, { s:{r:1,c:0}, e:{r:1,c:2} }];
-    wsCALK['!cols'] = [{wch:16},{wch:34},{wch:64}];
+    wsCALK['!cols'] = [{wch:16},{wch:36},{wch:68}];
     XLSX.utils.book_append_sheet(wb, wsCALK, 'CALK');
   }
 
   /* ════════════ INDIVIDUAL REPORT SHEETS (Backward compatibility) ════════════ */
   if(type === 'pengeluaran'){
     var rowsE = [
-      [{ v:'BUKU KAS PENGELUARAN & BELANJA TOKO — WARKOP HIDAYAH', s:STYLES.title }, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}],
-      [{ v:'Standar Bagan Akun SAK EMKM | Tanggal: ' + dateStr + ' | Kasir: ' + cashierName, s:STYLES.subtitle }, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}],
+      [txtCell('BUKU KAS PENGELUARAN & BELANJA TOKO — WARKOP HIDAYAH', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title)],
+      [txtCell('Standar Bagan Akun SAK EMKM | Tanggal: ' + dateStr + ' | Kasir: ' + cashierName, STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle)],
       [],
-      ['No', 'ID Pengeluaran', 'Waktu', 'Kasir', 'Kategori Akun', 'Kode COA', 'Keterangan / Keperluan', 'Nominal (Rp)'].map(function(h){ return { v:h, s:STYLES.headerNavy }; })
+      ['No', 'ID Pengeluaran', 'Waktu', 'Kasir', 'Kategori Akun', 'Kode COA', 'Keterangan / Keperluan', 'Nominal (Rp)'].map(function(h){ return txtCell(h, STYLES.headerNavy); })
     ];
     var totE = 0;
     for(var i=0; i<expenses.length; i++){
       var item = expenses[i];
       var d = new Date(item.ts);
       var isOdd = (i % 2 === 1);
-      totE += (item.amount || 0);
+      var sD = isOdd ? STYLES.dataOdd : STYLES.dataEven;
+      var sC = isOdd ? STYLES.dataCenterOdd : STYLES.dataCenterEven;
+      var sN = isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven;
+      var amt = Number(item.amount || 0);
+      totE += amt;
       var stockDesc = item.stockItem ? ' [+' + item.stockItem.qtyAdded + ' ' + item.stockItem.productName + ']' : '';
       rowsE.push([
-        { v: i+1, s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: item.id, s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: d.toLocaleDateString('id-ID') + ' ' + d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}), s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: item.cashier || 'Diah', s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: item.coaName || item.cat, s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: item.coa || '6-1199', s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: item.desc + stockDesc + (item.note ? ' (' + item.note + ')' : ''), s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: item.amount || 0, s: isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven }
+        numCell(i+1, sC),
+        txtCell(item.id, sD),
+        txtCell(d.toLocaleDateString('id-ID') + ' ' + d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}), sC),
+        txtCell(item.cashier || 'Diah', sD),
+        txtCell(item.coaName || item.cat, sD),
+        txtCell(item.coa || '6-1199', sC),
+        txtCell(item.desc + stockDesc + (item.note ? ' (' + item.note + ')' : ''), sD),
+        numCell(amt, sN)
       ]);
     }
     rowsE.push([
-      { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow },
-      { v:'TOTAL PENGELUARAN', s:STYLES.totalRow },
-      { v:totE, s:STYLES.totalNum }
+      txtCell('', STYLES.totalRow), txtCell('', STYLES.totalRow), txtCell('', STYLES.totalRow), txtCell('', STYLES.totalRow), txtCell('', STYLES.totalRow), txtCell('', STYLES.totalRow),
+      txtCell('TOTAL PENGELUARAN', STYLES.totalRow),
+      numCell(totE, STYLES.totalNum)
     ]);
     var wsE = XLSX.utils.aoa_to_sheet(rowsE);
     wsE['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:7} }, { s:{r:1,c:0}, e:{r:1,c:7} }];
-    wsE['!cols'] = [{wch:5},{wch:16},{wch:18},{wch:14},{wch:26},{wch:14},{wch:42},{wch:18}];
+    wsE['!cols'] = [{wch:6},{wch:16},{wch:18},{wch:14},{wch:26},{wch:14},{wch:44},{wch:20}];
     XLSX.utils.book_append_sheet(wb, wsE, 'Pengeluaran');
   }
 
   if(type === 'trx'){
     var rowsT = [
-      [{ v:'LAPORAN TRANSAKSI PENJUALAN — WARKOP HIDAYAH', s:STYLES.title }, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}, {v:'',s:STYLES.title}],
-      [{ v:'Tanggal Ekspor: ' + dateStr + ' | Kasir: ' + cashierName + ' | Total: ' + orders.length + ' transaksi', s:STYLES.subtitle }, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}, {v:'',s:STYLES.subtitle}],
+      [txtCell('LAPORAN TRANSAKSI PENJUALAN — WARKOP HIDAYAH', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title), txtCell('', STYLES.title)],
+      [txtCell('Tanggal Ekspor: ' + dateStr + ' | Kasir: ' + cashierName + ' | Total: ' + orders.length + ' transaksi', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle), txtCell('', STYLES.subtitle)],
       [],
-      ['No', 'ID Transaksi', 'Waktu', 'Meja', 'Daftar Menu', 'Metode', 'Total (Rp)', 'Kembalian'].map(function(h){ return { v:h, s:STYLES.header }; })
+      ['No', 'ID Transaksi', 'Waktu', 'Meja', 'Daftar Menu', 'Metode', 'Total (Rp)', 'Kembalian (Rp)'].map(function(h){ return txtCell(h, STYLES.headerPink); })
     ];
     var tot = 0;
     for(var i2=0; i2<orders.length; i2++){
       var o2 = orders[i2];
       var d2 = new Date(o2.ts);
       var isOdd = (i2 % 2 === 1);
-      tot += o2.total;
+      var sD = isOdd ? STYLES.dataOdd : STYLES.dataEven;
+      var sC = isOdd ? STYLES.dataCenterOdd : STYLES.dataCenterEven;
+      var sN = isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven;
+      var oTot = Number(o2.total || 0);
+      tot += oTot;
       rowsT.push([
-        { v: i2+1, s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: o2.id, s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: d2.toLocaleDateString('id-ID') + ' ' + d2.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}), s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: o2.tableName, s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: o2.items.map(function(x){ return x.name + ' (' + x.qty + ')'; }).join('; '), s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: o2.payMethod.toUpperCase(), s: isOdd ? STYLES.dataOdd : STYLES.dataEven },
-        { v: o2.total, s: isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven },
-        { v: o2.change || 0, s: isOdd ? STYLES.dataNumOdd : STYLES.dataNumEven }
+        numCell(i2+1, sC),
+        txtCell(o2.id, sD),
+        txtCell(d2.toLocaleDateString('id-ID') + ' ' + d2.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}), sC),
+        txtCell(o2.tableName, sD),
+        txtCell(o2.items.map(function(x){ return x.name + ' (' + x.qty + ')'; }).join('; '), sD),
+        txtCell(o2.payMethod.toUpperCase(), sC),
+        numCell(oTot, sN),
+        numCell(o2.change || 0, sN)
       ]);
     }
     rowsT.push([
-      { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow }, { v:'', s:STYLES.totalRow },
-      { v:'TOTAL OMZET', s:STYLES.totalRow },
-      { v:tot, s:STYLES.totalNum },
-      { v:'', s:STYLES.totalRow }
+      txtCell('', STYLES.totalRow), txtCell('', STYLES.totalRow), txtCell('', STYLES.totalRow), txtCell('', STYLES.totalRow), txtCell('', STYLES.totalRow),
+      txtCell('TOTAL OMZET', STYLES.totalRow),
+      numCell(tot, STYLES.totalNum),
+      txtCell('', STYLES.totalRow)
     ]);
     var wsT = XLSX.utils.aoa_to_sheet(rowsT);
     wsT['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:7} }, { s:{r:1,c:0}, e:{r:1,c:7} }];
-    wsT['!cols'] = [{wch:5},{wch:20},{wch:18},{wch:22},{wch:40},{wch:12},{wch:15},{wch:14}];
+    wsT['!cols'] = [{wch:6},{wch:20},{wch:18},{wch:22},{wch:44},{wch:12},{wch:18},{wch:16}];
     XLSX.utils.book_append_sheet(wb, wsT, 'Transaksi');
+  }
+
+  if(wb.SheetNames.length === 0){
+    toast('Tidak ada sheet yang dipilih untuk ekspor.', 'warn');
+    return;
   }
 
   // ── FILE NAME DETERMINATION ──
   var fileName = '';
+  var cleanDate = dateStr.replace(/\//g,'-');
   if(type === 'siklus_akuntansi'){
-    fileName = 'WarkopHidayah_Siklus_Akuntansi_Lengkap_15Sheet_' + dateStr.replace(/\//g,'-') + '.xlsx';
+    fileName = 'WarkopHidayah_Siklus_Akuntansi_Lengkap_15Sheet_' + cleanDate + '.xlsx';
   } else if(type === 'coa'){
-    fileName = 'WarkopHidayah_Bagan_Akun_COA_' + dateStr.replace(/\//g,'-') + '.xlsx';
+    fileName = 'WarkopHidayah_Bagan_Akun_COA_' + cleanDate + '.xlsx';
   } else if(type === 'jurnal_khusus'){
-    fileName = 'WarkopHidayah_Jurnal_Khusus_4in1_' + dateStr.replace(/\//g,'-') + '.xlsx';
+    fileName = 'WarkopHidayah_Jurnal_Khusus_4in1_' + cleanDate + '.xlsx';
   } else if(type === 'jurnal_umum'){
-    fileName = 'WarkopHidayah_Jurnal_Umum_Memorial_' + dateStr.replace(/\//g,'-') + '.xlsx';
+    fileName = 'WarkopHidayah_Jurnal_Umum_Memorial_' + cleanDate + '.xlsx';
   } else if(type === 'buku_besar'){
-    fileName = 'WarkopHidayah_Buku_Besar_Lengkap_' + dateStr.replace(/\//g,'-') + '.xlsx';
+    fileName = 'WarkopHidayah_Buku_Besar_Lengkap_' + cleanDate + '.xlsx';
   } else if(type === 'neraca_saldo'){
-    fileName = 'WarkopHidayah_Neraca_Saldo_' + dateStr.replace(/\//g,'-') + '.xlsx';
+    fileName = 'WarkopHidayah_Neraca_Saldo_' + cleanDate + '.xlsx';
   } else if(type === 'keuangan'){
-    fileName = 'WarkopHidayah_LaporanKeuangan_SAK_EMKM_' + dateStr.replace(/\//g,'-') + '.xlsx';
+    fileName = 'WarkopHidayah_LaporanKeuangan_SAK_EMKM_' + cleanDate + '.xlsx';
   } else if(type === 'all'){
-    fileName = 'WarkopHidayah_PaketLengkap_SAK_SemuaLaporan_' + dateStr.replace(/\//g,'-') + '.xlsx';
+    fileName = 'WarkopHidayah_PaketLengkap_SAK_SemuaLaporan_' + cleanDate + '.xlsx';
   } else if(type === 'pengeluaran'){
-    fileName = 'WarkopHidayah_BukuKas_Pengeluaran_' + dateStr.replace(/\//g,'-') + '.xlsx';
+    fileName = 'WarkopHidayah_BukuKas_Pengeluaran_' + cleanDate + '.xlsx';
   } else if(type === 'stok'){
-    fileName = 'WarkopHidayah_Stok_COA_' + dateStr.replace(/\//g,'-') + '.xlsx';
+    fileName = 'WarkopHidayah_Stok_COA_' + cleanDate + '.xlsx';
   } else {
-    fileName = 'WarkopHidayah_Transaksi_' + dateStr.replace(/\//g,'-') + '.xlsx';
+    fileName = 'WarkopHidayah_Transaksi_' + cleanDate + '.xlsx';
   }
 
   XLSX.writeFile(wb, fileName);
